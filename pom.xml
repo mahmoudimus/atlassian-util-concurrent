@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>atlassian-public-pom</artifactId>
 		<groupId>com.atlassian.pom</groupId>
-		<version>11</version>
+		<version>15</version>
 	</parent>
 	<groupId>com.atlassian.util.concurrent</groupId>
 	<artifactId>atlassian-util-concurrent</artifactId>
