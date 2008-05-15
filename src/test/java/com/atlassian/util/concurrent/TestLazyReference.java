@@ -23,6 +23,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class TestLazyReference {
 
+    /**
+     * Used to pound the tests
+     * 
+     * @param args
+     *            ignored
+     * @throws Exception
+     */
+    public static void main(final String[] args) throws Exception {
+        final TestLazyReference test = new TestLazyReference();
+        for (int i = 0; i < 10000; i++) {
+            //test.concurrentCreate();
+            //test.getInterruptibly();
+            test.getNotInterruptable();
+        }
+    }
+
     @Test
     public void concurrentCreate() throws Exception {
         final int nThreads = 40;

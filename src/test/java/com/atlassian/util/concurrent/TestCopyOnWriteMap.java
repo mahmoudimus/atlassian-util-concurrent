@@ -1,12 +1,9 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Util.pause;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import static org.junit.Assert.*;
 import com.atlassian.util.concurrent.CopyOnWriteMap.CopyFunction;
+import com.atlassian.util.concurrent.CopyOnWriteMap.Functions;
 
 import org.junit.Test;
 
@@ -29,7 +26,7 @@ public class TestCopyOnWriteMap {
     public void factoryCalledOnConstructor() {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> init = MapBuilder.build("1", "o1", "2", "o2", "3", "o3");
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(init, new CopyOnWriteMap.CopyFunction<String, String>() {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(init, new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
@@ -44,7 +41,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void factoryCalledOnWrite() {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<String, String>() {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
@@ -75,7 +72,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void writesBlock() {
         final LatchQueue queue = new LatchQueue.SinglePass(true);
-        final Map<Object, Object> map = new CopyOnWriteMap<Object, Object>(new CopyOnWriteMap.CopyFunction<Object, Object>() {
+        final Map<Object, Object> map = new CopyOnWriteMap<Object, Object>(new CopyOnWriteMap.CopyFunction<Map<Object, Object>>() {
             public Map<Object, Object> copy(final Map<Object, Object> map) {
                 queue.await();
                 return new HashMap<Object, Object>(map);
@@ -139,12 +136,16 @@ public class TestCopyOnWriteMap {
     }
 
     @Test
+    public void testHashCopyFunction() throws Exception {
+        final CopyFunction<Map<String, String>> function = Functions.hash();
+        final Map<String, String> result = function.copy(new HashMap<String, String>());
+        assertEquals(0, result.size());
+        assertEquals(HashMap.class, result.getClass());
+    }
+
+    @Test
     public void unmodifiableValues() throws Exception {
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<String, String>() {
-            public Map<String, String> copy(final Map<String, String> map) {
-                return new HashMap<String, String>(map);
-            }
-        });
+        final Map<String, String> map = CopyOnWriteMap.newHashMap();
         map.put("test", "test");
 
         assertUnmodifiableCollection(map.entrySet(), new Map.Entry<String, String>() {
@@ -189,7 +190,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void nullMapWithCopyFunction() throws Exception {
         try {
-            final CopyFunction<String, String> hashFunction = CopyOnWriteMap.Functions.hash();
+            final CopyOnWriteMap.CopyFunction<Map<String, String>> hashFunction = CopyOnWriteMap.Functions.hash();
             new CopyOnWriteMap<String, String>(null, hashFunction);
             fail("Should have thrown IllegalArgumentEx");
         }
@@ -201,7 +202,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void copyFunctionReturnsNull() throws Exception {
         try {
-            new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<String, String>() {
+            new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
                 public Map<String, String> copy(final Map<String, String> map) {
                     return null;
                 };
@@ -260,7 +261,7 @@ public class TestCopyOnWriteMap {
         });
     }
 
-    private static void assertThrowsUnsupportedOp(final Runnable runnable) {
+    static void assertThrowsUnsupportedOp(final Runnable runnable) {
         try {
             runnable.run();
             fail("should have thrown UnsupportedOperationException");
