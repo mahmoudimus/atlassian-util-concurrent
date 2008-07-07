@@ -12,7 +12,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<description />
 	<properties>
-	<jdkLevel>1.5</jdkLevel>
+		<jdkLevel>1.5</jdkLevel>
 	</properties>
 	<distributionManagement>
 		<site>
