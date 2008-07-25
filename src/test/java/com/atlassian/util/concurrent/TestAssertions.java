@@ -9,7 +9,7 @@ public class TestAssertions {
     @Test
     public void isNotNullThrowsNull() {
         try {
-            Assertions.isNotNull("something", null);
+            Assertions.notNull("something", null);
             fail("Should have thrown IllegalArgumentEx");
         }
         catch (final IllegalArgumentException expected) {
@@ -19,6 +19,6 @@ public class TestAssertions {
 
     @Test
     public void isNotNull() {
-        Assertions.isNotNull("something", "notNull");
+        Assertions.notNull("something", "notNull");
     }
 }

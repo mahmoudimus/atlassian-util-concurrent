@@ -1,6 +1,22 @@
+/**
+ * Copyright 2008 Atlassian Pty Ltd 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.isNotNull;
+import static com.atlassian.util.concurrent.Assertions.notNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -8,26 +24,25 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> {
-
     private volatile M delegate;
     private final CopyFunction<M> factory;
 
     /**
-     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to initialize the values and the {@link CopyFunction} for creating our actual
-     * delegate instances.
+     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
+     * initialize the values and the {@link CopyFunction} for creating our
+     * actual delegate instances.
      * 
-     * @param map
-     *            the initial map to initialize with
-     * @param factory
-     *            the copy function
+     * @param map the initial map to initialize with
+     * @param factory the copy function
      */
     protected AbstractCopyOnWriteMap(final M map, final CopyFunction<M> factory) {
-        this.factory = isNotNull("CopyFunction", factory);
-        isNotNull("map", map);
-        this.delegate = isNotNull("map", factory.copy(map));
+        this.factory = notNull("CopyFunction", factory);
+        notNull("map", map);
+        this.delegate = notNull("map", factory.copy(map));
     }
 
-    // ---------------------------------------------------------------------------------------------- mutable operations
+    //--------------------------------------------------------------------------
+    // -------------------- mutable operations
 
     public synchronized void clear() {
         final M map = copy();
@@ -111,15 +126,17 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> {
     }
 
     /**
-     * Copy the current map. Always done under a lock so we don't get multiple threads doing this concurrently.
+     * Copy the current map. Always done under a lock so we don't get multiple
+     * threads doing this concurrently.
      */
     protected interface CopyFunction<M extends Map<?, ?>> {
         /**
-         * Create a new map copied from the one supplied. Implementations should not keep a reference to this map, and must not modify the map after
-         * it has been returned. This will be called under synchronization, so it should not do any IO or blocking operations.
+         * Create a new map copied from the one supplied. Implementations should
+         * not keep a reference to this map, and must not modify the map after
+         * it has been returned. This will be called under synchronization, so
+         * it should not do any IO or blocking operations.
          * 
-         * @param map
-         *            the map to copy. Will not be null.
+         * @param map the map to copy. Will not be null.
          * @return a new copied map. Must not be null.
          */
         M copy(M map);
