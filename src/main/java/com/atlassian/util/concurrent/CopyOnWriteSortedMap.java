@@ -26,16 +26,17 @@ public class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, Sor
 
     public interface CopyFunction<M extends SortedMap<?, ?>> extends AbstractCopyOnWriteMap.CopyFunction<M> {}
 
-    //--------------------------------------------------------------------------
-    // -------------------- factory methods
+    //
+    // factory methods
+    //
 
     static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
-        final CopyFunction<SortedMap<K, V>> function = Functions.tree();
-        return new CopyOnWriteSortedMap<K, V>(function);
+        return new CopyOnWriteSortedMap<K, V>(Functions.<K, V> tree());
     }
 
-    //--------------------------------------------------------------------------
-    // -------------------- constructors
+    //
+    // constructors
+    //
 
     /**
      * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
@@ -59,8 +60,9 @@ public class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, Sor
         super(new TreeMap<K, V>(), factory);
     }
 
-    //--------------------------------------------------------------------------
-    // -------------------- methods
+    //
+    // methods
+    //
 
     public Comparator<? super K> comparator() {
         return getDelegate().comparator();
@@ -86,8 +88,9 @@ public class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, Sor
         return Collections.unmodifiableSortedMap(getDelegate().subMap(fromKey, toKey));
     };
 
-    //--------------------------------------------------------------------------
-    // -------------------- interfaces
+    //
+    // inner classes
+    //
 
     /**
      * Factories that create the standard Collections {@link Map}

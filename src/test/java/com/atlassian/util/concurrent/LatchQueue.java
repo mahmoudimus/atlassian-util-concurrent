@@ -1,22 +1,21 @@
 package com.atlassian.util.concurrent;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Simple Latch-like structure where threads jump in a queue and are let off rally-style, one after the other.
+ * Simple Latch-like structure where threads jump in a queue and are let off
+ * rally-style, one after the other.
  */
 interface LatchQueue {
     /**
-     * await until a {@link #go()} is called
+     * await until a {@link #release()} is called
      */
     void await();
 
     /**
      * cause any threads backed up in {@link #await()} to go
      */
-    void go();
+    void release();
 
     /**
      * How many threads are waiting.
@@ -25,55 +24,39 @@ interface LatchQueue {
      */
     int size();
 
-    /**
-     * Implementation where threads are single pass. Threads jump in a queue and are let off rally-style, one after the other.
-     */
     class SinglePass implements LatchQueue {
-        private final BlockingQueue<CountDownLatch> queue = new LinkedBlockingQueue<CountDownLatch>();
+        private final BooleanLatch latch = new BooleanLatch();
+        private final AtomicInteger count = new AtomicInteger();
 
         /**
-         * Construct a new SinglePass LatchQueue, optionally with the first call to not wait by prepping the first latch.
+         * Construct a new SinglePass LatchQueue, optionally with the first call
+         * to not wait by releasing the latch.
          * 
-         * @param prep
-         *            if you want the first call to await to get a latch.
+         * @param prep if you want the first call to await to get a latch.
          */
         SinglePass(final boolean prep) {
-            final CountDownLatch head = new CountDownLatch(1);
-            queue.offer(head);
             if (prep) {
-                head.countDown();
+                latch.release();
             }
         }
 
         public void await() {
             try {
-                final CountDownLatch latch = queue.take();
-                if (!queue.offer(latch)) {
-                    throw new IllegalStateException("LatchQueue is full!");
-                }
+                count.incrementAndGet();
                 latch.await();
-            }
-            catch (final InterruptedException e) {
-                throw new RuntimeException(e);
+            } catch (final InterruptedException e) {
+                throw new RuntimeInterruptedException(e);
+            } finally {
+                count.decrementAndGet();
             }
         }
 
-        public void go() {
-            try {
-                final CountDownLatch latch = queue.take();
-                if (latch == null) {
-                    throw new IllegalStateException("LatchQueue is empty!");
-                }
-                latch.countDown();
-            }
-            catch (final InterruptedException e) {}
-            if (!queue.offer(new CountDownLatch(1))) {
-                throw new IllegalStateException("LatchQueue is full!");
-            }
+        public void release() {
+            latch.release();
         }
 
         public int size() {
-            return queue.size();
+            return count.get();
         }
     }
 }

@@ -37,9 +37,10 @@ import java.util.WeakHashMap;
  * lifetime of the iterator, so interference is impossible and the iterator is
  * guaranteed not to throw <tt>ConcurrentModificationException</tt>. The
  * iterators will not reflect additions, removals, or changes to the list since
- * the iterator was created. Element-changing operations on iterators and
- * collections themselves (remove, set, and add) are not supported. These
- * methods throw {@link UnsupportedOperationException}.
+ * the iterator was created. Removing elements via these iterators is not
+ * supported. The mutable operations on these collections (remove, retain etc.)
+ * are supported but as with the {@link Map} interface, add and addAll are not
+ * and throw {@link UnsupportedOperationException}.
  * <p>
  * The actual copy is performed by a supplied {@link CopyFunction} object. The
  * Factory is responsible for the underlying Map implementation (for instance a
@@ -53,22 +54,55 @@ import java.util.WeakHashMap;
  * <strong>Please note</strong> that the thread-safety guarantees are limited to
  * the thread-safety of the non-mutative (non-destructive) operations of the
  * underlying map implementation. For instance some implementations such as
- * {@link WeakHashMap} and {@link LinkedHashMap} are actually structurally
- * modified by the {@link #get(Object)} method and are therefore not suitable
- * candidates as delegates for this class.
+ * {@link WeakHashMap} and {@link LinkedHashMap} with access ordering are
+ * actually structurally modified by the {@link #get(Object)} method and are
+ * therefore not suitable candidates as delegates for this class.
  */
 public class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 7935514534647505917L;
 
     public interface CopyFunction<M extends Map<?, ?>> extends AbstractCopyOnWriteMap.CopyFunction<M> {}
 
-    //--------------------------------------------------------------------------
-    // -------------------- factory methods
+    //
+    // factory methods
+    //
 
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
+     */
     static <K, V> CopyOnWriteMap<K, V> newHashMap() {
-        final CopyFunction<Map<K, V>> function = Functions.hash();
-        return new CopyOnWriteMap<K, V>(function);
+        return new CopyOnWriteMap<K, V>(Functions.<K, V> hash());
     }
+
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
+     * using the supplied map as the initial values.
+     */
+    static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<K, V> map) {
+        return new CopyOnWriteMap<K, V>(map, Functions.<K, V> hash());
+    }
+
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying
+     * {@link LinkedHashMap}. Iterators for this map will be return elements in
+     * insertion order.
+     */
+    static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
+        return new CopyOnWriteMap<K, V>(Functions.<K, V> linked());
+    }
+
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying
+     * {@link LinkedHashMap} using the supplied map as the initial values.
+     * Iterators for this map will be return elements in insertion order.
+     */
+    static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<K, V> map) {
+        return new CopyOnWriteMap<K, V>(map, Functions.<K, V> linked());
+    }
+
+    //
+    // constructors
+    //
 
     /**
      * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
@@ -92,15 +126,42 @@ public class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>
         super(new HashMap<K, V>(), factory);
     }
 
+    //
+    // inner classes
+    //
+
     /**
      * Factories that create the standard Collections {@link Map}
      * implementations.
      */
     public static final class Functions {
+        /**
+         * {@link HashMap} copy function.
+         * 
+         * @param <K> the key type
+         * @param <V> the value type
+         * @return a new {@link HashMap}
+         */
         public static <K, V> CopyFunction<Map<K, V>> hash() {
             return new CopyFunction<Map<K, V>>() {
                 public Map<K, V> copy(final Map<K, V> map) {
                     return new HashMap<K, V>(map);
+                }
+            };
+        }
+
+        /**
+         * {@link LinkedHashMap} copy function. Note that LinkedHashMaps with
+         * access ordering should not be used.
+         * 
+         * @param <K> the key type
+         * @param <V> the value type
+         * @return a new {@link LinkedHashMap}
+         */
+        public static <K, V> CopyFunction<Map<K, V>> linked() {
+            return new CopyFunction<Map<K, V>>() {
+                public Map<K, V> copy(final Map<K, V> map) {
+                    return new LinkedHashMap<K, V>(map);
                 }
             };
         }
