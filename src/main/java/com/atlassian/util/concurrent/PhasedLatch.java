@@ -16,21 +16,25 @@
 
 package com.atlassian.util.concurrent;
 
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
- * A {@link PhasedLatch} is a latch that resets after it is released and can be
- * reused. A potentially waiting thread can test the current phase before
+ * A {@link PhasedLatch} is a shared latch that resets after it is released and
+ * can be reused. Potentially waiting threads can test the current phase before
  * performing an action. The action is then guarded by that phase and can await
- * that phase.
- * <p>
- * Implementation note: currently only {@link Integer#MIN_VALUE} to
- * {@link Integer#MAX_VALUE} phases are currently supported.
+ * that phase to be advanced via a call to {@link #release() release} the
+ * current phase.
  */
 public class PhasedLatch {
+    private static PhaseComparator comparator = new PhaseComparator();
+
     private final Sync sync = new Sync();
 
+    /**
+     * Release the current phase.
+     */
     public void release() {
         sync.releaseShared(1);
     }
@@ -41,7 +45,7 @@ public class PhasedLatch {
      * @throws InterruptedException if interrupted
      */
     public void await() throws InterruptedException {
-        sync.acquireSharedInterruptibly(getPhase());
+        awaitPhase(getPhase());
     }
 
     /**
@@ -85,15 +89,11 @@ public class PhasedLatch {
 
     /**
      * This sync implements Phasing. The state represents the current phase as
-     * an integer that continually increases. Will fail once
-     * {@link Integer#MAX_VALUE} is reached.
+     * an integer that continually increases. The phase can wrap around past
+     * {@link Integer#MAX_VALUE}
      */
     private class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -7753362916930221487L;
-
-        Sync() {
-            setState(Integer.MIN_VALUE);
-        }
 
         public int getCurrentPhase() {
             return getState();
@@ -101,7 +101,7 @@ public class PhasedLatch {
 
         @Override
         protected int tryAcquireShared(final int phase) {
-            return (getState() > phase) ? 0 : -1;
+            return comparator.isPassed(getState(), phase) ? 1 : -1;
         }
 
         @Override
@@ -112,6 +112,23 @@ public class PhasedLatch {
                     return true;
                 }
             }
+        }
+    }
+
+    static class PhaseComparator implements Comparator<Integer> {
+        public int compare(final Integer current, final Integer waitingFor) {
+            return waitingFor - current;
+        };
+
+        /**
+         * Has the current phase passed the waiting phase.
+         * 
+         * @param current
+         * @param waitingFor
+         * @return true if current is greater than waiting
+         */
+        boolean isPassed(final int current, final int waitingFor) {
+            return compare(current, waitingFor) < 0;
         }
     }
 }
