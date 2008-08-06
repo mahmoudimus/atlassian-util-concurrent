@@ -19,7 +19,7 @@ import com.atlassian.util.concurrent.CopyOnWriteSortedMap.CopyFunction;
 public class TestCopyOnWriteSortedMap {
 
     @Test
-    public void testComparator() {
+    public void comparator() {
         final CopyFunction<SortedMap<String, String>> treeFunction = CopyOnWriteSortedMap.Functions.tree();
         final SortedMap<String, String> map = new CopyOnWriteSortedMap<String, String>(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER),
             treeFunction);
@@ -28,7 +28,7 @@ public class TestCopyOnWriteSortedMap {
     }
 
     @Test
-    public void testFirstKey() {
+    public void firstKey() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
@@ -37,7 +37,7 @@ public class TestCopyOnWriteSortedMap {
     }
 
     @Test
-    public void testLastKey() {
+    public void lastKey() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
@@ -46,7 +46,7 @@ public class TestCopyOnWriteSortedMap {
     }
 
     @Test
-    public void testHeadMap() {
+    public void headMap() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
@@ -62,7 +62,7 @@ public class TestCopyOnWriteSortedMap {
     }
 
     @Test
-    public void testTailMap() {
+    public void tailMap() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
@@ -78,7 +78,7 @@ public class TestCopyOnWriteSortedMap {
     }
 
     @Test
-    public void testSubMap() {
+    public void subMap() {
         final CopyOnWriteSortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");

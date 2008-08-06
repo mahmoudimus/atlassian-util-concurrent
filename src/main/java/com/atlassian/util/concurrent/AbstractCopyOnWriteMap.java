@@ -18,12 +18,15 @@ package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V> {
+abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V>, Serializable {
+    private static final long serialVersionUID = 4508989182041753878L;
+
     private volatile M delegate;
     private final CopyFunction<M> factory;
     private final transient EntrySet entrySet = new EntrySet();
@@ -40,8 +43,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
      */
     protected AbstractCopyOnWriteMap(final M map, final CopyFunction<M> factory) {
         this.factory = notNull("CopyFunction", factory);
-        notNull("map", map);
-        this.delegate = notNull("map", factory.copy(map));
+        this.delegate = notNull("delegate", factory.copy(notNull("map", map)));
     }
 
     //
@@ -51,7 +53,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     public synchronized final void clear() {
         final M map = copy();
         map.clear();
-        delegate = map;
+        set(map);
     }
 
     public synchronized final V remove(final Object key) {
@@ -61,25 +63,37 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         }
         final M map = copy();
         final V result = map.remove(key);
-        delegate = map;
+        set(map);
         return result;
     }
 
     public synchronized final V put(final K key, final V value) {
         final M map = copy();
         final V result = map.put(key, value);
-        delegate = map;
+        set(map);
         return result;
     }
 
     public synchronized final void putAll(final Map<? extends K, ? extends V> t) {
         final M map = copy();
         map.putAll(t);
-        delegate = map;
+        set(map);
     }
 
-    private synchronized M copy() {
+    protected synchronized void removeAll(final Collection<K> keys) {
+        final M map = copy();
+        for (final K k : keys) {
+            map.remove(k);
+        }
+        set(map);
+    }
+
+    protected synchronized M copy() {
         return factory.copy(delegate);
+    }
+
+    protected synchronized void set(final M map) {
+        delegate = map;
     }
 
     //
@@ -158,7 +172,12 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         M copy(M map);
     }
 
-    private class KeySet implements Set<K> {
+    private class KeySet extends CollectionView<K> implements Set<K> {
+
+        @Override
+        Collection<K> getDelegate() {
+            return delegate.keySet();
+        }
 
         //
         // mutable operations
@@ -168,7 +187,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 map.keySet().clear();
-                delegate = map;
+                set(map);
             }
         }
 
@@ -180,7 +199,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 final boolean result = map.keySet().removeAll(c);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
@@ -189,63 +208,24 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 final boolean result = map.keySet().retainAll(c);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
-
-        //
-        // delegate operations
-        //
-
-        public boolean contains(final Object o) {
-            return delegate.containsKey(o);
-        }
-
-        public boolean containsAll(final Collection<?> c) {
-            return delegate.keySet().containsAll(c);
-        }
-
-        public boolean isEmpty() {
-            return delegate.isEmpty();
-        }
-
-        public Iterator<K> iterator() {
-            return new UnmodifiableIterator<K>(delegate.keySet().iterator());
-        }
-
-        public int size() {
-            return delegate.keySet().size();
-        }
-
-        public Object[] toArray() {
-            return delegate.keySet().toArray();
-        }
-
-        public <T> T[] toArray(final T[] a) {
-            return delegate.keySet().toArray(a);
-        }
-
-        //
-        // unsupported operations
-        //
-
-        public boolean add(final K o) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean addAll(final Collection<? extends K> c) {
-            throw new UnsupportedOperationException();
-        }
     }
 
-    private final class Values implements Collection<V> {
+    private final class Values extends CollectionView<V> implements Collection<V> {
+
+        @Override
+        Collection<V> getDelegate() {
+            return delegate.values();
+        }
 
         public void clear() {
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 map.values().clear();
-                delegate = map;
+                set(map);
             }
         }
 
@@ -256,7 +236,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
                 }
                 final M map = copy();
                 final boolean result = map.values().remove(o);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
@@ -265,7 +245,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 final boolean result = map.values().removeAll(c);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
@@ -274,63 +254,24 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 final boolean result = map.values().retainAll(c);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
-
-        //
-        // delegate operations
-        //
-
-        public boolean contains(final Object o) {
-            return delegate.values().contains(o);
-        }
-
-        public boolean containsAll(final Collection<?> c) {
-            return delegate.values().containsAll(c);
-        }
-
-        public Iterator<V> iterator() {
-            return new UnmodifiableIterator<V>(delegate.values().iterator());
-        }
-
-        public boolean isEmpty() {
-            return delegate.values().isEmpty();
-        }
-
-        public int size() {
-            return delegate.values().size();
-        }
-
-        public Object[] toArray() {
-            return delegate.values().toArray();
-        }
-
-        public <T> T[] toArray(final T[] a) {
-            return delegate.values().toArray(a);
-        }
-
-        //
-        // unsupported operations
-        //
-
-        public boolean add(final V o) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean addAll(final Collection<? extends V> c) {
-            throw new UnsupportedOperationException();
-        }
     }
 
-    private class EntrySet implements Set<Map.Entry<K, V>> {
+    private class EntrySet extends CollectionView<Entry<K, V>> implements Set<Map.Entry<K, V>> {
+
+        @Override
+        Collection<java.util.Map.Entry<K, V>> getDelegate() {
+            return delegate.entrySet();
+        }
 
         public void clear() {
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 map.entrySet().clear();
-                delegate = map;
+                set(map);
             }
         }
 
@@ -341,7 +282,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
                 }
                 final M map = copy();
                 final boolean result = map.entrySet().remove(o);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
@@ -350,7 +291,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 final boolean result = map.entrySet().removeAll(c);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
@@ -359,57 +300,13 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             synchronized (AbstractCopyOnWriteMap.this) {
                 final M map = copy();
                 final boolean result = map.entrySet().retainAll(c);
-                delegate = map;
+                set(map);
                 return result;
             }
         }
-
-        //
-        // delegate operations
-        //
-
-        public boolean contains(final Object o) {
-            return delegate.entrySet().contains(o);
-        }
-
-        public boolean containsAll(final Collection<?> c) {
-            return delegate.entrySet().containsAll(c);
-        }
-
-        public boolean isEmpty() {
-            return delegate.entrySet().isEmpty();
-        }
-
-        public Iterator<Entry<K, V>> iterator() {
-            return new UnmodifiableIterator<Entry<K, V>>(delegate.entrySet().iterator());
-        }
-
-        public int size() {
-            return delegate.entrySet().size();
-        }
-
-        public Object[] toArray() {
-            return delegate.entrySet().toArray();
-        }
-
-        public <T> T[] toArray(final T[] a) {
-            return delegate.entrySet().toArray(a);
-        }
-
-        //
-        // unsupported operations
-        //
-
-        public boolean add(final Map.Entry<K, V> o) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean addAll(final Collection<? extends Map.Entry<K, V>> c) {
-            throw new UnsupportedOperationException();
-        }
     }
 
-    private class UnmodifiableIterator<T> implements Iterator<T> {
+    private static class UnmodifiableIterator<T> implements Iterator<T> {
         private final Iterator<T> delegate;
 
         public UnmodifiableIterator(final Iterator<T> delegate) {
@@ -425,6 +322,65 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         }
 
         public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    protected static abstract class CollectionView<E> implements Collection<E> {
+
+        abstract Collection<E> getDelegate();
+
+        //
+        // delegate operations
+        //
+
+        public final boolean contains(final Object o) {
+            return getDelegate().contains(o);
+        }
+
+        public final boolean containsAll(final Collection<?> c) {
+            return getDelegate().containsAll(c);
+        }
+
+        public final Iterator<E> iterator() {
+            return new UnmodifiableIterator<E>(getDelegate().iterator());
+        }
+
+        public final boolean isEmpty() {
+            return getDelegate().isEmpty();
+        }
+
+        public final int size() {
+            return getDelegate().size();
+        }
+
+        public final Object[] toArray() {
+            return getDelegate().toArray();
+        }
+
+        public final <T> T[] toArray(final T[] a) {
+            return getDelegate().toArray(a);
+        }
+
+        @Override
+        public int hashCode() {
+            return getDelegate().hashCode();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            return getDelegate().equals(obj);
+        }
+
+        //
+        // unsupported operations
+        //
+
+        public final boolean add(final E o) {
+            throw new UnsupportedOperationException();
+        }
+
+        public final boolean addAll(final Collection<? extends E> c) {
             throw new UnsupportedOperationException();
         }
     }

@@ -1,12 +1,12 @@
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Util.pause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,11 +15,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -78,76 +73,43 @@ public class TestCopyOnWriteMap {
     }
 
     @Test
-    public void writesBlock() {
-        final LatchQueue queue = new LatchQueue.SinglePass(true);
-        // final BooleanLatch queue = new BooleanLatch();
-
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").toMap(),
-            new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-                public Map<String, String> copy(final Map<String, String> map) {
-                    queue.await();
-                    return new HashMap<String, String>(map);
-                }
-            });
-
-        final ExecutorService pool = Executors.newCachedThreadPool();
-        try {
-            final Future<Object> future1 = pool.submit(new Callable<Object>() {
-                public Object call() throws Exception {
-                    return map.remove("test");
-                }
-            });
-            pause();
-            assertFalse(future1.isDone());
-            final Future<Object> future2 = pool.submit(new Callable<Object>() {
-                public Object call() throws Exception {
-                    return map.put("testing", "testing");
-                }
-            });
-            assertFalse(future1.isDone());
-            assertFalse(future2.isDone());
-            final Future<Object> future3 = pool.submit(new Callable<Object>() {
-                public Object call() throws Exception {
-                    map.clear();
-                    return null;
-                }
-            });
-            assertFalse(future1.isDone());
-            assertFalse(future2.isDone());
-            assertFalse(future3.isDone());
-            // should only be one thread inside Factory waiting for latch
-            assertEquals(1, queue.size());
-            queue.release();
-            try {
-                assertEquals("test", future1.get());
-            } catch (final InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (final ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-            pause();
-            assertEquals(1, queue.size());
-            assertFalse(future2.isDone());
-            assertFalse(future3.isDone());
-            queue.release();
-            pause();
-            assertEquals(1, queue.size());
-            assertTrue(future2.isDone());
-            assertFalse(future3.isDone());
-            queue.release();
-            pause();
-            assertTrue(future3.isDone());
-        } finally {
-            pool.shutdown();
-        }
-    }
-
-    @Test
     public void hashMapCopyFunction() throws Exception {
         final CopyFunction<Map<String, String>> function = Functions.hash();
         final Map<String, String> result = function.copy(new HashMap<String, String>());
         assertEquals(0, result.size());
         assertEquals(HashMap.class, result.getClass());
+    }
+
+    @Test
+    public void hashAndEquality() throws Exception {
+        final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        assertEquals(map, cowMap);
+        assertEquals(map.hashCode(), cowMap.hashCode());
+    }
+
+    @Test
+    public void hashAndEqualityKeySet() throws Exception {
+        final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        assertEquals(map.keySet(), cowMap.keySet());
+        assertEquals(map.keySet().hashCode(), cowMap.keySet().hashCode());
+    }
+
+    @Test
+    public void hashAndEqualityValues() throws Exception {
+        final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
+        assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
+    }
+
+    @Test
+    public void hashAndEqualityEntrySet() throws Exception {
+        final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        assertEquals(map.entrySet(), cowMap.entrySet());
+        assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
     }
 
     @Test
@@ -354,6 +316,10 @@ class MapBuilder<K, V> {
             result.add(elements[i], elements[i + 1]);
         }
         return result.toMap();
+    }
+
+    static <K, V> MapBuilder<K, V> builder() {
+        return new MapBuilder<K, V>();
     }
 
     MapBuilder<K, V> add(final K key, final V value) {

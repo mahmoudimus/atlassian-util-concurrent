@@ -51,6 +51,8 @@ import java.util.WeakHashMap;
  * There are supplied {@link Functions} for the common Collections {@link Map}
  * implementations.
  * <p>
+ * Views of the keys, values and entries are modifiable and will cause a copy.
+ * <p>
  * <strong>Please note</strong> that the thread-safety guarantees are limited to
  * the thread-safety of the non-mutative (non-destructive) operations of the
  * underlying map implementation. For instance some implementations such as
