@@ -34,7 +34,8 @@ public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<
         }
         try {
             return runAndGet(future);
-        } finally {
+        }
+        finally {
             map.remove(key, future);
         }
     }
@@ -45,15 +46,19 @@ public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<
         future.run();
         try {
             return future.get();
-        } catch (final InterruptedException e) {
+        }
+        catch (final InterruptedException e) {
             throw new RuntimeInterruptedException(e);
-        } catch (final ExecutionException e) {
+        }
+        catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
             if (cause instanceof RuntimeException) {
                 throw (RuntimeException) cause;
-            } else if (cause instanceof Error) {
+            }
+            else if (cause instanceof Error) {
                 throw (Error) cause;
-            } else {
+            }
+            else {
                 throw e;
             }
         }

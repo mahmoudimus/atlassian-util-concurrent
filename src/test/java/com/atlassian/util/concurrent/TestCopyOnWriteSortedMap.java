@@ -5,6 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.atlassian.util.concurrent.CopyOnWriteSortedMap.CopyFunction;
+
+import org.junit.Test;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -12,17 +16,12 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.junit.Test;
-
-import com.atlassian.util.concurrent.CopyOnWriteSortedMap.CopyFunction;
-
 public class TestCopyOnWriteSortedMap {
 
     @Test
     public void comparator() {
         final CopyFunction<SortedMap<String, String>> treeFunction = CopyOnWriteSortedMap.Functions.tree();
-        final SortedMap<String, String> map = new CopyOnWriteSortedMap<String, String>(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER),
-            treeFunction);
+        final SortedMap<String, String> map = new CopyOnWriteSortedMap<String, String>(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER), treeFunction);
         assertNotNull(map.comparator());
         assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
     }
@@ -166,6 +165,7 @@ public class TestCopyOnWriteSortedMap {
         try {
             runnable.run();
             fail("should have thrown UnsupportedOperationException");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
     }
 }

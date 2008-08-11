@@ -93,7 +93,9 @@ public class TestConcurrentOperationMapImpl {
         // Create two threads whose job will be to call runOpertion with the
         // same name object
 
-        class MyException extends RuntimeException {}
+        class MyException extends RuntimeException {
+            private static final long serialVersionUID = 1472906008827102127L;
+        }
 
         final Callable<Integer> operation = new Callable<Integer>() {
             public Integer call() {
@@ -127,7 +129,9 @@ public class TestConcurrentOperationMapImpl {
         // Create two threads whose job will be to call runOpertion with the
         // same name object
 
-        class MyException extends RuntimeException {}
+        class MyException extends RuntimeException {
+            private static final long serialVersionUID = -9171222011228163934L;
+        }
 
         final Callable<Integer> operation = new Callable<Integer>() {
             public Integer call() {
@@ -148,7 +152,9 @@ public class TestConcurrentOperationMapImpl {
         // Create two threads whose job will be to call runOpertion with the
         // same name object
 
-        class MyError extends Error {}
+        class MyError extends Error {
+            private static final long serialVersionUID = -1416631799712180762L;
+        }
 
         final Callable<Integer> operation = new Callable<Integer>() {
             public Integer call() {
@@ -169,7 +175,9 @@ public class TestConcurrentOperationMapImpl {
         // Create two threads whose job will be to call runOpertion with the
         // same name object
 
-        class MyException extends Exception {}
+        class MyException extends Exception {
+            private static final long serialVersionUID = 22367874459914044L;
+        }
 
         final Callable<Integer> operation = new Callable<Integer>() {
             public Integer call() throws MyException {

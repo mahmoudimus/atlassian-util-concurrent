@@ -251,18 +251,19 @@ class LockingReference<V> {
     private final Condition empty = lock.newCondition();
 
     /**
-     * Takes the current element if it is not null and replaces it with null. If the current element is null then wait until it becomes non-null.
+     * Takes the current element if it is not null and replaces it with null. If the current element
+     * is null then wait until it becomes non-null.
      * <p>
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
      * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
      * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's interrupted status is cleared.
+     * then {@link InterruptedException} is thrown and the current thread's interrupted status is
+     * cleared.
      * 
      * @return the current element
-     * @throws InterruptedException
-     *             if the current thread is interrupted while waiting
+     * @throws InterruptedException if the current thread is interrupted while waiting
      */
     public V take() throws InterruptedException {
         lock.lock();
@@ -280,11 +281,10 @@ class LockingReference<V> {
     }
 
     /**
-     * Set the value of this reference. This method is lock-free. A thread waiting in {@link #take()} or {@link #take(long, TimeUnit)} will be
-     * released and given this value.
+     * Set the value of this reference. This method is lock-free. A thread waiting in
+     * {@link #take()} or {@link #take(long, TimeUnit)} will be released and given this value.
      * 
-     * @param value
-     *            the new value.
+     * @param value the new value.
      */
     public void set(final V value) {
         notNull("value", value);
@@ -304,6 +304,7 @@ class LockingReference<V> {
 }
 
 class LRUBlockingQueue<E> extends LinkedBlockingQueue<E> {
+    private static final long serialVersionUID = -6070900096160951474L;
 
     public LRUBlockingQueue(final int capacity) {
         super(capacity);
@@ -331,18 +332,19 @@ class PhasedBlockingReference<V> {
     private final PhasedLatch latch = new PhasedLatch();
 
     /**
-     * Takes the current element if it is not null and replaces it with null. If the current element is null then wait until it becomes non-null.
+     * Takes the current element if it is not null and replaces it with null. If the current element
+     * is null then wait until it becomes non-null.
      * <p>
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
      * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
      * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's interrupted status is cleared.
+     * then {@link InterruptedException} is thrown and the current thread's interrupted status is
+     * cleared.
      * 
      * @return the current element
-     * @throws InterruptedException
-     *             if the current thread is interrupted while waiting
+     * @throws InterruptedException if the current thread is interrupted while waiting
      */
     public V take() throws InterruptedException {
         while (true) {
@@ -355,25 +357,24 @@ class PhasedBlockingReference<V> {
     }
 
     /**
-     * Takes the current element if it is not null and replaces it with null. If the current element is null then wait until it becomes non-null. The
-     * method will throw a {@link TimeoutException} if the timeout is reached before an element becomes available.
+     * Takes the current element if it is not null and replaces it with null. If the current element
+     * is null then wait until it becomes non-null. The method will throw a {@link TimeoutException}
+     * if the timeout is reached before an element becomes available.
      * <p>
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
      * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
      * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's interrupted status is cleared.
+     * then {@link InterruptedException} is thrown and the current thread's interrupted status is
+     * cleared.
      * 
-     * @param timeout
-     *            the maximum time to wait
-     * @param unit
-     *            the time unit of the {@code timeout} argument
+     * @param timeout the maximum time to wait
+     * @param unit the time unit of the {@code timeout} argument
      * @return the current element
-     * @throws InterruptedException
-     *             if the current thread is interrupted while waiting
-     * @throws TimeoutException
-     *             if the timeout is reached without another thread having called {@link #set(Object)}.
+     * @throws InterruptedException if the current thread is interrupted while waiting
+     * @throws TimeoutException if the timeout is reached without another thread having called
+     *             {@link #set(Object)}.
      */
     public V take(final long timeout, final TimeUnit unit) throws TimeoutException, InterruptedException {
         if (!latch.await(timeout, unit)) {
@@ -383,11 +384,10 @@ class PhasedBlockingReference<V> {
     }
 
     /**
-     * Set the value of this reference. This method is lock-free. A thread waiting in {@link #take()} or {@link #take(long, TimeUnit)} will be
-     * released and given this value.
+     * Set the value of this reference. This method is lock-free. A thread waiting in
+     * {@link #take()} or {@link #take(long, TimeUnit)} will be released and given this value.
      * 
-     * @param value
-     *            the new value.
+     * @param value the new value.
      */
     public void set(final V value) {
         notNull("value", value);

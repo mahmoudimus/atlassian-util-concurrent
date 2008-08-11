@@ -34,9 +34,8 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     private final transient Values values = new Values();
 
     /**
-     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
-     * initialize the values and the {@link CopyFunction} for creating our
-     * actual delegate instances.
+     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to initialize the values
+     * and the {@link CopyFunction} for creating our actual delegate instances.
      * 
      * @param map the initial map to initialize with
      * @param factory the copy function
@@ -156,15 +155,14 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     }
 
     /**
-     * Copy the current map. Always done under a lock so we don't get multiple
-     * threads doing this concurrently.
+     * Copy the current map. Always done under a lock so we don't get multiple threads doing this
+     * concurrently.
      */
     protected interface CopyFunction<M extends Map<?, ?>> {
         /**
-         * Create a new map copied from the one supplied. Implementations should
-         * not keep a reference to this map, and must not modify the map after
-         * it has been returned. This will be called under synchronization, so
-         * it should not do any IO or blocking operations.
+         * Create a new map copied from the one supplied. Implementations should not keep a
+         * reference to this map, and must not modify the map after it has been returned. This will
+         * be called under synchronization, so it should not do any IO or blocking operations.
          * 
          * @param map the map to copy. Will not be null.
          * @return a new copied map. Must not be null.

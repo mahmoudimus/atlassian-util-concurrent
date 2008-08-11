@@ -6,6 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.atlassian.util.concurrent.CopyOnWriteMap.CopyFunction;
+import com.atlassian.util.concurrent.CopyOnWriteMap.Functions;
+
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,11 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Test;
-
-import com.atlassian.util.concurrent.CopyOnWriteMap.CopyFunction;
-import com.atlassian.util.concurrent.CopyOnWriteMap.Functions;
 
 public class TestCopyOnWriteMap {
 
@@ -123,8 +123,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void modifiableValues() throws Exception {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing",
-            "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
@@ -135,19 +134,22 @@ public class TestCopyOnWriteMap {
         try {
             values.add("something");
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         assertEquals(1, count.get());
         try {
             values.addAll(Arrays.asList("one", "two", "three"));
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         final Iterator<String> iterator = values.iterator();
         assertTrue(iterator.hasNext());
         assertNotNull(iterator.next());
         try {
             iterator.remove();
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         assertEquals(1, count.get());
         assertFalse(values.remove("blah"));
         assertEquals("not modified if element not present to be removed", 1, count.get());
@@ -165,8 +167,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void modifiableEntrySet() throws Exception {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing",
-            "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
@@ -197,19 +198,22 @@ public class TestCopyOnWriteMap {
         try {
             keys.add(new E("something"));
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         assertEquals(1, count.get());
         try {
             keys.addAll(Arrays.asList(new E("one"), new E("two"), new E("three")));
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         final Iterator<Entry<String, String>> iterator = keys.iterator();
         assertTrue(iterator.hasNext());
         assertNotNull(iterator.next());
         try {
             iterator.remove();
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         assertEquals(1, count.get());
         assertFalse(keys.remove("blah"));
         assertEquals("not modified if element not present to be removed", 1, count.get());
@@ -227,8 +231,7 @@ public class TestCopyOnWriteMap {
     @Test
     public void modifiableKeySet() throws Exception {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing",
-            "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
@@ -239,19 +242,22 @@ public class TestCopyOnWriteMap {
         try {
             keys.add("something");
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         assertEquals(1, count.get());
         try {
             keys.addAll(Arrays.asList("one", "two", "three"));
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         final Iterator<String> iterator = keys.iterator();
         assertTrue(iterator.hasNext());
         assertNotNull(iterator.next());
         try {
             iterator.remove();
             fail("UnsupportedOp expected");
-        } catch (final UnsupportedOperationException ignore) {}
+        }
+        catch (final UnsupportedOperationException ignore) {}
         assertEquals(1, count.get());
         assertFalse(keys.remove("blah"));
         assertEquals("not modified if element not present to be removed", 1, count.get());
@@ -271,7 +277,8 @@ public class TestCopyOnWriteMap {
         try {
             new CopyOnWriteMap<String, String>(null);
             fail("Should have thrown IllegalArgumentEx");
-        } catch (final IllegalArgumentException ignore) {}
+        }
+        catch (final IllegalArgumentException ignore) {}
     }
 
     @Test
@@ -279,7 +286,8 @@ public class TestCopyOnWriteMap {
         try {
             new CopyOnWriteMap<String, String>(new HashMap<String, String>(), null);
             fail("Should have thrown IllegalArgumentEx");
-        } catch (final IllegalArgumentException ignore) {}
+        }
+        catch (final IllegalArgumentException ignore) {}
     }
 
     @Test
@@ -288,7 +296,8 @@ public class TestCopyOnWriteMap {
             final CopyOnWriteMap.CopyFunction<Map<String, String>> hashFunction = CopyOnWriteMap.Functions.hash();
             new CopyOnWriteMap<String, String>(null, hashFunction);
             fail("Should have thrown IllegalArgumentEx");
-        } catch (final IllegalArgumentException ignore) {}
+        }
+        catch (final IllegalArgumentException ignore) {}
     }
 
     @Test
@@ -300,7 +309,8 @@ public class TestCopyOnWriteMap {
                 };
             });
             fail("Should have thrown IllegalArgumentEx");
-        } catch (final IllegalArgumentException ignore) {}
+        }
+        catch (final IllegalArgumentException ignore) {}
     }
 }
 

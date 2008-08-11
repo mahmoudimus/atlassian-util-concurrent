@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PhasedLatchTest {
     @Test
@@ -20,7 +20,8 @@ public class PhasedLatchTest {
                         latch.awaitPhase(latch.getPhase());
                         count.getAndIncrement();
                     }
-                } catch (final InterruptedException ignore) {}
+                }
+                catch (final InterruptedException ignore) {}
             }
         });
         client.start();
@@ -32,7 +33,8 @@ public class PhasedLatchTest {
                         latch.await();
                         count.getAndIncrement();
                     }
-                } catch (final InterruptedException ignore) {}
+                }
+                catch (final InterruptedException ignore) {}
             }
         });
         client2.start();

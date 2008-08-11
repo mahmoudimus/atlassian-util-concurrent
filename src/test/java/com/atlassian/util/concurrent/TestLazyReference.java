@@ -26,8 +26,7 @@ public class TestLazyReference {
     /**
      * Used to pound the tests
      * 
-     * @param args
-     *            ignored
+     * @param args ignored
      * @throws Exception
      */
     public static void main(final String[] args) throws Exception {
@@ -48,8 +47,10 @@ public class TestLazyReference {
             @Override
             protected Object create() {
                 /*
-                 * We are trying to simulate an expensive object construction call. So we do a sleep here. The idea is that we will get many threads
-                 * to call create() at the same time, make create "slow" and then ensure that create() method was indeed invoked only once.
+                 * We are trying to simulate an expensive object construction call. So we do a sleep
+                 * here. The idea is that we will get many threads to call create() at the same
+                 * time, make create "slow" and then ensure that create() method was indeed invoked
+                 * only once.
                  */
                 createCallCount.incrementAndGet();
                 pause();
@@ -62,7 +63,8 @@ public class TestLazyReference {
         };
 
         /*
-         * pool size must be large enough to accommodate all Callables running in parallel as they latch
+         * pool size must be large enough to accommodate all Callables running in parallel as they
+         * latch
          */
         final ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         final CountDownLatch latch = new CountDownLatch(nThreads);
@@ -74,8 +76,9 @@ public class TestLazyReference {
             tasks.add(new Callable<Object>() {
                 public Object call() {
                     /*
-                     * Put in a latch to synchronize all threads and try to get them to call ref.get() at the same time (to increase concurrency and
-                     * make this test more useful)
+                     * Put in a latch to synchronize all threads and try to get them to call
+                     * ref.get() at the same time (to increase concurrency and make this test more
+                     * useful)
                      */
                     try {
                         latch.countDown();

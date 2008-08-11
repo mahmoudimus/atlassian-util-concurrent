@@ -21,11 +21,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
- * A {@link PhasedLatch} is a shared latch that resets after it is released and
- * can be reused. Potentially waiting threads can test the current phase before
- * performing an action. The action is then guarded by that phase and can await
- * that phase to be advanced via a call to {@link #release() release} the
- * current phase.
+ * A {@link PhasedLatch} is a shared latch that resets after it is released and can be reused.
+ * Potentially waiting threads can test the current phase before performing an action. The action is
+ * then guarded by that phase and can await that phase to be advanced via a call to
+ * {@link #release() release} the current phase.
  */
 public class PhasedLatch {
     private static PhaseComparator comparator = new PhaseComparator();
@@ -88,9 +87,8 @@ public class PhasedLatch {
     }
 
     /**
-     * This sync implements Phasing. The state represents the current phase as
-     * an integer that continually increases. The phase can wrap around past
-     * {@link Integer#MAX_VALUE}
+     * This sync implements Phasing. The state represents the current phase as an integer that
+     * continually increases. The phase can wrap around past {@link Integer#MAX_VALUE}
      */
     private class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -7753362916930221487L;
