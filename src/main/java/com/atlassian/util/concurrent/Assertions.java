@@ -19,12 +19,18 @@ package com.atlassian.util.concurrent;
 /**
  * Design by contract assertions.
  */
-class Assertions {
+public class Assertions {
     public static <T> T notNull(final String name, final T notNull) throws IllegalArgumentException {
         if (notNull == null) {
             throw new NullArgumentException(name);
         }
         return notNull;
+    }
+
+    public static void isTrue(final String name, final boolean check) throws IllegalArgumentException {
+        if (!check) {
+            throw new IllegalArgumentException(name);
+        }
     }
 
     private Assertions() {}

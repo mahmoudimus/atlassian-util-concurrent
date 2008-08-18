@@ -23,12 +23,15 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Simple {@link Iterable} that holds {@link WeakReference weak references} to content elements. For
- * convenience there are {@link #add(Object)} and {@link #isEmpty()} methods.
+ * Simple {@link Iterable} that holds {@link WeakReference weak references} to
+ * content elements. For convenience there are {@link #add(Object)} and
+ * {@link #isEmpty()} methods.
  * <p>
- * {@link Iterator Iterators} returned by this object maintain a hard reference to the next object.
- * They are otherwise unstable as references may be garbage collected at any time
+ * {@link Iterator Iterators} returned by this object maintain a hard reference
+ * to the next object. They are otherwise unstable as references may be garbage
+ * collected at any time
  */
+@ThreadSafe
 public class WeakIterable<E> implements Iterable<E> {
     private final Queue<WeakReference<E>> queue = new LinkedBlockingQueue<WeakReference<E>>();
 
@@ -56,8 +59,7 @@ public class WeakIterable<E> implements Iterable<E> {
                 }
                 try {
                     return next;
-                }
-                finally {
+                } finally {
                     next = getNext();
                 }
             }
