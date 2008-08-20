@@ -10,6 +10,7 @@
     <name>Atlassian Concurrency Utilities</name>
     <version>0.0.1-SNAPSHOT</version>
     <description></description>
+	<url>https://labs.atlassian.com/wiki/display/CONCURRENT/Home</url>
     <scm>
         <connection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</connection>
         <developerConnection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</developerConnection>
@@ -27,6 +28,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>retrotranslator-maven-plugin</artifactId>
+				<version>1.0-alpha-3</version>
                 <executions>
                     <execution>
                         <goals>
