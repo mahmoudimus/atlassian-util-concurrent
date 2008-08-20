@@ -9,7 +9,7 @@
     <artifactId>atlassian-util-concurrent</artifactId>
     <name>Atlassian Concurrency Utilities</name>
     <version>0.0.1-SNAPSHOT</version>
-    <description></description>
+    <description>This project contains utility classes that are used by various products and projects inside Atlassian and may have some utility to the world at large.</description>
 	<url>https://labs.atlassian.com/wiki/display/CONCURRENT/Home</url>
     <scm>
         <connection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</connection>
