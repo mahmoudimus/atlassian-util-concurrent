@@ -1,12 +1,13 @@
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Util.pause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.Test;
 
 public class PhasedLatchTest {
     @Test
@@ -20,8 +21,7 @@ public class PhasedLatchTest {
                         latch.awaitPhase(latch.getPhase());
                         count.getAndIncrement();
                     }
-                }
-                catch (final InterruptedException ignore) {}
+                } catch (final InterruptedException ignore) {}
             }
         });
         client.start();
@@ -33,23 +33,22 @@ public class PhasedLatchTest {
                         latch.await();
                         count.getAndIncrement();
                     }
-                }
-                catch (final InterruptedException ignore) {}
+                } catch (final InterruptedException ignore) {}
             }
         });
         client2.start();
 
         assertEquals(0, count.get());
-        Util.pause();
+        pause();
         assertEquals(0, count.get());
         latch.release();
-        Util.pause();
+        pause();
         assertEquals(2, count.get());
         latch.release();
-        Util.pause();
+        pause();
         assertEquals(4, count.get());
         latch.release();
-        Util.pause();
+        pause();
         assertEquals(6, count.get());
 
         latch.release();
