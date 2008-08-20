@@ -22,6 +22,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * Lazily loaded reference that is not constructed until required. This class is
  * used to maintain a reference to an object that is expensive to create and

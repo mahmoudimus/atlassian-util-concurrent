@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * /** A thread-safe variant of {@link SortedMap} in which all mutative
  * operations (the "destructive" operations described by {@link SortedMap} put,

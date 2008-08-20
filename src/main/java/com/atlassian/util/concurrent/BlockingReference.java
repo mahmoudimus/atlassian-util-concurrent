@@ -24,6 +24,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * A Reference with queue semantics where rather than getting the current
  * reference it is taken instead. Analogous to a single element

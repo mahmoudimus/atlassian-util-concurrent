@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * A thread-safe variant of {@link Map} in which all mutative operations (the
  * "destructive" operations described by {@link Map} put, remove and so on) are

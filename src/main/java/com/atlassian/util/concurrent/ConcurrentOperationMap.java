@@ -19,6 +19,8 @@ package com.atlassian.util.concurrent;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * This will allow you to submit an operation, encapsulated by a
  * {@link Callable}, and keyed by an Object <K>, such that the result of the

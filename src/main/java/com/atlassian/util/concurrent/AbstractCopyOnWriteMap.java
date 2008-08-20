@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import net.jcip.annotations.ThreadSafe;
+
 @ThreadSafe
 abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 4508989182041753878L;

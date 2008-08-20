@@ -20,6 +20,8 @@ import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * A {@link PhasedLatch} is a shared latch that resets after it is released and
  * can be reused. Potentially waiting threads can test the current phase before

@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import net.jcip.annotations.ThreadSafe;
+
 @ThreadSafe
 public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 

@@ -22,6 +22,8 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * Simple {@link Iterable} that holds {@link WeakReference weak references} to
  * content elements. For convenience there are {@link #add(Object)} and

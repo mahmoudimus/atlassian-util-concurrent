@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * A {@link BooleanLatch} is a reusable latch that resets after it is released
  * and waited on. It depends on a boolean condition of being released or not and
