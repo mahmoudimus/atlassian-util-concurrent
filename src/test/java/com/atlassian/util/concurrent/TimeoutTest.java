@@ -1,6 +1,8 @@
 package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.atlassian.util.concurrent.Timeout.TimeSupplier;
 
@@ -39,6 +41,16 @@ public class TimeoutTest {
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
         assertEquals(3599999999998L, timeout.getTime());
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
+    }
+
+    @Test public void hourIsExpired() {
+        final Timeout timeout = new Timeout(3, TimeUnit.NANOSECONDS, new MockTimeSupplier(2, TimeUnit.NANOSECONDS));
+        assertEquals(2, timeout.getTime());
+        assertFalse(timeout.isExpired());
+        assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
+        assertEquals(0L, timeout.getTime());
+        assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
+        assertTrue(timeout.isExpired());
     }
 
     class MockTimeSupplier implements TimeSupplier {

@@ -95,6 +95,15 @@ import java.util.concurrent.TimeUnit;
     }
 
     /**
+     * Has this timeout expired
+     * 
+     * @return
+     */
+    public boolean isExpired() {
+        return getTime() <= 0;
+    }
+
+    /**
      * Supply time and precision to a {@link Timeout}.
      */
     interface TimeSupplier {
