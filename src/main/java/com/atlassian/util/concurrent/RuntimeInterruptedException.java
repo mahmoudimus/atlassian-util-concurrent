@@ -36,8 +36,7 @@ public class RuntimeInterruptedException extends RuntimeException {
         Thread.currentThread().interrupt();
     }
 
-    @Override
-    public InterruptedException getCause() {
+    @Override public InterruptedException getCause() {
         return (InterruptedException) super.getCause();
     }
 }

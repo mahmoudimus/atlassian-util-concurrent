@@ -16,8 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TestConcurrentOperationMapImpl {
 
-    @Test
-    public void runOperationsConcurrently() throws InterruptedException {
+    @Test public void runOperationsConcurrently() throws InterruptedException {
         final AtomicInteger counter = new AtomicInteger(0);
         final CountDownLatch runSignal = new CountDownLatch(2);
         final CountDownLatch startSignal = new CountDownLatch(1);
@@ -25,8 +24,7 @@ public class TestConcurrentOperationMapImpl {
 
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>() {
 
-            @Override
-            Integer runAndGet(final FutureTask<Integer> namedFuture) throws ExecutionException {
+            @Override Integer runAndGet(final FutureTask<Integer> namedFuture) throws ExecutionException {
                 runSignal.countDown();
                 try {
                     runSignal.await();
@@ -41,8 +39,7 @@ public class TestConcurrentOperationMapImpl {
         // Create two threads whose job will be to call runOpertion with the
         // same name object
         new Thread(new Worker(startSignal, doneSignal) {
-            @Override
-            void doWork() {
+            @Override void doWork() {
                 try {
                     assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
                         public Integer call() {
@@ -56,8 +53,7 @@ public class TestConcurrentOperationMapImpl {
             }
         }).start();
         new Thread(new Worker(startSignal, doneSignal) {
-            @Override
-            void doWork() {
+            @Override void doWork() {
                 try {
                     assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
                         public Integer call() {
@@ -85,8 +81,7 @@ public class TestConcurrentOperationMapImpl {
         assertEquals(1, counter.get());
     }
 
-    @Test
-    public void exceptionsGetRemoved() throws Exception {
+    @Test public void exceptionsGetRemoved() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
@@ -122,8 +117,7 @@ public class TestConcurrentOperationMapImpl {
         assertEquals(3, counter.get());
     }
 
-    @Test
-    public void runtimeExceptionGetsReThrown() throws Exception {
+    @Test public void runtimeExceptionGetsReThrown() throws Exception {
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
         // Create two threads whose job will be to call runOpertion with the
@@ -145,8 +139,7 @@ public class TestConcurrentOperationMapImpl {
         catch (final MyException expected) {}
     }
 
-    @Test
-    public void errorGetsReThrown() throws Exception {
+    @Test public void errorGetsReThrown() throws Exception {
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
         // Create two threads whose job will be to call runOpertion with the
@@ -168,8 +161,7 @@ public class TestConcurrentOperationMapImpl {
         catch (final MyError expected) {}
     }
 
-    @Test
-    public void checkedExceptionGetsWrapped() throws Exception {
+    @Test public void checkedExceptionGetsWrapped() throws Exception {
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
         // Create two threads whose job will be to call runOpertion with the

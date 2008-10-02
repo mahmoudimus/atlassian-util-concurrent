@@ -24,8 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestCopyOnWriteMap {
 
-    @Test
-    public void factoryCalledOnConstructor() {
+    @Test public void factoryCalledOnConstructor() {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> init = MapBuilder.build("1", "o1", "2", "o2", "3", "o3");
         final Map<String, String> map = new CopyOnWriteMap<String, String>(init, new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
@@ -41,8 +40,7 @@ public class TestCopyOnWriteMap {
         assertEquals("o1", map.get("1"));
     }
 
-    @Test
-    public void factoryCalledOnWrite() {
+    @Test public void factoryCalledOnWrite() {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> map = new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
@@ -72,56 +70,49 @@ public class TestCopyOnWriteMap {
         assertEquals(0, map.size());
     }
 
-    @Test
-    public void hashMapCopyFunction() throws Exception {
+    @Test public void hashMapCopyFunction() throws Exception {
         final CopyFunction<Map<String, String>> function = Functions.hash();
         final Map<String, String> result = function.copy(new HashMap<String, String>());
         assertEquals(0, result.size());
         assertEquals(HashMap.class, result.getClass());
     }
 
-    @Test
-    public void hashAndEquality() throws Exception {
+    @Test public void hashAndEquality() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(map, cowMap);
         assertEquals(map.hashCode(), cowMap.hashCode());
     }
 
-    @Test
-    public void hashAndEqualityKeySet() throws Exception {
+    @Test public void hashAndEqualityKeySet() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(map.keySet(), cowMap.keySet());
         assertEquals(map.keySet().hashCode(), cowMap.keySet().hashCode());
     }
 
-    @Test
-    public void hashAndEqualityValues() throws Exception {
+    @Test public void hashAndEqualityValues() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
         assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
     }
 
-    @Test
-    public void hashAndEqualityEntrySet() throws Exception {
+    @Test public void hashAndEqualityEntrySet() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(map.entrySet(), cowMap.entrySet());
         assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
     }
 
-    @Test
-    public void linkedHashMapCopyFunction() throws Exception {
+    @Test public void linkedHashMapCopyFunction() throws Exception {
         final CopyFunction<Map<String, String>> function = Functions.linked();
         final Map<String, String> result = function.copy(new HashMap<String, String>());
         assertEquals(0, result.size());
         assertEquals(LinkedHashMap.class, result.getClass());
     }
 
-    @Test
-    public void modifiableValues() throws Exception {
+    @Test public void modifiableValues() throws Exception {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
@@ -164,8 +155,7 @@ public class TestCopyOnWriteMap {
         assertEquals(0, map.size());
     }
 
-    @Test
-    public void modifiableEntrySet() throws Exception {
+    @Test public void modifiableEntrySet() throws Exception {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
@@ -228,8 +218,7 @@ public class TestCopyOnWriteMap {
         assertEquals(0, map.size());
     }
 
-    @Test
-    public void modifiableKeySet() throws Exception {
+    @Test public void modifiableKeySet() throws Exception {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
             public Map<String, String> copy(final Map<String, String> map) {
@@ -272,8 +261,7 @@ public class TestCopyOnWriteMap {
         assertEquals(0, map.size());
     }
 
-    @Test
-    public void nullCopyFunction() throws Exception {
+    @Test public void nullCopyFunction() throws Exception {
         try {
             new CopyOnWriteMap<String, String>(null);
             fail("Should have thrown IllegalArgumentEx");
@@ -281,8 +269,7 @@ public class TestCopyOnWriteMap {
         catch (final IllegalArgumentException ignore) {}
     }
 
-    @Test
-    public void emptyMapNullCopyFunction() throws Exception {
+    @Test public void emptyMapNullCopyFunction() throws Exception {
         try {
             new CopyOnWriteMap<String, String>(new HashMap<String, String>(), null);
             fail("Should have thrown IllegalArgumentEx");
@@ -290,8 +277,7 @@ public class TestCopyOnWriteMap {
         catch (final IllegalArgumentException ignore) {}
     }
 
-    @Test
-    public void nullMapWithCopyFunction() throws Exception {
+    @Test public void nullMapWithCopyFunction() throws Exception {
         try {
             final CopyOnWriteMap.CopyFunction<Map<String, String>> hashFunction = CopyOnWriteMap.Functions.hash();
             new CopyOnWriteMap<String, String>(null, hashFunction);
@@ -300,8 +286,7 @@ public class TestCopyOnWriteMap {
         catch (final IllegalArgumentException ignore) {}
     }
 
-    @Test
-    public void copyFunctionReturnsNull() throws Exception {
+    @Test public void copyFunctionReturnsNull() throws Exception {
         try {
             new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
                 public Map<String, String> copy(final Map<String, String> map) {

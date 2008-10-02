@@ -18,16 +18,14 @@ import java.util.TreeMap;
 
 public class TestCopyOnWriteSortedMap {
 
-    @Test
-    public void comparator() {
+    @Test public void comparator() {
         final CopyFunction<SortedMap<String, String>> treeFunction = CopyOnWriteSortedMap.Functions.tree();
         final SortedMap<String, String> map = new CopyOnWriteSortedMap<String, String>(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER), treeFunction);
         assertNotNull(map.comparator());
         assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
     }
 
-    @Test
-    public void firstKey() {
+    @Test public void firstKey() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
@@ -35,8 +33,7 @@ public class TestCopyOnWriteSortedMap {
         assertEquals("one", map.firstKey());
     }
 
-    @Test
-    public void lastKey() {
+    @Test public void lastKey() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
@@ -44,8 +41,7 @@ public class TestCopyOnWriteSortedMap {
         assertEquals("two", map.lastKey());
     }
 
-    @Test
-    public void headMap() {
+    @Test public void headMap() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
@@ -60,8 +56,7 @@ public class TestCopyOnWriteSortedMap {
         assertUnmodifiableMap(headMap, "3", "three");
     }
 
-    @Test
-    public void tailMap() {
+    @Test public void tailMap() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
@@ -76,8 +71,7 @@ public class TestCopyOnWriteSortedMap {
         assertUnmodifiableMap(tailMap, "1", "one");
     }
 
-    @Test
-    public void subMap() {
+    @Test public void subMap() {
         final CopyOnWriteSortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");

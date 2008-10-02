@@ -21,14 +21,19 @@ import net.jcip.annotations.Immutable;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Used to calculate timeouts from when it is created when successively calling blocking methods.
- * Always converts to nanoseconds.
+ * Used to calculate elapsed time for timeouts from when it is created when successively calling
+ * blocking methods. Always converts to nanoseconds.
  * <p>
  * Usage:
  * 
  * <pre>
- * 
+ * Timeout timeout = Timeout.getNanosTimeout(1, TimeUnit.SECONDS);
+ * String str = futureString.get(timeout.getTime(), timeout.getUnit());
+ * Integer num = futureInt.get(timeout.getTime(), timeout.getUnit());
  * </pre>
+ * 
+ * where if the first call takes quarter of a second, the second call is passed the equivalent of
+ * three-quarters of a second.
  */
 @Immutable public class Timeout {
 

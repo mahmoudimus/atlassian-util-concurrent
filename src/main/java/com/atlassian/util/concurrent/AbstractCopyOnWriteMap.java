@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -24,10 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import net.jcip.annotations.ThreadSafe;
-
-@ThreadSafe
-abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V>, Serializable {
+@ThreadSafe abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 4508989182041753878L;
 
     private volatile M delegate;
@@ -37,9 +35,8 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     private final transient Values values = new Values();
 
     /**
-     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
-     * initialize the values and the {@link CopyFunction} for creating our
-     * actual delegate instances.
+     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to initialize the values
+     * and the {@link CopyFunction} for creating our actual delegate instances.
      * 
      * @param map the initial map to initialize with
      * @param factory the copy function
@@ -139,13 +136,11 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         return delegate.size();
     }
 
-    @Override
-    public final boolean equals(final Object o) {
+    @Override public final boolean equals(final Object o) {
         return delegate.equals(o);
     }
 
-    @Override
-    public final int hashCode() {
+    @Override public final int hashCode() {
         return delegate.hashCode();
     }
 
@@ -153,8 +148,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         return delegate;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return delegate.toString();
     }
 
@@ -163,15 +157,14 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     //
 
     /**
-     * Copy the current map. Always done under a lock so we don't get multiple
-     * threads doing this concurrently.
+     * Copy the current map. Always done under a lock so we don't get multiple threads doing this
+     * concurrently.
      */
     protected interface CopyFunction<M extends Map<?, ?>> {
         /**
-         * Create a new map copied from the one supplied. Implementations should
-         * not keep a reference to this map, and must not modify the map after
-         * it has been returned. This will be called under synchronization, so
-         * it should not do any IO or blocking operations.
+         * Create a new map copied from the one supplied. Implementations should not keep a
+         * reference to this map, and must not modify the map after it has been returned. This will
+         * be called under synchronization, so it should not do any IO or blocking operations.
          * 
          * @param map the map to copy. Will not be null.
          * @return a new copied map. Must not be null.
@@ -185,8 +178,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
 
     private class KeySet extends CollectionView<K> implements Set<K> {
 
-        @Override
-        Collection<K> getDelegate() {
+        @Override Collection<K> getDelegate() {
             return delegate.keySet();
         }
 
@@ -227,8 +219,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
 
     private final class Values extends CollectionView<V> implements Collection<V> {
 
-        @Override
-        Collection<V> getDelegate() {
+        @Override Collection<V> getDelegate() {
             return delegate.values();
         }
 
@@ -273,8 +264,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
 
     private class EntrySet extends CollectionView<Entry<K, V>> implements Set<Map.Entry<K, V>> {
 
-        @Override
-        Collection<java.util.Map.Entry<K, V>> getDelegate() {
+        @Override Collection<java.util.Map.Entry<K, V>> getDelegate() {
             return delegate.entrySet();
         }
 
@@ -373,13 +363,11 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             return getDelegate().toArray(a);
         }
 
-        @Override
-        public int hashCode() {
+        @Override public int hashCode() {
             return getDelegate().hashCode();
         }
 
-        @Override
-        public boolean equals(final Object obj) {
+        @Override public boolean equals(final Object obj) {
             return getDelegate().equals(obj);
         }
 

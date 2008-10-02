@@ -6,8 +6,7 @@ import org.junit.Test;
 
 public class TestAssertions {
 
-    @Test
-    public void isNotNullThrowsNull() {
+    @Test public void isNotNullThrowsNull() {
         try {
             Assertions.notNull("something", null);
             fail("Should have thrown IllegalArgumentEx");
@@ -17,8 +16,7 @@ public class TestAssertions {
         }
     }
 
-    @Test
-    public void isNotNull() {
+    @Test public void isNotNull() {
         Assertions.notNull("something", "notNull");
     }
 }
