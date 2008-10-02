@@ -37,13 +37,14 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
             final T oldValue = ref.get(mark);
             if (mark[0]) {
                 if (!equals(oldValue, value)) {
-                    throw new IllegalStateException("cannot change value after it has been set");
+                    throw new IllegalArgumentException("cannot change value after it has been set");
                 }
                 return;
             }
             if (!ref.compareAndSet(null, value, false, true)) {
                 continue;
             }
+            latch.countDown();
             return;
         }
     }
