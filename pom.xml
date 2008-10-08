@@ -1,20 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <artifactId>atlassian-public-pom</artifactId>
         <groupId>com.atlassian.pom</groupId>
-        <version>16</version>
+        <version>17</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.atlassian.util.concurrent</groupId>
     <artifactId>atlassian-util-concurrent</artifactId>
     <name>Atlassian Concurrency Utilities</name>
-    <version>0.0.1-SNAPSHOT</version>
-    <description></description>
+    <version>0.0.3</version>
+    <description>This project contains utility classes that are used by various products and projects inside Atlassian and may have some utility to the world at large.</description>
 	<url>https://labs.atlassian.com/wiki/display/CONCURRENT/Home</url>
     <scm>
-        <connection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</connection>
-        <developerConnection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</developerConnection>
-        <url>https://labs.atlassian.com/svn/CONCURRENT/trunk</url>
+        <connection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/tags/atlassian-util-concurrent-0.0.3</connection>
+        <developerConnection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/tags/atlassian-util-concurrent-0.0.3</developerConnection>
+        <url>https://labs.atlassian.com/svn/CONCURRENT/tags/atlassian-util-concurrent-0.0.3</url>
     </scm>
     <licenses>
         <license>

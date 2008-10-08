@@ -14,7 +14,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PerformanceTest {
+public class PerformanceAnalysis {
 
     public static void main(final String[] args) {
         final List<Q> queues = new ArrayList<Q>();
@@ -24,7 +24,7 @@ public class PerformanceTest {
         //        queues.add(new LockedQueue());
         //        queues.add(new PhasedQueue());
         //queues.add(new LinkedQueue());
-        System.out.println(new PerformanceTest().runTest(queues));
+        System.out.println(new PerformanceAnalysis().runTest(queues));
     }
 
     public String runTest(final List<Q> queues) {
@@ -310,16 +310,14 @@ class LRUBlockingQueue<E> extends LinkedBlockingQueue<E> {
         super(capacity);
     }
 
-    @Override
-    public boolean offer(final E o) {
+    @Override public boolean offer(final E o) {
         while (remainingCapacity() == 0) {
             remove(peek());
         }
         return super.offer(o);
     };
 
-    @Override
-    public void put(final E o) throws InterruptedException {
+    @Override public void put(final E o) throws InterruptedException {
         while (remainingCapacity() == 0) {
             remove(peek());
         }

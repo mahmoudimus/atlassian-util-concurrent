@@ -1,3 +1,19 @@
+/**
+ * Copyright 2008 Atlassian Pty Ltd 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertEquals;
@@ -16,18 +32,16 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class TestCopyOnWriteSortedMap {
+public class CopyOnWriteSortedMapTest {
 
-    @Test
-    public void comparator() {
+    @Test public void comparator() {
         final CopyFunction<SortedMap<String, String>> treeFunction = CopyOnWriteSortedMap.Functions.tree();
         final SortedMap<String, String> map = new CopyOnWriteSortedMap<String, String>(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER), treeFunction);
         assertNotNull(map.comparator());
         assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
     }
 
-    @Test
-    public void firstKey() {
+    @Test public void firstKey() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
@@ -35,8 +49,7 @@ public class TestCopyOnWriteSortedMap {
         assertEquals("one", map.firstKey());
     }
 
-    @Test
-    public void lastKey() {
+    @Test public void lastKey() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
@@ -44,8 +57,7 @@ public class TestCopyOnWriteSortedMap {
         assertEquals("two", map.lastKey());
     }
 
-    @Test
-    public void headMap() {
+    @Test public void headMap() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
@@ -60,8 +72,7 @@ public class TestCopyOnWriteSortedMap {
         assertUnmodifiableMap(headMap, "3", "three");
     }
 
-    @Test
-    public void tailMap() {
+    @Test public void tailMap() {
         final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
@@ -76,8 +87,7 @@ public class TestCopyOnWriteSortedMap {
         assertUnmodifiableMap(tailMap, "1", "one");
     }
 
-    @Test
-    public void subMap() {
+    @Test public void subMap() {
         final CopyOnWriteSortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
