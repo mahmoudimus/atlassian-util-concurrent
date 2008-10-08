@@ -21,7 +21,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class TestLazyReference {
+public class LazyReferenceTest {
 
     /**
      * Used to pound the tests
@@ -30,7 +30,7 @@ public class TestLazyReference {
      * @throws Exception
      */
     public static void main(final String[] args) throws Exception {
-        final TestLazyReference test = new TestLazyReference();
+        final LazyReferenceTest test = new LazyReferenceTest();
         for (int i = 0; i < 10000; i++) {
             //test.concurrentCreate();
             //test.getInterruptibly();

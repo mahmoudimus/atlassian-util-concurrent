@@ -16,20 +16,17 @@
 
 package com.atlassian.util.concurrent;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Convenience exception that takes a time and a unit and produces a meaningful error message.
- */
-public class TimedOutException extends TimeoutException {
-    private static final long serialVersionUID = 2639693125779305458L;
+import org.junit.Test;
 
-    public TimedOutException(final long time, final TimeUnit unit) {
-        super("Timed out after: " + time + " " + unit);
-    }
+import java.util.concurrent.locks.Lock;
 
-    public TimedOutException(final Timeout timeout) {
-        this(timeout.getTime(), timeout.getUnit());
+public class LockMapTest {
+    @Test public void testStuff() throws Exception {
+        final WeakLockMap<Integer> lockMap = new WeakLockMap<Integer>(10000);
+
+        final Lock one = lockMap.get(1);
+        assertEquals(one, lockMap.get(1));
     }
 }
