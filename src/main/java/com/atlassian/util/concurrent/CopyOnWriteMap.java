@@ -68,7 +68,7 @@ import java.util.WeakHashMap;
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
      */
-    static <K, V> CopyOnWriteMap<K, V> newHashMap() {
+    public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
         return new CopyOnWriteMap<K, V>(Functions.<K, V> hash());
     }
 
@@ -76,7 +76,7 @@ import java.util.WeakHashMap;
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap} using the supplied
      * map as the initial values.
      */
-    static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<K, V> map) {
+    public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<K, V> map) {
         return new CopyOnWriteMap<K, V>(map, Functions.<K, V> hash());
     }
 
@@ -84,7 +84,7 @@ import java.util.WeakHashMap;
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link LinkedHashMap}. Iterators for
      * this map will be return elements in insertion order.
      */
-    static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
+    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
         return new CopyOnWriteMap<K, V>(Functions.<K, V> linked());
     }
 
@@ -93,7 +93,7 @@ import java.util.WeakHashMap;
      * supplied map as the initial values. Iterators for this map will be return elements in
      * insertion order.
      */
-    static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<K, V> map) {
+    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<K, V> map) {
         return new CopyOnWriteMap<K, V>(map, Functions.<K, V> linked());
     }
 

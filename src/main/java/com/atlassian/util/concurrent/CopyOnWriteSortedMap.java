@@ -76,7 +76,7 @@ import java.util.TreeMap;
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
      * {@link TreeMap}.
      */
-    static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
         return new CopyOnWriteSortedMap<K, V>(Functions.<K, V> tree());
     }
 
@@ -86,7 +86,7 @@ import java.util.TreeMap;
      * 
      * @param the map to use as the initial values.
      */
-    static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final SortedMap<K, V> map) {
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final SortedMap<K, V> map) {
         return new CopyOnWriteSortedMap<K, V>(map, Functions.<K, V> tree());
     }
 
@@ -96,7 +96,7 @@ import java.util.TreeMap;
      * 
      * @param the Comparator to use for ordering the keys.
      */
-    static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Comparator<? super K> comparator) {
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Comparator<? super K> comparator) {
         return new CopyOnWriteSortedMap<K, V>(new TreeMap<K, V>(comparator), Functions.<K, V> tree());
     }
 
