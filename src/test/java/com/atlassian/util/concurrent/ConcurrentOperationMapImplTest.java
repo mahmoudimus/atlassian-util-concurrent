@@ -24,7 +24,6 @@ import org.junit.Test;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -38,19 +37,22 @@ public class ConcurrentOperationMapImplTest {
         final CountDownLatch startSignal = new CountDownLatch(1);
         final CountDownLatch doneSignal = new CountDownLatch(2);
 
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>() {
-
-            @Override Integer runAndGet(final FutureTask<Integer> namedFuture) throws ExecutionException {
-                runSignal.countDown();
-                try {
-                    runSignal.await();
-                }
-                catch (final InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                return super.runAndGet(namedFuture);
+        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>(new Function<Callable<Integer>, ConcurrentOperationMapImpl.CallerRunsFuture<Integer>>() {
+            public ConcurrentOperationMapImpl.CallerRunsFuture<Integer> get(final Callable<Integer> input) {
+                return new ConcurrentOperationMapImpl.CallerRunsFuture<Integer>(input) {
+                    @Override public Integer get() throws ExecutionException {
+                        runSignal.countDown();
+                        try {
+                            runSignal.await();
+                        }
+                        catch (final InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return super.get();
+                    }
+                };
             }
-        };
+        });
 
         // Create two threads whose job will be to call runOpertion with the
         // same name object
