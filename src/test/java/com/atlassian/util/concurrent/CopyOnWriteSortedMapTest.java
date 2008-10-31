@@ -21,8 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.atlassian.util.concurrent.CopyOnWriteSortedMap.CopyFunction;
-
 import org.junit.Test;
 
 import java.util.Collection;
@@ -30,13 +28,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 public class CopyOnWriteSortedMapTest {
 
     @Test public void comparator() {
-        final CopyFunction<SortedMap<String, String>> treeFunction = CopyOnWriteSortedMap.Functions.tree();
-        final SortedMap<String, String> map = new CopyOnWriteSortedMap<String, String>(new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER), treeFunction);
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(String.CASE_INSENSITIVE_ORDER);
+        assertNotNull(map.comparator());
+        assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
+        map.put("one", "two");
         assertNotNull(map.comparator());
         assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
     }

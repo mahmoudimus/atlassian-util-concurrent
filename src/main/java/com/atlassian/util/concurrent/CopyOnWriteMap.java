@@ -19,6 +19,7 @@ package com.atlassian.util.concurrent;
 import net.jcip.annotations.ThreadSafe;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,7 +57,7 @@ import java.util.WeakHashMap;
  * ordering are actually structurally modified by the {@link #get(Object)} method and are therefore
  * not suitable candidates as delegates for this class.
  */
-@ThreadSafe public class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> implements Map<K, V>, Serializable {
+@ThreadSafe public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 7935514534647505917L;
 
     public interface CopyFunction<M extends Map<?, ?>> extends AbstractCopyOnWriteMap.CopyFunction<M> {}
@@ -69,15 +70,23 @@ import java.util.WeakHashMap;
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
      */
     public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
-        return new CopyOnWriteMap<K, V>(Functions.<K, V> hash());
+        return new CopyOnWriteMap<K, V>() {
+            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new HashMap<K, V>(map);
+            }
+        };
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap} using the supplied
      * map as the initial values.
      */
-    public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<K, V> map) {
-        return new CopyOnWriteMap<K, V>(map, Functions.<K, V> hash());
+    public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
+        return new CopyOnWriteMap<K, V>(map) {
+            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new HashMap<K, V>(map);
+            }
+        };
     }
 
     /**
@@ -85,7 +94,11 @@ import java.util.WeakHashMap;
      * this map will be return elements in insertion order.
      */
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
-        return new CopyOnWriteMap<K, V>(Functions.<K, V> linked());
+        return new CopyOnWriteMap<K, V>() {
+            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new LinkedHashMap<K, V>(map);
+            }
+        };
     }
 
     /**
@@ -93,8 +106,12 @@ import java.util.WeakHashMap;
      * supplied map as the initial values. Iterators for this map will be return elements in
      * insertion order.
      */
-    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<K, V> map) {
-        return new CopyOnWriteMap<K, V>(map, Functions.<K, V> linked());
+    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
+        return new CopyOnWriteMap<K, V>(map) {
+            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new LinkedHashMap<K, V>(map);
+            }
+        };
     }
 
     //
@@ -108,8 +125,8 @@ import java.util.WeakHashMap;
      * @param map the initial map to initialize with
      * @param factory the copy function
      */
-    public CopyOnWriteMap(final Map<K, V> map, final CopyFunction<Map<K, V>> factory) {
-        super(map, factory);
+    public CopyOnWriteMap(final Map<? extends K, ? extends V> map) {
+        super(map);
     }
 
     /**
@@ -118,47 +135,9 @@ import java.util.WeakHashMap;
      * 
      * @param factory the copy function
      */
-    public CopyOnWriteMap(final CopyFunction<Map<K, V>> factory) {
-        super(new HashMap<K, V>(), factory);
+    public CopyOnWriteMap() {
+        super(Collections.<K, V> emptyMap());
     }
 
-    //
-    // inner classes
-    //
-
-    /**
-     * Factories that create the standard Collections {@link Map} implementations.
-     */
-    public static final class Functions {
-        /**
-         * {@link HashMap} copy function.
-         * 
-         * @param <K> the key type
-         * @param <V> the value type
-         * @return a new {@link HashMap}
-         */
-        public static <K, V> CopyFunction<Map<K, V>> hash() {
-            return new CopyFunction<Map<K, V>>() {
-                public Map<K, V> copy(final Map<K, V> map) {
-                    return new HashMap<K, V>(map);
-                }
-            };
-        }
-
-        /**
-         * {@link LinkedHashMap} copy function. Note that LinkedHashMaps with access ordering should
-         * not be used.
-         * 
-         * @param <K> the key type
-         * @param <V> the value type
-         * @return a new {@link LinkedHashMap}
-         */
-        public static <K, V> CopyFunction<Map<K, V>> linked() {
-            return new CopyFunction<Map<K, V>>() {
-                public Map<K, V> copy(final Map<K, V> map) {
-                    return new LinkedHashMap<K, V>(map);
-                }
-            };
-        }
-    }
+    @Override public abstract <N extends Map<? extends K, ? extends V>> Map<K, V> copy(N map);
 }

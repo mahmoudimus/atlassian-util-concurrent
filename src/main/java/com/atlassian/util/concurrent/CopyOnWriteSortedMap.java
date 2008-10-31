@@ -62,7 +62,7 @@ import java.util.TreeMap;
  * @param <K> the key type
  * @param <V> the value type
  */
-@ThreadSafe public class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, SortedMap<K, V>> implements SortedMap<K, V> {
+@ThreadSafe public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, SortedMap<K, V>> implements SortedMap<K, V> {
 
     private static final long serialVersionUID = 7375772978175545647L;
 
@@ -74,20 +74,28 @@ import java.util.TreeMap;
 
     /**
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
-     * {@link TreeMap}.
+     * {@link TreeMap} and the sort uses the key's natural order.
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
-        return new CopyOnWriteSortedMap<K, V>(Functions.<K, V> tree());
+        return new CopyOnWriteSortedMap<K, V>() {
+            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                return new TreeMap<K, V>(map);
+            };
+        };
     }
 
     /**
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
-     * {@link TreeMap}.
+     * {@link TreeMap}, the sort uses the key's natural order and the initial values are supplied.
      * 
      * @param the map to use as the initial values.
      */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final SortedMap<K, V> map) {
-        return new CopyOnWriteSortedMap<K, V>(map, Functions.<K, V> tree());
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Map<? extends K, ? extends V> map) {
+        return new CopyOnWriteSortedMap<K, V>() {
+            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                return new TreeMap<K, V>(map);
+            };
+        };
     }
 
     /**
@@ -97,7 +105,31 @@ import java.util.TreeMap;
      * @param the Comparator to use for ordering the keys.
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Comparator<? super K> comparator) {
-        return new CopyOnWriteSortedMap<K, V>(new TreeMap<K, V>(comparator), Functions.<K, V> tree());
+
+        return new CopyOnWriteSortedMap<K, V>() {
+            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
+                treeMap.putAll(map);
+                return treeMap;
+            };
+        };
+    }
+
+    /**
+     * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
+     * {@link TreeMap}, the sort uses the key's natural order and the initial values are supplied.
+     * 
+     * @param map to use as the initial values.
+     * @param comparator for ordering.
+     */
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Map<? extends K, ? extends V> map, final Comparator<? super K> comparator) {
+        return new CopyOnWriteSortedMap<K, V>() {
+            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
+                treeMap.putAll(map);
+                return treeMap;
+            };
+        };
     }
 
     //
@@ -105,29 +137,26 @@ import java.util.TreeMap;
     //
 
     /**
-     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to initialize the values
-     * and the {@link CopyFunction} for creating our actual delegate instances.
-     * 
-     * @param map the initial map to initialize with
-     * @param factory the copy function
+     * Create a new empty {@link CopyOnWriteMap}.
      */
-    public CopyOnWriteSortedMap(final SortedMap<K, V> map, final CopyFunction<SortedMap<K, V>> factory) {
-        super(map, factory);
+    public CopyOnWriteSortedMap() {
+        super(Collections.<K, V> emptyMap());
     }
 
     /**
-     * Create a new empty {@link CopyOnWriteMap} with the {@link CopyFunction} for creating our
-     * actual delegate instances.
+     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to initialize the values.
      * 
-     * @param factory the copy function
+     * @param map the initial map to initialize with
      */
-    public CopyOnWriteSortedMap(final CopyFunction<SortedMap<K, V>> factory) {
-        super(new TreeMap<K, V>(), factory);
+    public CopyOnWriteSortedMap(final Map<? extends K, ? extends V> map) {
+        super(map);
     }
 
     //
     // methods
     //
+
+    @Override public abstract <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(N map);
 
     public Comparator<? super K> comparator() {
         return getDelegate().comparator();
@@ -152,21 +181,4 @@ import java.util.TreeMap;
     public SortedMap<K, V> subMap(final K fromKey, final K toKey) {
         return Collections.unmodifiableSortedMap(getDelegate().subMap(fromKey, toKey));
     };
-
-    //
-    // inner classes
-    //
-
-    /**
-     * Factories that create the standard Collections {@link Map} implementations.
-     */
-    public static final class Functions {
-        public static <K, V> CopyFunction<SortedMap<K, V>> tree() {
-            return new CopyFunction<SortedMap<K, V>>() {
-                public SortedMap<K, V> copy(final SortedMap<K, V> map) {
-                    return new TreeMap<K, V>(map);
-                }
-            };
-        }
-    }
 }

@@ -29,7 +29,6 @@ import java.util.Set;
     private static final long serialVersionUID = 4508989182041753878L;
 
     private volatile M delegate;
-    private final CopyFunction<M> factory;
     private final transient EntrySet entrySet = new EntrySet();
     private final transient KeySet keySet = new KeySet();
     private final transient Values values = new Values();
@@ -41,10 +40,11 @@ import java.util.Set;
      * @param map the initial map to initialize with
      * @param factory the copy function
      */
-    protected AbstractCopyOnWriteMap(final M map, final CopyFunction<M> factory) {
-        this.factory = notNull("CopyFunction", factory);
-        this.delegate = notNull("delegate", factory.copy(notNull("map", map)));
+    protected <N extends Map<? extends K, ? extends V>> AbstractCopyOnWriteMap(final N map) {
+        this.delegate = notNull("delegate", copy(notNull("map", map)));
     }
+
+    abstract <N extends Map<? extends K, ? extends V>> M copy(N map);
 
     //
     // mutable operations
@@ -89,7 +89,7 @@ import java.util.Set;
     }
 
     protected synchronized M copy() {
-        return factory.copy(delegate);
+        return copy(delegate);
     }
 
     protected synchronized void set(final M map) {

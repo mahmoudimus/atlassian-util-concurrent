@@ -22,9 +22,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.atlassian.util.concurrent.CopyOnWriteMap.CopyFunction;
-import com.atlassian.util.concurrent.CopyOnWriteMap.Functions;
-
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -33,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,12 +39,12 @@ public class CopyOnWriteMapTest {
     @Test public void factoryCalledOnConstructor() {
         final AtomicInteger count = new AtomicInteger();
         final Map<String, String> init = MapBuilder.build("1", "o1", "2", "o2", "3", "o3");
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(init, new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-            public Map<String, String> copy(final Map<String, String> map) {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(init) {
+            @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
             }
-        });
+        };
         assertEquals(1, count.get());
         assertEquals(3, map.size());
         assertTrue(map.containsKey("2"));
@@ -58,12 +54,12 @@ public class CopyOnWriteMapTest {
 
     @Test public void factoryCalledOnWrite() {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-            public Map<String, String> copy(final Map<String, String> map) {
+        final Map<String, String> map = new CopyOnWriteMap<String, String>() {
+            @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
             }
-        });
+        };
 
         assertEquals("should be called in ctor", 1, count.get());
         map.put("test", "test");
@@ -84,13 +80,6 @@ public class CopyOnWriteMapTest {
         map.clear();
         assertEquals("should be called in clear", 5, count.get());
         assertEquals(0, map.size());
-    }
-
-    @Test public void hashMapCopyFunction() throws Exception {
-        final CopyFunction<Map<String, String>> function = Functions.hash();
-        final Map<String, String> result = function.copy(new HashMap<String, String>());
-        assertEquals(0, result.size());
-        assertEquals(HashMap.class, result.getClass());
     }
 
     @Test public void hashAndEquality() throws Exception {
@@ -121,21 +110,15 @@ public class CopyOnWriteMapTest {
         assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
     }
 
-    @Test public void linkedHashMapCopyFunction() throws Exception {
-        final CopyFunction<Map<String, String>> function = Functions.linked();
-        final Map<String, String> result = function.copy(new HashMap<String, String>());
-        assertEquals(0, result.size());
-        assertEquals(LinkedHashMap.class, result.getClass());
-    }
-
     @Test public void modifiableValues() throws Exception {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-            public Map<String, String> copy(final Map<String, String> map) {
+        final Map<String, String> init = new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap();
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(init) {
+            @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
             }
-        });
+        };
         assertEquals(1, count.get());
         final Collection<String> values = map.values();
         try {
@@ -173,12 +156,13 @@ public class CopyOnWriteMapTest {
 
     @Test public void modifiableEntrySet() throws Exception {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-            public Map<String, String> copy(final Map<String, String> map) {
+        final Map<String, String> init = new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap();
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(init) {
+            @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
             }
-        });
+        };
         assertEquals(1, count.get());
         final Collection<Entry<String, String>> keys = map.entrySet();
         class E implements Map.Entry<String, String> {
@@ -236,12 +220,14 @@ public class CopyOnWriteMapTest {
 
     @Test public void modifiableKeySet() throws Exception {
         final AtomicInteger count = new AtomicInteger();
-        final Map<String, String> map = new CopyOnWriteMap<String, String>(new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap(), new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-            public Map<String, String> copy(final Map<String, String> map) {
+
+        final Map<String, String> init = new MapBuilder<String, String>().add("test", "test").add("testing", "testing").toMap();
+        final Map<String, String> map = new CopyOnWriteMap<String, String>(init) {
+            @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
                 count.getAndIncrement();
                 return new HashMap<String, String>(map);
             }
-        });
+        };
         assertEquals(1, count.get());
         final Collection<String> keys = map.keySet();
         try {
@@ -277,26 +263,13 @@ public class CopyOnWriteMapTest {
         assertEquals(0, map.size());
     }
 
-    @Test public void nullCopyFunction() throws Exception {
+    @Test public void nullMap() throws Exception {
         try {
-            new CopyOnWriteMap<String, String>(null);
-            fail("Should have thrown IllegalArgumentEx");
-        }
-        catch (final IllegalArgumentException ignore) {}
-    }
-
-    @Test public void emptyMapNullCopyFunction() throws Exception {
-        try {
-            new CopyOnWriteMap<String, String>(new HashMap<String, String>(), null);
-            fail("Should have thrown IllegalArgumentEx");
-        }
-        catch (final IllegalArgumentException ignore) {}
-    }
-
-    @Test public void nullMapWithCopyFunction() throws Exception {
-        try {
-            final CopyOnWriteMap.CopyFunction<Map<String, String>> hashFunction = CopyOnWriteMap.Functions.hash();
-            new CopyOnWriteMap<String, String>(null, hashFunction);
+            new CopyOnWriteMap<String, String>(null) {
+                @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
+                    return new HashMap<String, String>(map);
+                };
+            };
             fail("Should have thrown IllegalArgumentEx");
         }
         catch (final IllegalArgumentException ignore) {}
@@ -304,11 +277,11 @@ public class CopyOnWriteMapTest {
 
     @Test public void copyFunctionReturnsNull() throws Exception {
         try {
-            new CopyOnWriteMap<String, String>(new CopyOnWriteMap.CopyFunction<Map<String, String>>() {
-                public Map<String, String> copy(final Map<String, String> map) {
+            new CopyOnWriteMap<String, String>() {
+                @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
                     return null;
                 };
-            });
+            };
             fail("Should have thrown IllegalArgumentEx");
         }
         catch (final IllegalArgumentException ignore) {}
