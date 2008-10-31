@@ -5,13 +5,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class PhasedLatchTest {
-    @Test
-    public void phases() throws Exception {
+    @Test public void phases() throws Exception {
         final PhasedLatch latch = new PhasedLatch();
         final AtomicInteger count = new AtomicInteger();
         final Thread client = new Thread(new Runnable() {
@@ -21,7 +20,8 @@ public class PhasedLatchTest {
                         latch.awaitPhase(latch.getPhase());
                         count.getAndIncrement();
                     }
-                } catch (final InterruptedException ignore) {}
+                }
+                catch (final InterruptedException ignore) {}
             }
         });
         client.start();
@@ -33,7 +33,8 @@ public class PhasedLatchTest {
                         latch.await();
                         count.getAndIncrement();
                     }
-                } catch (final InterruptedException ignore) {}
+                }
+                catch (final InterruptedException ignore) {}
             }
         });
         client2.start();
@@ -56,16 +57,14 @@ public class PhasedLatchTest {
         client.interrupt();
     }
 
-    @Test
-    public void phaseComparator() throws Exception {
+    @Test public void phaseComparator() throws Exception {
         final PhasedLatch.PhaseComparator comparator = new PhasedLatch.PhaseComparator();
         assertTrue(comparator.isPassed(1, 0));
         assertFalse(comparator.isPassed(1, 1));
         assertFalse(comparator.isPassed(1, 2));
     }
 
-    @Test
-    public void phaseComparatorAtMaxValue() throws Exception {
+    @Test public void phaseComparatorAtMaxValue() throws Exception {
         final PhasedLatch.PhaseComparator comparator = new PhasedLatch.PhaseComparator();
         assertTrue(comparator.isPassed(Integer.MAX_VALUE, Integer.MAX_VALUE - 1));
         assertFalse(comparator.isPassed(Integer.MAX_VALUE, Integer.MAX_VALUE));
