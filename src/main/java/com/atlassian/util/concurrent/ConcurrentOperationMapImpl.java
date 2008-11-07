@@ -16,48 +16,69 @@
 
 package com.atlassian.util.concurrent;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import net.jcip.annotations.ThreadSafe;
+@ThreadSafe public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 
-@ThreadSafe
-public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
+    private final ConcurrentMap<K, CallerRunsFuture<R>> map = new ConcurrentHashMap<K, CallerRunsFuture<R>>();
+    private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
 
-    private final ConcurrentMap<K, FutureTask<R>> map = new ConcurrentHashMap<K, FutureTask<R>>();
+    public ConcurrentOperationMapImpl() {
+        this(new Function<Callable<R>, CallerRunsFuture<R>>() {
+            public CallerRunsFuture<R> get(final Callable<R> input) {
+                return new CallerRunsFuture<R>(input);
+            }
+        });
+    }
+
+    ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {
+        this.futureFactory = Assertions.notNull("futureFactory", futureFactory);
+    }
 
     public R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
-        FutureTask<R> future = map.get(key);
+        CallerRunsFuture<R> future = map.get(key);
         while (future == null) {
-            map.putIfAbsent(key, new FutureTask<R>(operation));
+            map.putIfAbsent(key, futureFactory.get(operation));
             future = map.get(key);
         }
         try {
-            return runAndGet(future);
-        } finally {
+            return future.get();
+        }
+        finally {
             map.remove(key, future);
         }
     }
 
-    R runAndGet(final FutureTask<R> future) throws ExecutionException {
-        // Concurrent calls to run do not matter as run will be a no-op if
-        // already running or run in another thread
-        future.run();
-        try {
-            return future.get();
-        } catch (final InterruptedException e) {
-            throw new RuntimeInterruptedException(e);
-        } catch (final ExecutionException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            } else if (cause instanceof Error) {
-                throw (Error) cause;
-            } else {
-                throw e;
+    static class CallerRunsFuture<T> extends FutureTask<T> {
+        CallerRunsFuture(final Callable<T> callable) {
+            super(callable);
+        }
+
+        @Override public T get() throws ExecutionException {
+            run();
+            try {
+                return super.get();
+            }
+            catch (final InterruptedException e) {
+                throw new RuntimeInterruptedException(e);
+            }
+            catch (final ExecutionException e) {
+                final Throwable cause = e.getCause();
+                if (cause instanceof RuntimeException) {
+                    throw (RuntimeException) cause;
+                }
+                else if (cause instanceof Error) {
+                    throw (Error) cause;
+                }
+                else {
+                    throw e;
+                }
             }
         }
     }

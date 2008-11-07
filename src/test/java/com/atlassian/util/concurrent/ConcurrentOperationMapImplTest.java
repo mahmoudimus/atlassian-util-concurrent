@@ -1,3 +1,19 @@
+/**
+ * Copyright 2008 Atlassian Pty Ltd 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertEquals;
@@ -8,41 +24,40 @@ import org.junit.Test;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Copyright 2007 Atlassian Software. All rights reserved.
  */
-public class TestConcurrentOperationMapImpl {
+public class ConcurrentOperationMapImplTest {
 
-    @Test
-    public void runOperationsConcurrently() throws InterruptedException {
+    @Test public void runOperationsConcurrently() throws InterruptedException {
         final AtomicInteger counter = new AtomicInteger(0);
         final CountDownLatch runSignal = new CountDownLatch(2);
         final CountDownLatch startSignal = new CountDownLatch(1);
         final CountDownLatch doneSignal = new CountDownLatch(2);
 
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>() {
-
-            @Override
-            Integer runAndGet(final FutureTask<Integer> namedFuture) throws ExecutionException {
-                runSignal.countDown();
-                try {
-                    runSignal.await();
-                }
-                catch (final InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                return super.runAndGet(namedFuture);
+        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>(new Function<Callable<Integer>, ConcurrentOperationMapImpl.CallerRunsFuture<Integer>>() {
+            public ConcurrentOperationMapImpl.CallerRunsFuture<Integer> get(final Callable<Integer> input) {
+                return new ConcurrentOperationMapImpl.CallerRunsFuture<Integer>(input) {
+                    @Override public Integer get() throws ExecutionException {
+                        runSignal.countDown();
+                        try {
+                            runSignal.await();
+                        }
+                        catch (final InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return super.get();
+                    }
+                };
             }
-        };
+        });
 
         // Create two threads whose job will be to call runOpertion with the
         // same name object
         new Thread(new Worker(startSignal, doneSignal) {
-            @Override
-            void doWork() {
+            @Override void doWork() {
                 try {
                     assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
                         public Integer call() {
@@ -56,8 +71,7 @@ public class TestConcurrentOperationMapImpl {
             }
         }).start();
         new Thread(new Worker(startSignal, doneSignal) {
-            @Override
-            void doWork() {
+            @Override void doWork() {
                 try {
                     assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
                         public Integer call() {
@@ -85,8 +99,7 @@ public class TestConcurrentOperationMapImpl {
         assertEquals(1, counter.get());
     }
 
-    @Test
-    public void exceptionsGetRemoved() throws Exception {
+    @Test public void exceptionsGetRemoved() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
@@ -122,8 +135,7 @@ public class TestConcurrentOperationMapImpl {
         assertEquals(3, counter.get());
     }
 
-    @Test
-    public void runtimeExceptionGetsReThrown() throws Exception {
+    @Test public void runtimeExceptionGetsReThrown() throws Exception {
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
         // Create two threads whose job will be to call runOpertion with the
@@ -145,8 +157,7 @@ public class TestConcurrentOperationMapImpl {
         catch (final MyException expected) {}
     }
 
-    @Test
-    public void errorGetsReThrown() throws Exception {
+    @Test public void errorGetsReThrown() throws Exception {
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
         // Create two threads whose job will be to call runOpertion with the
@@ -168,8 +179,7 @@ public class TestConcurrentOperationMapImpl {
         catch (final MyError expected) {}
     }
 
-    @Test
-    public void checkedExceptionGetsWrapped() throws Exception {
+    @Test public void checkedExceptionGetsWrapped() throws Exception {
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
         // Create two threads whose job will be to call runOpertion with the

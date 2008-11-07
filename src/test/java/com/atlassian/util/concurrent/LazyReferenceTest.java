@@ -21,7 +21,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class TestLazyReference {
+public class LazyReferenceTest {
 
     /**
      * Used to pound the tests
@@ -30,7 +30,7 @@ public class TestLazyReference {
      * @throws Exception
      */
     public static void main(final String[] args) throws Exception {
-        final TestLazyReference test = new TestLazyReference();
+        final LazyReferenceTest test = new LazyReferenceTest();
         for (int i = 0; i < 10000; i++) {
             //test.concurrentCreate();
             //test.getInterruptibly();
@@ -38,14 +38,12 @@ public class TestLazyReference {
         }
     }
 
-    @Test
-    public void concurrentCreate() throws Exception {
+    @Test public void concurrentCreate() throws Exception {
         final int nThreads = 40;
         final Object[] results = new Object[nThreads];
         final AtomicInteger createCallCount = new AtomicInteger(0);
         final LazyReference<Object> ref = new LazyReference<Object>() {
-            @Override
-            protected Object create() {
+            @Override protected Object create() {
                 /*
                  * We are trying to simulate an expensive object construction call. So we do a sleep
                  * here. The idea is that we will get many threads to call create() at the same
@@ -117,13 +115,11 @@ public class TestLazyReference {
         pool.shutdown();
     }
 
-    @Test
-    public void exception() {
+    @Test public void exception() {
         final Exception myException = new Exception();
 
         final LazyReference<Object> ref = new LazyReference<Object>() {
-            @Override
-            protected Object create() throws Exception {
+            @Override protected Object create() throws Exception {
                 throw myException;
             }
         };
@@ -138,13 +134,11 @@ public class TestLazyReference {
         }
     }
 
-    @Test
-    public void getNotInterruptable() throws Exception {
+    @Test public void getNotInterruptable() throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final LazyReference<Integer> ref = new LazyReference<Integer>() {
-            @Override
-            protected Integer create() {
+            @Override protected Integer create() {
                 // do not interrupt
                 while (true) {
                     try {
@@ -165,25 +159,24 @@ public class TestLazyReference {
 
         for (int i = 0; i < 10; i++) {
             pause();
-            if (ref.isDone()) {
+            if (ref.isInitialized()) {
                 System.out.println(ref.get());
             }
-            assertFalse(ref.isDone());
+            assertFalse(ref.isInitialized());
             client.interrupt();
         }
         pause();
-        assertFalse(ref.isDone());
+        assertFalse(ref.isInitialized());
 
         latch.countDown();
         pause();
-        assertTrue(ref.isDone());
+        assertTrue(ref.isInitialized());
 
         final int obj = ref.get();
         assertEquals(10, obj);
     }
 
-    @Test
-    public void getInterruptibly() throws Exception {
+    @Test public void getInterruptibly() throws Exception {
         final class Result<T> {
             final T result;
             final Exception exception;
@@ -201,8 +194,7 @@ public class TestLazyReference {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final LazyReference<Integer> ref = new LazyReference<Integer>() {
-            @Override
-            protected Integer create() {
+            @Override protected Integer create() {
                 // do not interrupt
                 while (true) {
                     try {
@@ -243,10 +235,10 @@ public class TestLazyReference {
 
         for (int i = 0; i < 10; i++) {
             pause();
-            if (ref.isDone()) {
+            if (ref.isInitialized()) {
                 System.out.println(ref.get());
             }
-            assertFalse(ref.isDone());
+            assertFalse(ref.isInitialized());
             client1.interrupt();
             client2.interrupt();
         }
@@ -255,11 +247,11 @@ public class TestLazyReference {
         assertNotNull(result2.get().exception);
         assertEquals(InterruptedException.class, result2.get().exception.getClass());
         pause();
-        assertFalse(ref.isDone());
+        assertFalse(ref.isInitialized());
 
         latch.countDown();
         pause();
-        assertTrue(ref.isDone());
+        assertTrue(ref.isInitialized());
 
         {
             final int result = ref.get();
