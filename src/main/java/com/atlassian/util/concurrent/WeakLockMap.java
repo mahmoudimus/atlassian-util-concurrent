@@ -33,8 +33,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <D> comparable descriptor, should have a good hash function.
  */
 class WeakLockMap<D> implements Function<D, Lock> {
-    private final ConcurrentMap<D, WeakReference<Lock>> locks;
-    private final ReferenceQueue<Lock> queue;
+    private final ConcurrentMap<D, LockReference<D>> locks;
+    private final ReferenceQueue<Lock> queue = new ReferenceQueue<Lock>();
 
     /**
      * Construct a new {@link WeakLockMap} instance.
@@ -43,21 +43,20 @@ class WeakLockMap<D> implements Function<D, Lock> {
      * @throws IllegalArgumentException if the initial capacity of elements is negative.
      */
     WeakLockMap(final int initialCapacity) {
-        locks = new ConcurrentHashMap<D, WeakReference<Lock>>(initialCapacity);
-        queue = new ReferenceQueue<Lock>();
+        locks = new ConcurrentHashMap<D, LockReference<D>>(initialCapacity);
     }
 
     /**
      * Get a Lock for the supplied Descriptor.
      * 
-     * @param descriptors
+     * @param descriptor must not be null
      * @return descriptor lock
      */
     public Lock get(final D descriptor) {
         expungeStaleEntries();
-
+        notNull("descriptor", descriptor);
         while (true) {
-            final WeakReference<Lock> reference = locks.get(descriptor);
+            final LockReference<D> reference = locks.get(descriptor);
             if (reference != null) {
                 final Lock lock = reference.get();
                 if (lock != null) {
@@ -73,7 +72,12 @@ class WeakLockMap<D> implements Function<D, Lock> {
     @SuppressWarnings("unchecked") private void expungeStaleEntries() {
         LockReference<D> ref;
         while ((ref = (LockReference<D>) queue.poll()) != null) {
-            locks.remove(ref.getDescriptor(), ref);
+            final D descriptor = ref.getDescriptor();
+            if (descriptor == null) {
+                // this should not be necessary as it should not be able to be null - but we have seen it!
+                continue;
+            }
+            locks.remove(descriptor, ref);
         }
     }
 
@@ -81,7 +85,7 @@ class WeakLockMap<D> implements Function<D, Lock> {
      * A weak reference that maintains a reference to the descriptor so that it can be removed from
      * the map when garbage collected
      */
-    private static class LockReference<D> extends WeakReference<Lock> {
+    static final class LockReference<D> extends WeakReference<Lock> {
         private final D descriptor;
 
         public LockReference(final D descriptor, final ReferenceQueue<? super Lock> q) {
@@ -89,7 +93,7 @@ class WeakLockMap<D> implements Function<D, Lock> {
             this.descriptor = notNull("descriptor", descriptor);
         }
 
-        public D getDescriptor() {
+        final D getDescriptor() {
             return descriptor;
         }
     }
