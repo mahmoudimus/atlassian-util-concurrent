@@ -84,28 +84,28 @@ public class CopyOnWriteMapTest {
 
     @Test public void hashAndEquality() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
-        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMaps.newHashMap(map);
         assertEquals(map, cowMap);
         assertEquals(map.hashCode(), cowMap.hashCode());
     }
 
     @Test public void hashAndEqualityKeySet() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
-        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMaps.newHashMap(map);
         assertEquals(map.keySet(), cowMap.keySet());
         assertEquals(map.keySet().hashCode(), cowMap.keySet().hashCode());
     }
 
     @Test public void hashAndEqualityValues() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
-        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMaps.newHashMap(map);
         assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
         assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
     }
 
     @Test public void hashAndEqualityEntrySet() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
-        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
+        final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMaps.newHashMap(map);
         assertEquals(map.entrySet(), cowMap.entrySet());
         assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
     }

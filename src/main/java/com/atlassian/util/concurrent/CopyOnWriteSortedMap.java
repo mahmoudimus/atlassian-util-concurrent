@@ -41,96 +41,27 @@ import java.util.TreeMap;
  * collections (remove, retain etc.) are supported but as with the {@link Map} interface, add and
  * addAll are not and throw {@link UnsupportedOperationException}.
  * <p>
- * The actual copy is performed by a supplied {@link CopyFunction} object. The Factory is
- * responsible for the underlying {@link SortedMap} implementation (for instance a {@link TreeMap})
- * and therefore the semantics of what this map will cope with as far as null keys and values,
- * iteration ordering etc.
- * <p>
- * There are supplied {@link Functions} for the Java Collections {@link SortedMap} implementation.
+ * The actual copy is performed by the abstract {@link #copy(Map)} method. This implementation of
+ * this method is responsible for the underlying {@link SortedMap} implementation (for instance a
+ * {@link TreeMap}) and therefore the semantics of what this map will cope with as far as null keys
+ * and values, iteration ordering etc.
  * <p>
  * Views of the keys, values and entries are modifiable and will cause a copy. Views taken using
  * {@link #subMap(Object, Object)}, {@link #headMap(Object)} and {@link #tailMap(Object)} are
  * unmodifiable.
  * <p>
  * <strong>Please note</strong> that the thread-safety guarantees are limited to the thread-safety
- * of the non-mutative (non-destructive) operations of the underlying map implementation. For
- * instance implementations with access ordering are actually structurally modified by the
- * {@link #get(Object)} method and are therefore not suitable candidates as delegates for this
- * class.
+ * of the non-mutative (non-destructive) operations of the underlying map implementation.
  * 
- * @author Jed Wesley-Smith
  * @param <K> the key type
  * @param <V> the value type
+ * @author Jed Wesley-Smith
  */
 @ThreadSafe public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, SortedMap<K, V>> implements SortedMap<K, V> {
 
     private static final long serialVersionUID = 7375772978175545647L;
 
     public interface CopyFunction<M extends SortedMap<?, ?>> extends AbstractCopyOnWriteMap.CopyFunction<M> {}
-
-    //
-    // factory methods
-    //
-
-    /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
-     * {@link TreeMap} and the sort uses the key's natural order.
-     */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
-        return new CopyOnWriteSortedMap<K, V>() {
-            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                return new TreeMap<K, V>(map);
-            };
-        };
-    }
-
-    /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
-     * {@link TreeMap}, the sort uses the key's natural order and the initial values are supplied.
-     * 
-     * @param the map to use as the initial values.
-     */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteSortedMap<K, V>() {
-            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                return new TreeMap<K, V>(map);
-            };
-        };
-    }
-
-    /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
-     * {@link TreeMap}.
-     * 
-     * @param the Comparator to use for ordering the keys.
-     */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Comparator<? super K> comparator) {
-
-        return new CopyOnWriteSortedMap<K, V>() {
-            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
-                treeMap.putAll(map);
-                return treeMap;
-            };
-        };
-    }
-
-    /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map instances are
-     * {@link TreeMap}, the sort uses the key's natural order and the initial values are supplied.
-     * 
-     * @param map to use as the initial values.
-     * @param comparator for ordering.
-     */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Map<? extends K, ? extends V> map, final Comparator<? super K> comparator) {
-        return new CopyOnWriteSortedMap<K, V>() {
-            @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
-                treeMap.putAll(map);
-                return treeMap;
-            };
-        };
-    }
 
     //
     // constructors

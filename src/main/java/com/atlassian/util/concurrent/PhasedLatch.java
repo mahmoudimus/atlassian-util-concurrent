@@ -29,7 +29,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * {@link #release() release} the current phase.
  */
 @ThreadSafe public class PhasedLatch {
-    private static PhaseComparator comparator = new PhaseComparator();
+    private static final PhaseComparator comparator = new PhaseComparator();
 
     private final Sync sync = new Sync();
 

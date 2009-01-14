@@ -37,6 +37,7 @@ import net.jcip.annotations.ThreadSafe;
  * 
  * @param <D> the descriptor type.
  * @param <R> the resource type it resolves to.
+ * @author Jed Wesley-Smith
  */
 @ThreadSafe public interface Function<D, R> {
     /**

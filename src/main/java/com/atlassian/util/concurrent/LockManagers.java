@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 
 /**
- * Static factory for producing {@link Manager} instances.
+ * Static factory for producing {@link LockManager} instances.
  */
 public class LockManagers {
 
@@ -30,8 +30,11 @@ public class LockManagers {
 
     /**
      * Convenience method that simply calls {@link LockManagers#weakLockManager(Function, int)} with
-     * a default capacity of 128.
+     * a default initial capacity of 128.
      * 
+     * @param <T> the type of the thing used to look up locks
+     * @param <D> the type used to map lock instances
+     * @param stripeFunction to convert Ts to Ds.
      * @see LockManagers#weakLockManager(Function, int)
      */
     public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction) {
@@ -58,11 +61,12 @@ public class LockManagers {
      * @param <T> the type of the thing used to look up locks
      * @param <D> the type used to map lock instances
      * @param stripeFunction to convert Ts to Ds.
+     * @param initialCapacity the initial capacity of the internal map.
      * @return a new {@link LockManager} instance that stores created {@link Lock} instances with
      *         weak references.
      */
-    public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction, final int capacity) {
-        return new Manager<T, D>(new WeakLockMap<D>(capacity), stripeFunction);
+    public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction, final int initialCapacity) {
+        return new Manager<T, D>(new WeakLockMap<D>(initialCapacity), stripeFunction);
     }
 
     private LockManagers() {

@@ -17,10 +17,10 @@
 package com.atlassian.util.concurrent;
 
 import net.jcip.annotations.ThreadSafe;
+import sun.security.pkcs11.wrapper.Functions;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -56,63 +56,15 @@ import java.util.WeakHashMap;
  * instance some implementations such as {@link WeakHashMap} and {@link LinkedHashMap} with access
  * ordering are actually structurally modified by the {@link #get(Object)} method and are therefore
  * not suitable candidates as delegates for this class.
+ * 
+ * @param <K> the key type
+ * @param <V> the value type
+ * @author Jed Wesley-Smith
  */
 @ThreadSafe public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 7935514534647505917L;
 
     public interface CopyFunction<M extends Map<?, ?>> extends AbstractCopyOnWriteMap.CopyFunction<M> {}
-
-    //
-    // factory methods
-    //
-
-    /**
-     * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
-     */
-    public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
-        return new CopyOnWriteMap<K, V>() {
-            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new HashMap<K, V>(map);
-            }
-        };
-    }
-
-    /**
-     * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap} using the supplied
-     * map as the initial values.
-     */
-    public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteMap<K, V>(map) {
-            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new HashMap<K, V>(map);
-            }
-        };
-    }
-
-    /**
-     * Creates a new {@link CopyOnWriteMap} with an underlying {@link LinkedHashMap}. Iterators for
-     * this map will be return elements in insertion order.
-     */
-    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
-        return new CopyOnWriteMap<K, V>() {
-            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new LinkedHashMap<K, V>(map);
-            }
-        };
-    }
-
-    /**
-     * Creates a new {@link CopyOnWriteMap} with an underlying {@link LinkedHashMap} using the
-     * supplied map as the initial values. Iterators for this map will be return elements in
-     * insertion order.
-     */
-    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteMap<K, V>(map) {
-            @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new LinkedHashMap<K, V>(map);
-            }
-        };
-    }
 
     //
     // constructors
