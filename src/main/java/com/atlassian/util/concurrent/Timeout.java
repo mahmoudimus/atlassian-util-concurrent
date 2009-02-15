@@ -16,13 +16,15 @@
 
 package com.atlassian.util.concurrent;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+
 import net.jcip.annotations.Immutable;
 
-import java.util.concurrent.TimeUnit;
-
 /**
- * Used to calculate elapsed time for timeouts from when it is created when successively calling
- * blocking methods. Always converts to nanoseconds.
+ * Used to calculate elapsed time for timeouts from when it is created when
+ * successively calling blocking methods. Always converts to nanoseconds.
  * <p>
  * Usage:
  * 
@@ -32,10 +34,11 @@ import java.util.concurrent.TimeUnit;
  * Integer num = futureInt.get(timeout.getTime(), timeout.getUnit());
  * </pre>
  * 
- * where if the first call takes quarter of a second, the second call is passed the equivalent of
- * three-quarters of a second.
+ * where if the first call takes quarter of a second, the second call is passed
+ * the equivalent of three-quarters of a second.
  */
-@Immutable public class Timeout {
+@Immutable
+public class Timeout {
 
     private static final TimeSupplier NANO_SUPPLIER = new TimeSupplier() {
         public long currentTime() {
@@ -58,8 +61,8 @@ import java.util.concurrent.TimeUnit;
     };
 
     /**
-     * Get a {@link Timeout} that uses nanosecond precision. The accuracy will depend on the
-     * accuracy of {@link System#nanoTime()}.
+     * Get a {@link Timeout} that uses nanosecond precision. The accuracy will
+     * depend on the accuracy of {@link System#nanoTime()}.
      * 
      * @param time the maximum time to wait for the lock
      * @param unit the time unit of the <tt>time</tt> argument.
@@ -70,8 +73,8 @@ import java.util.concurrent.TimeUnit;
     }
 
     /**
-     * Get a {@link Timeout} that uses nanosecond precision. The accuracy will depend on the
-     * accuracy of {@link System#nanoTime()}.
+     * Get a {@link Timeout} that uses nanosecond precision. The accuracy will
+     * depend on the accuracy of {@link System#nanoTime()}.
      * 
      * @param time the maximum time to wait for the lock
      * @param unit the time unit of the <tt>time</tt> argument.
@@ -106,6 +109,22 @@ import java.util.concurrent.TimeUnit;
      */
     public boolean isExpired() {
         return getTime() <= 0;
+    }
+
+    //
+    // util
+    //
+
+    void await(final TimedAwaitable latch) throws TimeoutException, InterruptedException {
+        if (!latch.await(getTime(), getUnit())) {
+            throw new TimedOutException(this);
+        }
+    }
+
+    void await(final Condition condition) throws TimeoutException, InterruptedException {
+        if (!condition.await(getTime(), getUnit())) {
+            throw new TimedOutException(this);
+        }
     }
 
     /**

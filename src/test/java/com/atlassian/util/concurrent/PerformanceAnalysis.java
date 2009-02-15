@@ -18,17 +18,18 @@ public class PerformanceAnalysis {
 
     public static void main(final String[] args) {
         final List<Q> queues = new ArrayList<Q>();
-        //        queues.add(new SyncQueue());
         queues.add(new SRSWBlockingQueue());
-        //queues.add(new RefQueue());
-        //        queues.add(new LockedQueue());
-        //        queues.add(new PhasedQueue());
-        //queues.add(new LinkedQueue());
+        queues.add(new SyncQueue());
+        queues.add(new RefQueue());
+        queues.add(new BlockingReferenceQueue());
+        queues.add(new LockedQueue());
+        queues.add(new PhasedQueue());
+        // queues.add(new LinkedQueue());
         System.out.println(new PerformanceAnalysis().runTest(queues));
     }
 
     public String runTest(final List<Q> queues) {
-        final int warm = 10000000, run = 100000000;
+        final int warm = 100000, run = 100000000;
         // warm up
         for (final Q q : queues) {
             runTest(q, warm);
@@ -47,15 +48,9 @@ public class PerformanceAnalysis {
                 try {
                     while (true) {
                         int j = 0;
-                        //                        for (int i = 0; i < iterations; i++) {
-                        //                            j += i;
-                        //                        }
-                        //                        //Thread.sleep(1);
                         j += q.take();
-                        //                        System.out.println(j);
                     }
-                }
-                catch (final InterruptedException e) {}
+                } catch (final InterruptedException e) {}
             }
         });
         reader.start();
@@ -66,8 +61,7 @@ public class PerformanceAnalysis {
                 q.put(i);
             }
             return System.currentTimeMillis() - start;
-        }
-        finally {
+        } finally {
             reader.interrupt();
             q.clear();
         }
@@ -87,8 +81,7 @@ public class PerformanceAnalysis {
         public void put(final int i) {
             try {
                 queue.put(i);
-            }
-            catch (final InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -108,8 +101,7 @@ public class PerformanceAnalysis {
         public void put(final int i) {
             try {
                 queue.put(i);
-            }
-            catch (final InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -130,8 +122,7 @@ public class PerformanceAnalysis {
             try {
                 queue.clear();
                 queue.put(i);
-            }
-            catch (final InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -156,21 +147,25 @@ public class PerformanceAnalysis {
             return queue.take();
         }
 
-        public void clear() {}
+        public void clear() {
+        // queue.set(null);
+        }
     }
 
     static class RefQueue implements Q {
-        private final BlockingReference<Integer> queue = new BlockingReference<Integer>();
+        private final BlockingReference<Integer> ref = new BlockingReference<Integer>();
 
         public void put(final int i) {
-            queue.set(i);
+            ref.set(i);
         }
 
         public Integer take() throws InterruptedException {
-            return queue.take();
+            return ref.take();
         }
 
-        public void clear() {}
+        public void clear() {
+            ref.clear();
+        }
     }
 
     static class LockedQueue implements Q {
@@ -184,7 +179,9 @@ public class PerformanceAnalysis {
             return queue.take();
         }
 
-        public void clear() {}
+        public void clear() {
+            queue.clear();
+        }
     }
 
     static class SyncQueue implements Q {
@@ -208,7 +205,10 @@ public class PerformanceAnalysis {
         }
 
         public void clear() {
-            queue.clear();
+            synchronized (queue) {
+                queue.clear();
+                queue.notifyAll();
+            }
         }
     }
 
@@ -224,8 +224,7 @@ public class PerformanceAnalysis {
                     list = new LinkedList<Integer>();
                 }
                 list.add(i);
-            }
-            while (!queue.compareAndSet(null, list));
+            } while (!queue.compareAndSet(null, list));
             latch.release();
         }
 
@@ -234,8 +233,7 @@ public class PerformanceAnalysis {
             do {
                 latch.await();
                 list = queue.getAndSet(null);
-            }
-            while (list == null);
+            } while (list == null);
             return list.getFirst();
         }
 
@@ -243,46 +241,63 @@ public class PerformanceAnalysis {
             queue.set(null);
         }
     }
+
+    static class BlockingReferenceQueue implements Q {
+        private final BlockingReference<Integer> ref = new BlockingReference<Integer>();
+
+        public void put(final int i) {
+            ref.set(i);
+        }
+
+        public Integer take() throws InterruptedException {
+            return ref.take();
+        }
+
+        public void clear() {
+            ref.clear();
+        }
+    }
 }
 
 class LockingReference<V> {
     private V ref;
     private final Lock lock = new ReentrantLock();
-    private final Condition empty = lock.newCondition();
+    private final Condition notEmpty = lock.newCondition();
 
     /**
-     * Takes the current element if it is not null and replaces it with null. If the current element
-     * is null then wait until it becomes non-null.
+     * Takes the current element if it is not null and replaces it with null. If
+     * the current element is null then wait until it becomes non-null.
      * <p>
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
      * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
      * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's interrupted status is
-     * cleared.
+     * then {@link InterruptedException} is thrown and the current thread's
+     * interrupted status is cleared.
      * 
      * @return the current element
-     * @throws InterruptedException if the current thread is interrupted while waiting
+     * @throws InterruptedException if the current thread is interrupted while
+     * waiting
      */
     public V take() throws InterruptedException {
         lock.lock();
         try {
             while (ref == null) {
-                empty.await();
+                notEmpty.await();
             }
             final V result = ref;
             ref = null;
             return result;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
 
     /**
-     * Set the value of this reference. This method is lock-free. A thread waiting in
-     * {@link #take()} or {@link #take(long, TimeUnit)} will be released and given this value.
+     * Set the value of this reference. This method is lock-free. A thread
+     * waiting in {@link #take()} or {@link #take(long, TimeUnit)} will be
+     * released and given this value.
      * 
      * @param value the new value.
      */
@@ -291,15 +306,23 @@ class LockingReference<V> {
         lock.lock();
         try {
             ref = value;
-            empty.signalAll();
-        }
-        finally {
+            notEmpty.signalAll();
+        } finally {
             lock.unlock();
         }
     }
 
     public boolean isNull() {
         return ref == null;
+    }
+
+    void clear() {
+        lock.lock();
+        try {
+            ref = null;
+        } finally {
+            lock.unlock();
+        }
     }
 }
 
@@ -310,14 +333,16 @@ class LRUBlockingQueue<E> extends LinkedBlockingQueue<E> {
         super(capacity);
     }
 
-    @Override public boolean offer(final E o) {
+    @Override
+    public boolean offer(final E o) {
         while (remainingCapacity() == 0) {
             remove(peek());
         }
         return super.offer(o);
     };
 
-    @Override public void put(final E o) throws InterruptedException {
+    @Override
+    public void put(final E o) throws InterruptedException {
         while (remainingCapacity() == 0) {
             remove(peek());
         }
@@ -330,19 +355,20 @@ class PhasedBlockingReference<V> {
     private final PhasedLatch latch = new PhasedLatch();
 
     /**
-     * Takes the current element if it is not null and replaces it with null. If the current element
-     * is null then wait until it becomes non-null.
+     * Takes the current element if it is not null and replaces it with null. If
+     * the current element is null then wait until it becomes non-null.
      * <p>
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
      * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
      * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's interrupted status is
-     * cleared.
+     * then {@link InterruptedException} is thrown and the current thread's
+     * interrupted status is cleared.
      * 
      * @return the current element
-     * @throws InterruptedException if the current thread is interrupted while waiting
+     * @throws InterruptedException if the current thread is interrupted while
+     * waiting
      */
     public V take() throws InterruptedException {
         while (true) {
@@ -355,24 +381,26 @@ class PhasedBlockingReference<V> {
     }
 
     /**
-     * Takes the current element if it is not null and replaces it with null. If the current element
-     * is null then wait until it becomes non-null. The method will throw a {@link TimeoutException}
-     * if the timeout is reached before an element becomes available.
+     * Takes the current element if it is not null and replaces it with null. If
+     * the current element is null then wait until it becomes non-null. The
+     * method will throw a {@link TimeoutException} if the timeout is reached
+     * before an element becomes available.
      * <p>
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
      * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
      * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's interrupted status is
-     * cleared.
+     * then {@link InterruptedException} is thrown and the current thread's
+     * interrupted status is cleared.
      * 
      * @param timeout the maximum time to wait
      * @param unit the time unit of the {@code timeout} argument
      * @return the current element
-     * @throws InterruptedException if the current thread is interrupted while waiting
-     * @throws TimeoutException if the timeout is reached without another thread having called
-     *             {@link #set(Object)}.
+     * @throws InterruptedException if the current thread is interrupted while
+     * waiting
+     * @throws TimeoutException if the timeout is reached without another thread
+     * having called {@link #set(Object)}.
      */
     public V take(final long timeout, final TimeUnit unit) throws TimeoutException, InterruptedException {
         if (!latch.await(timeout, unit)) {
@@ -382,13 +410,22 @@ class PhasedBlockingReference<V> {
     }
 
     /**
-     * Set the value of this reference. This method is lock-free. A thread waiting in
-     * {@link #take()} or {@link #take(long, TimeUnit)} will be released and given this value.
+     * Set the value of this reference. This method is lock-free. A thread
+     * waiting in {@link #take()} or {@link #take(long, TimeUnit)} will be
+     * released and given this value.
      * 
      * @param value the new value.
      */
     public void set(final V value) {
         notNull("value", value);
+        internalSet(value);
+    }
+
+    void clear() {
+        internalSet(null);
+    }
+
+    private void internalSet(final V value) {
         ref.set(value);
         latch.release();
     }

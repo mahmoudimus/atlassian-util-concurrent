@@ -16,19 +16,21 @@
 
 package com.atlassian.util.concurrent;
 
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
- * A {@link PhasedLatch} is a shared latch that resets after it is released and can be reused.
- * Potentially waiting threads can test the current phase before performing an action. The action is
- * then guarded by that phase and can await that phase to be advanced via a call to
- * {@link #release() release} the current phase.
+ * A {@link PhasedLatch} is a shared latch that resets after it is released and
+ * can be reused. Potentially waiting threads can test the current phase before
+ * performing an action. The action is then guarded by that phase and can await
+ * that phase to be advanced via a call to {@link #release() release} the
+ * current phase.
  */
-@ThreadSafe public class PhasedLatch {
+@ThreadSafe
+public class PhasedLatch implements ReusableLatch {
     private static final PhaseComparator comparator = new PhaseComparator();
 
     private final Sync sync = new Sync();
@@ -89,8 +91,9 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
     }
 
     /**
-     * This sync implements Phasing. The state represents the current phase as an integer that
-     * continually increases. The phase can wrap around past {@link Integer#MAX_VALUE}
+     * This sync implements Phasing. The state represents the current phase as
+     * an integer that continually increases. The phase can wrap around past
+     * {@link Integer#MAX_VALUE}
      */
     private class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -7753362916930221487L;
@@ -99,11 +102,13 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
             return getState();
         }
 
-        @Override protected int tryAcquireShared(final int phase) {
+        @Override
+        protected int tryAcquireShared(final int phase) {
             return comparator.isPassed(getState(), phase) ? 1 : -1;
         }
 
-        @Override protected boolean tryReleaseShared(final int ignore) {
+        @Override
+        protected boolean tryReleaseShared(final int ignore) {
             while (true) {
                 final int state = getState();
                 if (compareAndSetState(state, state + 1)) {

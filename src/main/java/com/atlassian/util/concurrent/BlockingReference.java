@@ -21,37 +21,142 @@ import static com.atlassian.util.concurrent.Assertions.notNull;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * A Reference with queue semantics where rather than getting the current
- * reference it is taken instead. Analogous to a single element
- * {@link BlockingQueue}.
+ * A Reference with queue semantics where the current reference may be retrieved
+ * or taken instead, and if there is no current element then it will be block
+ * until the reference becomes available. This is somewhat analogous to a single
+ * element {@link BlockingQueue}.
  * <p>
  * Note: this class does not support null elements being {@link #set(Object)}
  * and will throw an exception. If the internal reference is null, then calls to
  * {@link #take()} or {@link #take(long, TimeUnit)} will block.
  * <p>
- * This class is most suited to SRSW usage. Multiple writers will overwrite each
- * other's elements, and if multiple readers are waiting to take a value, one
- * reader will be arbitrarily chosen (similar to {@link Condition#signal()}).
+ * This class is most suited to {@link #newSRSW() SRSW} or {@link #newMRSW()
+ * MRSW} usage. Multiple writers will overwrite each other's elements and the
+ * chosen value will be arbitrary in the absence of any external consensus. If
+ * multiple readers are waiting to {@link #take()} a value, one reader will be
+ * arbitrarily chosen (similar to {@link Condition#signal()}). Multiple readers
+ * can however {@link #get()} the current value if it is not null, but they may
+ * see the current value more than once.
+ * <p>
+ * This implementation has been optimized for SRSW performance with
+ * {@link #set(Object)}/{@link #take()} pairs.
+ * <p>
+ * Prometheus contains a similar construct called an <a href"http://prometheus.codehaus.org/javadoc/main/org/codehaus/prometheus/references/AwaitableReference.html"
+ * >AwaitableReference</a>. This class is more explicit in that it handles
+ * take/get separately.
  * 
  * @param <V> the value type
+ * @author Jed Wesley-Smith
  * @see BlockingQueue
  */
 @ThreadSafe
 public class BlockingReference<V> {
-    private final AtomicReference<V> ref = new AtomicReference<V>();
-    private final BooleanLatch latch = new BooleanLatch();
 
-    public BlockingReference() {}
+    //
+    // static factory methods
+    //
 
-    public BlockingReference(final V value) {
-        set(value);
+    /**
+     * Create a BlockingReference best suited to single-reader/single-writer
+     * situations. In a MRSW case this instance may get missed signals if
+     * multiple reader threads are all waiting on the value.
+     */
+    public static <V> BlockingReference<V> newSRSW() {
+        return newSRSW(null);
     }
+
+    /**
+     * Create a BlockingReference best suited to single-reader/single-writer
+     * situations. In a MRSW case this instance may get missed signals if
+     * multiple reader threads are all waiting on the value.
+     * 
+     * @param initialValue the initial value
+     */
+    public static <V> BlockingReference<V> newSRSW(final V initialValue) {
+        return new BlockingReference<V>(new BooleanLatch(), initialValue);
+    }
+
+    /**
+     * Create a BlockingReference best suited to multi-reader/single-writer
+     * situations. In a SRSW case this instance may not perform quite as well.
+     */
+    public static <V> BlockingReference<V> newMRSW() {
+        return newMRSW(null);
+    }
+
+    /**
+     * Create a BlockingReference best suited to multi-reader/single-writer
+     * situations. In a SRSW case this instance may not perform quite as well.
+     * 
+     * @param initialValue the initial value
+     */
+    public static <V> BlockingReference<V> newMRSW(final V value) {
+        return new BlockingReference<V>(new PhasedLatch() {
+            /*
+             * Workaround for the fact that take() always calls await. Calling
+             * await() on a phased latch by default waits on the <i>next</i>
+             * phase (after the current one). We need to make sure we await on
+             * the previous phase instead so we remember the previous phase.
+             */
+            private final AtomicInteger currentPhase = new AtomicInteger(super.getPhase());
+
+            @Override
+            public synchronized int getPhase() {
+                try {
+                    return currentPhase.get();
+                } finally {
+                    currentPhase.set(super.getPhase());
+                }
+            }
+        }, null);
+    }
+
+    //
+    // instance vars
+    //
+
+    private final AtomicReference<V> ref = new AtomicReference<V>();
+    private final ReusableLatch latch;
+
+    //
+    // ctors
+    //
+
+    BlockingReference(final ReusableLatch latch, final V initialValue) {
+        this.latch = latch;
+        internalSet(initialValue);
+    }
+
+    /**
+     * Creates a new SRSW BlockingReference.
+     * 
+     * @deprecated use {@link #newSRSW()} instead.
+     */
+    @Deprecated
+    public BlockingReference() {
+        this(new BooleanLatch(), null);
+    }
+
+    /**
+     * Creates a new SRSW BlockingReference.
+     * 
+     * @deprecated use {@link #newSRSW()} instead.
+     */
+    @Deprecated
+    public BlockingReference(@NotNull final V value) {
+        this(new BooleanLatch(), value);
+    }
+
+    //
+    // methods
+    //
 
     /**
      * Takes the current element if it is not null and replaces it with null. If
@@ -60,7 +165,7 @@ public class BlockingReference<V> {
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
+     * <li>is {@link Thread#interrupt() interrupted} while waiting,
      * </ul>
      * then {@link InterruptedException} is thrown and the current thread's
      * interrupted status is cleared.
@@ -69,14 +174,14 @@ public class BlockingReference<V> {
      * @throws InterruptedException if the current thread is interrupted while
      * waiting
      */
-    public V take() throws InterruptedException {
-        while (true) {
+    public @NotNull
+    V take() throws InterruptedException {
+        V result = null;
+        while (result == null) {
             latch.await();
-            final V result = ref.getAndSet(null);
-            if (result != null) {
-                return result;
-            }
+            result = ref.getAndSet(null);
         }
+        return result;
     }
 
     /**
@@ -88,7 +193,7 @@ public class BlockingReference<V> {
      * If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
+     * <li>is {@link Thread#interrupt() interrupted} while waiting,
      * </ul>
      * then {@link InterruptedException} is thrown and the current thread's
      * interrupted status is cleared.
@@ -101,11 +206,72 @@ public class BlockingReference<V> {
      * @throws TimeoutException if the timeout is reached without another thread
      * having called {@link #set(Object)}.
      */
-    public V take(final long timeout, final TimeUnit unit) throws TimeoutException, InterruptedException {
-        if (!latch.await(timeout, unit)) {
-            throw new TimeoutException();
+    public @NotNull
+    V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
+        final Timeout timeout = Timeout.getNanosTimeout(time, unit);
+        V result = null;
+        while (result == null) {
+            timeout.await(latch);
+            result = ref.getAndSet(null);
         }
-        return ref.getAndSet(null);
+        return result;
+    }
+
+    /**
+     * Gets the current element if it is not null, if it is null then this
+     * method blocks and waits until it is not null. Unlike {@link #take()} it
+     * does not reset the current element to null.
+     * <p>
+     * If the current thread:
+     * <ul>
+     * <li>has its interrupted status set on entry to this method; or
+     * <li>is {@link Thread#interrupt() interrupted} while waiting,
+     * </ul>
+     * then {@link InterruptedException} is thrown and the current thread's
+     * interrupted status is cleared.
+     * 
+     * @return the current element
+     * @throws InterruptedException if the current thread is interrupted while
+     * waiting
+     */
+    public @NotNull
+    V get() throws InterruptedException {
+        V result = null;
+        while (result == null) {
+            latch.await();
+            result = ref.get();
+        }
+        return result;
+    }
+
+    /**
+     * Gets the current element if it is not null, if it is null then this
+     * method blocks and waits until it is not null. Unlike {@link #take()} it
+     * does not reset the current element to null.
+     * <p>
+     * If the current thread:
+     * <ul>
+     * <li>has its interrupted status set on entry to this method; or
+     * <li>is {@link Thread#interrupt() interrupted} while waiting,
+     * </ul>
+     * then {@link InterruptedException} is thrown and the current thread's
+     * interrupted status is cleared.
+     * 
+     * @return the current element
+     * @throws TimeoutException if the timeout is reached without another thread
+     * having called {@link #set(Object)}.
+     * @throws InterruptedException if the current thread is interrupted while
+     * waiting
+     */
+    public @NotNull
+    V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
+        final Timeout timeout = Timeout.getNanosTimeout(time, unit);
+        V result = null;
+        while (result == null) {
+            timeout.await(latch);
+            result = ref.get();
+        }
+        return result;
     }
 
     /**
@@ -115,10 +281,9 @@ public class BlockingReference<V> {
      * 
      * @param value the new value.
      */
-    public void set(final V value) {
+    public void set(@NotNull final V value) {
         notNull("value", value);
-        ref.set(value);
-        latch.release();
+        internalSet(value);
     }
 
     /**
@@ -129,6 +294,39 @@ public class BlockingReference<V> {
      * @return true if the current reference is null.
      */
     public boolean isEmpty() {
-        return ref.get() == null;
+        return peek() == null;
+    }
+
+    /**
+     * Return the current value whether is null or not. If this is true and the
+     * next call to {@link #take()} or {@link #take(long, TimeUnit)} will not
+     * block.
+     * 
+     * @return the current reference or null if there is none.
+     */
+    public @Nullable
+    V peek() {
+        return ref.get();
+    }
+
+    /**
+     * Clear the current reference.
+     */
+    public void clear() {
+        internalSet(null);
+    }
+
+    //
+    // private
+    //
+
+    /**
+     * Set the value
+     * 
+     * @param value maybe null
+     */
+    private void internalSet(@Nullable final V value) {
+        ref.set(value);
+        latch.release();
     }
 }
