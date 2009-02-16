@@ -115,7 +115,7 @@ public class Timeout {
     // util
     //
 
-    void await(final TimedAwaitable latch) throws TimeoutException, InterruptedException {
+    void await(final Awaitable latch) throws TimeoutException, InterruptedException {
         if (!latch.await(getTime(), getUnit())) {
             throw new TimedOutException(this);
         }

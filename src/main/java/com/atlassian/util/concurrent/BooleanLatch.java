@@ -16,11 +16,11 @@
 
 package com.atlassian.util.concurrent;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
-
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * A {@link BooleanLatch} is a reusable latch that resets after it is released
@@ -73,17 +73,20 @@ public class BooleanLatch implements ReusableLatch {
     private final Sync sync = new Sync();
 
     /**
-     * Release the latch, releasing at most one waiting thread.
-     * <p>
-     * If the current state is released then nothing happens.
+     * {@inheritDoc}
+     * 
+     * Releases at most one waiting thread. If the current state is released
+     * then nothing happens.
      */
     public void release() {
         sync.release(0);
     }
 
     /**
+     * {@inheritDoc}
+     * 
      * Causes the current thread to wait until the latch has been released,
-     * unless the thread is {@linkplain Thread#interrupt interrupted}.
+     * unless the thread is {@linkplain Thread#interrupt() interrupted}.
      * <p>
      * If the latch has already been released then this method returns
      * immediately.
@@ -114,8 +117,10 @@ public class BooleanLatch implements ReusableLatch {
     }
 
     /**
+     * {@inheritDoc}
+     * 
      * Causes the current thread to wait until the latch has been released,
-     * unless the thread is {@linkplain Thread#interrupt interrupted}, or the
+     * unless the thread is {@linkplain Thread#interrupt() interrupted}, or the
      * specified waiting time elapses.
      * <p>
      * If the latch has already been released then this method returns

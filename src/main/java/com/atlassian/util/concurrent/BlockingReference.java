@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +25,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
-
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * A Reference with queue semantics where the current reference may be retrieved
@@ -97,7 +96,7 @@ public class BlockingReference<V> {
      * 
      * @param initialValue the initial value
      */
-    public static <V> BlockingReference<V> newMRSW(final V value) {
+    public static <V> BlockingReference<V> newMRSW(final V initialValue) {
         return new BlockingReference<V>(new PhasedLatch() {
             /*
              * Workaround for the fact that take() always calls await. Calling
@@ -115,7 +114,7 @@ public class BlockingReference<V> {
                     currentPhase.set(super.getPhase());
                 }
             }
-        }, null);
+        }, initialValue);
     }
 
     //
