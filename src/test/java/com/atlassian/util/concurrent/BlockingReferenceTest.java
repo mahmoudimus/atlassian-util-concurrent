@@ -53,6 +53,9 @@ public class BlockingReferenceTest {
         assertNotNull(take.get());
         assertSame("testSRSWReferenceSetGet", take.get());
         Thread.sleep(10);
+        // these threads were already waiting, SRSW will only notify ONE thread
+        // in this state - we are testing that the client who is using this
+        // incorrectly will see dodgy behaviour
         assertNull(completionService.poll());
         Thread.sleep(1);
         assertNull(completionService.poll());
@@ -64,6 +67,32 @@ public class BlockingReferenceTest {
         assertNull(completionService.poll());
         Thread.sleep(1);
         assertNull(completionService.poll());
+    }
+
+    @Test
+    public void initialValueSRSWReferenceGet() throws Exception {
+        final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueSRSWReferenceGet");
+        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+            public String call() throws Exception {
+                return ref.get();
+            }
+        }));
+        for (int i = 0; i < threads; i++) {
+            assertSame("initialValueSRSWReferenceGet", completionService.take().get());
+        }
+    }
+
+    @Test
+    public void initialValueMRSWReferenceGet() throws Exception {
+        final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueMRSWReferenceGet");
+        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+            public String call() throws Exception {
+                return ref.get();
+            }
+        }));
+        for (int i = 0; i < threads; i++) {
+            assertSame("initialValueMRSWReferenceGet", completionService.take().get());
+        }
     }
 
     @Test

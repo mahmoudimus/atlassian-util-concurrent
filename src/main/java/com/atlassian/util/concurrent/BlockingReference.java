@@ -42,7 +42,10 @@ import java.util.concurrent.locks.Condition;
  * multiple readers are waiting to {@link #take()} a value, one reader will be
  * arbitrarily chosen (similar to {@link Condition#signal()}). Multiple readers
  * can however {@link #get()} the current value if it is not null, but they may
- * see the current value more than once.
+ * see the current value more than once. If multiple readers attempt to
+ * {@link #get()} a value from the SRSW reference and it is not yet present then
+ * only one waiting thread may be notified, please use the MRSW version for this
+ * case.
  * <p>
  * This implementation has been optimized for SRSW performance with
  * {@link #set(Object)}/{@link #take()} pairs.
@@ -235,7 +238,7 @@ public class BlockingReference<V> {
      */
     public @NotNull
     V get() throws InterruptedException {
-        V result = null;
+        V result = ref.get();
         while (result == null) {
             latch.await();
             result = ref.get();
@@ -265,7 +268,7 @@ public class BlockingReference<V> {
     public @NotNull
     V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
         final Timeout timeout = Timeout.getNanosTimeout(time, unit);
-        V result = null;
+        V result = ref.get();
         while (result == null) {
             timeout.await(latch);
             result = ref.get();
