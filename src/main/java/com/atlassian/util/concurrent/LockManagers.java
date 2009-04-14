@@ -29,8 +29,9 @@ public class LockManagers {
     }
 
     /**
-     * Convenience method that simply calls {@link LockManagers#weakLockManager(Function, int)} with
-     * a default initial capacity of 128.
+     * Convenience method that simply calls
+     * {@link LockManagers#weakLockManager(Function, int)} with a default
+     * initial capacity of 128.
      * 
      * @param <T> the type of the thing used to look up locks
      * @param <D> the type used to map lock instances
@@ -42,9 +43,24 @@ public class LockManagers {
     }
 
     /**
-     * The particular {@link Lock} is resolved using a {@link Function} that resolves to a
-     * descriptor used to look up a Lock instance. This allows for a finite set of locks to be used
-     * even if the set of T is essentially unbounded.
+     * Convenience method that simply calls
+     * {@link LockManagers#weakLockManager(Function, int)} with a default
+     * initial capacity of 128.
+     * 
+     * @param <T> the type of the thing used to look up locks
+     * @param <D> the type used to map lock instances
+     * @param stripeFunction to convert Ts to Ds.
+     * @see LockManagers#weakLockManager(Function, int)
+     */
+    public static <T> LockManager<T> weakLockManager() {
+        return weakLockManager(Functions.<T> identity(), Defaults.CAPACITY);
+    }
+
+    /**
+     * The particular {@link Lock} is resolved using a {@link Function} that
+     * resolves to a descriptor used to look up a Lock instance. This allows for
+     * a finite set of locks to be used even if the set of T is essentially
+     * unbounded.
      * <p>
      * For instance:
      * 
@@ -56,14 +72,15 @@ public class LockManagers {
      * };
      * </pre>
      * 
-     * uses only 16 possible locks as the function returns the modulo 16 of the thing's id.
+     * uses only 16 possible locks as the function returns the modulo 16 of the
+     * thing's id.
      * 
      * @param <T> the type of the thing used to look up locks
      * @param <D> the type used to map lock instances
      * @param stripeFunction to convert Ts to Ds.
      * @param initialCapacity the initial capacity of the internal map.
-     * @return a new {@link LockManager} instance that stores created {@link Lock} instances with
-     *         weak references.
+     * @return a new {@link LockManager} instance that stores created
+     * {@link Lock} instances with weak references.
      */
     public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction, final int initialCapacity) {
         return new Manager<T, D>(new WeakLockMap<D>(initialCapacity), stripeFunction);
@@ -93,19 +110,27 @@ public class LockManagers {
             lock.lock();
             try {
                 return callable.call();
-            }
-            finally {
+            } finally {
                 lock.unlock();
             }
         }
+
+        public <R> R withLock(final T descriptor, final Supplier<R> supplier) {
+            final Lock lock = lockResolver.get(stripeFunction.get(descriptor));
+            lock.lock();
+            try {
+                return supplier.get();
+            } finally {
+                lock.unlock();
+            }
+        };
 
         public void withLock(final T descriptor, final Runnable runnable) {
             final Lock lock = lockResolver.get(stripeFunction.get(descriptor));
             lock.lock();
             try {
                 runnable.run();
-            }
-            finally {
+            } finally {
                 lock.unlock();
             }
         }

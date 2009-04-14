@@ -19,8 +19,8 @@ package com.atlassian.util.concurrent;
 import java.util.concurrent.Callable;
 
 /**
- * {@link LockManager} allows {@link Callable callables} and {@link Runnable runnables} to be run
- * under a lock that is resolved against an input object.
+ * {@link LockManager} allows {@link Callable callables} and {@link Runnable
+ * runnables} to be run under a lock that is resolved against an input object.
  * 
  * @param <T> The input type that we lock on.
  * @param <D> The stripe type that we stripe locks on.
@@ -28,7 +28,8 @@ import java.util.concurrent.Callable;
 public interface LockManager<T> {
 
     /**
-     * Execute the supplied {@link Callable} under a lock determined by the descriptor.
+     * Execute the supplied {@link Callable} under a lock determined by the
+     * descriptor.
      * 
      * @param <R> the result type
      * @param descriptor to look up the lock
@@ -39,7 +40,22 @@ public interface LockManager<T> {
     <R> R withLock(final T descriptor, final Callable<R> callable) throws Exception;
 
     /**
-     * Execute the supplied {@link Runnable} under a lock determined by the descriptor.
+     * Execute the supplied {@link Supplier} under a lock determined by the
+     * descriptor.
+     * <p>
+     * Unlike {@link #withLock(Object, Callable)} this version returns a result
+     * and does not declare a checked exception.
+     * 
+     * @param <R> the result type
+     * @param descriptor to look up the lock
+     * @param callable the operation to perform under lock
+     * @return whatever the supplied {@link Callable} returns
+     */
+    <R> R withLock(final T descriptor, final Supplier<R> supplier);
+
+    /**
+     * Execute the supplied {@link Runnable} under a lock determined by the
+     * descriptor.
      * 
      * @param descriptor to look up the lock
      * @param runnable the operation to perform under lock
