@@ -4,13 +4,13 @@ import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.junit.Test;
 
 public class LockManagerTest {
     private final Function<String, String> reverser = new Function<String, String>() {
@@ -23,7 +23,8 @@ public class LockManagerTest {
         };
     };
 
-    @Test public void testLockManagerLocksAndUnlocksAndReturnsValue() throws Exception {
+    @Test
+    public void testLockManagerLocksAndUnlocksAndReturnsValue() throws Exception {
         final AtomicReference<String> ref = new AtomicReference<String>();
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
@@ -32,12 +33,16 @@ public class LockManagerTest {
             public Lock get(final String input) {
                 ref.set(input);
                 return new ReentrantLock() {
-                    @Override public void lock() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void lock() {
                         locked.set(true);
                         super.lock();
                     }
 
-                    @Override public void unlock() {
+                    @Override
+                    public void unlock() {
                         unlocked.set(true);
                         super.unlock();
                     }
@@ -58,7 +63,8 @@ public class LockManagerTest {
         assertEquals("tupni", ref.get());
     }
 
-    @Test public void testLockManagerLocksAndUnlocksAndThrows() throws Exception {
+    @Test
+    public void testLockManagerLocksAndUnlocksAndThrows() throws Exception {
         final AtomicReference<String> ref = new AtomicReference<String>();
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
@@ -67,12 +73,16 @@ public class LockManagerTest {
             public Lock get(final String input) {
                 ref.set(input);
                 return new ReentrantLock() {
-                    @Override public void lock() {
+                    private static final long serialVersionUID = 5047219203514192915L;
+
+                    @Override
+                    public void lock() {
                         locked.set(true);
                         super.lock();
                     }
 
-                    @Override public void unlock() {
+                    @Override
+                    public void unlock() {
                         unlocked.set(true);
                         super.unlock();
                     }
@@ -80,7 +90,9 @@ public class LockManagerTest {
             };
         }, reverser);
 
-        class StupidException extends Exception {}
+        class StupidException extends Exception {
+            private static final long serialVersionUID = -885206738173390512L;
+        }
 
         try {
             manager.withLock("input", new Callable<String>() {
@@ -90,8 +102,7 @@ public class LockManagerTest {
                 }
             });
             fail("StupidException expected");
-        }
-        catch (final StupidException ignore) {}
+        } catch (final StupidException ignore) {}
 
         assertTrue(called.get());
         assertTrue(locked.get());
@@ -99,7 +110,8 @@ public class LockManagerTest {
         assertEquals("tupni", ref.get());
     }
 
-    @Test public void testLockManagerLocksAndUnlocksAndRuns() throws Exception {
+    @Test
+    public void testLockManagerLocksAndUnlocksAndRuns() throws Exception {
         final AtomicReference<String> ref = new AtomicReference<String>();
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
@@ -108,12 +120,16 @@ public class LockManagerTest {
             public Lock get(final String input) {
                 ref.set(input);
                 return new ReentrantLock() {
-                    @Override public void lock() {
+                    private static final long serialVersionUID = -5545182312276280121L;
+
+                    @Override
+                    public void lock() {
                         locked.set(true);
                         super.lock();
                     }
 
-                    @Override public void unlock() {
+                    @Override
+                    public void unlock() {
                         unlocked.set(true);
                         super.unlock();
                     }
@@ -133,7 +149,8 @@ public class LockManagerTest {
         assertEquals("tupni", ref.get());
     }
 
-    @Test public void testLockManagerLocksAndUnlocksAndThrowsRuntime() throws Exception {
+    @Test
+    public void testLockManagerLocksAndUnlocksAndThrowsRuntime() throws Exception {
         final AtomicReference<String> ref = new AtomicReference<String>();
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
@@ -142,12 +159,16 @@ public class LockManagerTest {
             public Lock get(final String input) {
                 ref.set(input);
                 return new ReentrantLock() {
-                    @Override public void lock() {
+                    private static final long serialVersionUID = 4219143544310279745L;
+
+                    @Override
+                    public void lock() {
                         locked.set(true);
                         super.lock();
                     }
 
-                    @Override public void unlock() {
+                    @Override
+                    public void unlock() {
                         unlocked.set(true);
                         super.unlock();
                     }
@@ -155,7 +176,9 @@ public class LockManagerTest {
             };
         }, reverser);
 
-        class StupidException extends RuntimeException {}
+        class StupidException extends RuntimeException {
+            private static final long serialVersionUID = 8829097977007580221L;
+        }
 
         try {
             manager.withLock("input", new Runnable() {
@@ -165,8 +188,7 @@ public class LockManagerTest {
                 }
             });
             fail("StupidException expected");
-        }
-        catch (final StupidException ignore) {}
+        } catch (final StupidException ignore) {}
 
         assertTrue(called.get());
         assertTrue(locked.get());

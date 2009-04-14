@@ -153,7 +153,7 @@ public class PerformanceAnalysis {
     }
 
     static class RefQueue implements Q {
-        private final BlockingReference<Integer> ref = new BlockingReference<Integer>();
+        private final BlockingReference<Integer> ref = BlockingReference.newSRSW();
 
         public void put(final int i) {
             ref.set(i);
@@ -243,7 +243,7 @@ public class PerformanceAnalysis {
     }
 
     static class BlockingReferenceQueue implements Q {
-        private final BlockingReference<Integer> ref = new BlockingReference<Integer>();
+        private final BlockingReference<Integer> ref = BlockingReference.newSRSW();
 
         public void put(final int i) {
             ref.set(i);

@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * {@link LockManager} allows {@link Callable callables} and {@link Runnable
@@ -26,6 +27,17 @@ import java.util.concurrent.Callable;
  * @param <D> The stripe type that we stripe locks on.
  */
 public interface LockManager<T> {
+
+    /**
+     * Execute the supplied {@link Supplier} under a lock determined by the
+     * descriptor. Does not throw a checked exception.
+     * 
+     * @param <R> the result type
+     * @param descriptor to look up the lock
+     * @param supplier the operation to perform under lock
+     * @return whatever the supplied {@link Supplier} returns
+     */
+    <R> R withLock(final T descriptor, final Supplier<R> supplier);
 
     /**
      * Execute the supplied {@link Callable} under a lock determined by the
@@ -40,20 +52,6 @@ public interface LockManager<T> {
     <R> R withLock(final T descriptor, final Callable<R> callable) throws Exception;
 
     /**
-     * Execute the supplied {@link Supplier} under a lock determined by the
-     * descriptor.
-     * <p>
-     * Unlike {@link #withLock(Object, Callable)} this version returns a result
-     * and does not declare a checked exception.
-     * 
-     * @param <R> the result type
-     * @param descriptor to look up the lock
-     * @param callable the operation to perform under lock
-     * @return whatever the supplied {@link Callable} returns
-     */
-    <R> R withLock(final T descriptor, final Supplier<R> supplier);
-
-    /**
      * Execute the supplied {@link Runnable} under a lock determined by the
      * descriptor.
      * 
@@ -61,4 +59,26 @@ public interface LockManager<T> {
      * @param runnable the operation to perform under lock
      */
     void withLock(final T descriptor, final Runnable runnable);
+
+    /**
+     * Maintains two lock managers that internally use the same map of
+     * {@link ReadWriteLock read/write locks}
+     * 
+     * @param <T>
+     */
+    interface ReadWrite<T> {
+        /**
+         * For performing operations that require read locks
+         * 
+         * @return a lock manager that uses read locks
+         */
+        LockManager<T> read();
+
+        /**
+         * For performing operations that require write locks
+         * 
+         * @return a lock manager that uses write locks
+         */
+        LockManager<T> write();
+    }
 }
