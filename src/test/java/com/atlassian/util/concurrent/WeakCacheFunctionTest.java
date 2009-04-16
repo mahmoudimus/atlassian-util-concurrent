@@ -7,7 +7,6 @@ import static org.junit.Assert.assertSame;
 import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.locks.Lock;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.atlassian.util.concurrent.WeakCacheFunction.MappedReference;
@@ -30,20 +29,14 @@ public class WeakCacheFunctionTest {
         assertNotNull(ref.get());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testReferenceNullDescriptor() throws Exception {
-        try {
-            new MappedReference<String, String>(null, "value", new ReferenceQueue<String>());
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {}
+        new MappedReference<String, String>(null, "value", new ReferenceQueue<String>());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testReferenceNullValue() throws Exception {
-        try {
-            new MappedReference<String, String>("ref", null, new ReferenceQueue<String>());
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {}
+        new MappedReference<String, String>("ref", null, new ReferenceQueue<String>());
     }
 
     @Test

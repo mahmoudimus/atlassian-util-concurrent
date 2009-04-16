@@ -4,59 +4,65 @@ import static com.atlassian.util.concurrent.Util.pause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Test;
+
 public class SettableFutureTest {
-    @Test public void isDoneOnceSet() throws InterruptedException {
+    @Test
+    public void isDoneOnceSet() throws InterruptedException {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         assertFalse(future.isDone());
         future.set(1);
         assertTrue(future.isDone());
         assertEquals(Integer.valueOf(1), future.get());
-    }
-
-    @Test public void onlySettableOnce() throws InterruptedException {
-        final SettableFuture<Integer> future = new SettableFuture<Integer>();
-        future.set(1);
         try {
             future.set(2);
-            fail("should not be settable twice with different value");
-        }
-        catch (final IllegalArgumentException expected) {}
+        } catch (final IllegalArgumentException expected) {}
         assertEquals(Integer.valueOf(1), future.get());
     }
 
-    @Test public void onlySettableOnceWithNull() throws InterruptedException {
+    @Test(expected = IllegalArgumentException.class)
+    public void onlySettableOnce() throws InterruptedException {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.set(1);
+        future.set(2);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void onlySettableOnceWithNull() throws InterruptedException {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.set(null);
-        try {
-            future.set(2);
-            fail("should not be settable twice with different value");
-        }
-        catch (final IllegalArgumentException expected) {}
+        future.set(2);
+    }
+
+    @Test
+    public void settableWithNull() throws InterruptedException {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.set(null);
         assertEquals(null, future.get());
     }
 
-    @Test public void settableTwiceWithSameValue() throws InterruptedException {
+    @Test
+    public void settableTwiceWithSameValue() throws InterruptedException {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.set(1);
         future.set(1);
         assertEquals(Integer.valueOf(1), future.get());
     }
 
-    @Test public void settableTwiceWithNullValue() throws InterruptedException {
+    @Test
+    public void settableTwiceWithNullValue() throws InterruptedException {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.set(1);
         future.set(1);
         assertEquals(Integer.valueOf(1), future.get());
     }
 
-    @Test public void notCancellable() {
+    @Test
+    public void notCancellable() {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.cancel(false);
         assertEquals(false, future.isCancelled());
@@ -64,7 +70,8 @@ public class SettableFutureTest {
         assertEquals(false, future.isCancelled());
     }
 
-    @Test public void getWaits() throws InterruptedException {
+    @Test
+    public void getWaits() throws InterruptedException {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         final CountDownLatch running = new CountDownLatch(1);
         final AtomicInteger count = new AtomicInteger(3);
@@ -75,8 +82,7 @@ public class SettableFutureTest {
                     running.countDown();
                     count.set(future.get());
                     complete.countDown();
-                }
-                catch (final InterruptedException e) {
+                } catch (final InterruptedException e) {
                     throw new RuntimeInterruptedException(e);
                 }
             }

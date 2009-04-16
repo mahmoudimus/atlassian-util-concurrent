@@ -278,34 +278,28 @@ public class CopyOnWriteMapTest {
         assertEquals(0, map.size());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void nullMap() throws Exception {
-        try {
-            new CopyOnWriteMap<String, String>(null) {
-                private static final long serialVersionUID = 4223850632932526917L;
+        new CopyOnWriteMap<String, String>(null) {
+            private static final long serialVersionUID = 4223850632932526917L;
 
-                @Override
-                public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
-                    return new HashMap<String, String>(map);
-                };
+            @Override
+            public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
+                return new HashMap<String, String>(map);
             };
-            fail("Should have thrown IllegalArgumentEx");
-        } catch (final IllegalArgumentException ignore) {}
+        };
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void copyFunctionReturnsNull() throws Exception {
-        try {
-            new CopyOnWriteMap<String, String>() {
-                private static final long serialVersionUID = 831716474176011289L;
+        new CopyOnWriteMap<String, String>() {
+            private static final long serialVersionUID = 831716474176011289L;
 
-                @Override
-                public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
-                    return null;
-                };
+            @Override
+            public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
+                return null;
             };
-            fail("Should have thrown IllegalArgumentEx");
-        } catch (final IllegalArgumentException ignore) {}
+        };
     }
 }
 
