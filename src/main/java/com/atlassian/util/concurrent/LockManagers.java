@@ -25,7 +25,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Static factory for producing {@link LockManager} instances.
+ * Static factory for producing {@link LockManager} and {@link LockManaged}
+ * instances.
+ * <p>
+ * All Parameters and returns values do no allow nulls. All supplied
+ * {@link Function functions} should not allow null values are permit null
+ * returns.
  */
 public class LockManagers {
 
@@ -49,6 +54,32 @@ public class LockManagers {
                 }
             };
         }
+
+        static final <T> Function<T, LockManaged> lockManaged() {
+            return new Function<T, LockManaged>() {
+                public LockManaged get(final T ignored) {
+                    return new Managed(new ReentrantLock());
+                }
+            };
+        }
+    }
+
+    /**
+     * Convenience method that simply calls
+     * {@link LockManagers#weakLockManager(Function, int)} with a default
+     * initial capacity of 128.
+     * 
+     * @param <T> the type of the thing used to look up locks
+     * @param <D> the type used to map lock instances
+     * @param stripeFunction to convert Ts to Ds.
+     * @see LockManagers#weakLockManager(Function, int)
+     */
+    public static <T, D> Function<T, LockManaged> weakLockManaged(final Function<T, D> stripeFunction) {
+        return weakLockManaged(stripeFunction, Defaults.CAPACITY);
+    }
+
+    public static <T, D> Function<T, LockManaged> weakLockManaged(final Function<T, D> stripeFunction, final int initialCapacity) {
+        return ManagedFactory.create(WeakCacheFunction.create(initialCapacity, Func.<D> lockManaged()), stripeFunction);
     }
 
     /**
@@ -194,6 +225,65 @@ public class LockManagers {
 
         public void withLock(final T descriptor, final Runnable runnable) {
             final Lock lock = lockResolver.get(stripeFunction.get(descriptor));
+            lock.lock();
+            try {
+                runnable.run();
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    static class ManagedFactory<T, D> implements Function<T, LockManaged> {
+        static final <T, D> ManagedFactory<T, D> create(final Function<D, LockManaged> lockResolver, final Function<T, D> stripeFunction) {
+            return new ManagedFactory<T, D>(lockResolver, stripeFunction);
+        }
+
+        private final Function<D, LockManaged> lockResolver;
+        private final Function<T, D> stripeFunction;
+
+        ManagedFactory(final Function<D, LockManaged> lockResolver, final Function<T, D> stripeFunction) {
+            this.lockResolver = lockResolver;
+            this.stripeFunction = stripeFunction;
+        }
+
+        public LockManaged get(final T descriptor) {
+            return lockResolver.get(stripeFunction.get(descriptor));
+        };
+    }
+
+    /**
+     * Default implementation of {@link LockManaged}
+     * 
+     * @param <T> the input type
+     * @param <D> the type used for the internal lock resolution.
+     */
+    static class Managed implements LockManaged {
+        private final Lock lock;
+
+        Managed(final Lock lock) {
+            this.lock = lock;
+        }
+
+        public <R> R withLock(final Supplier<R> supplier) {
+            lock.lock();
+            try {
+                return supplier.get();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public <R> R withLock(final Callable<R> callable) throws Exception {
+            lock.lock();
+            try {
+                return callable.call();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public void withLock(final Runnable runnable) {
             lock.lock();
             try {
                 runnable.run();
