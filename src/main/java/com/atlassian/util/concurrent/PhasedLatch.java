@@ -111,9 +111,12 @@ public class PhasedLatch implements ReusableLatch {
         protected boolean tryReleaseShared(final int ignore) {
             while (true) {
                 final int state = getState();
+                // /CLOVER:OFF
+                // cannot test CAS
                 if (compareAndSetState(state, state + 1)) {
                     return true;
                 }
+                // /CLOVER:ON
             }
         }
     }
