@@ -76,6 +76,22 @@ public class ManagedLocks {
         return weakManagedLockFactory(stripeFunction);
     }
 
+    /**
+     * Create a {@link Function} for resolving {@link ManagedLock managed locks}
+     * . The particular lock is resolved using a striping {@link Function} that
+     * is used look up a lock instance. This allows for a finite set of locks to
+     * be used even if the set of T is essentially unbounded. The locks are
+     * stored using weak references so infrequently accessed locks should not
+     * use excess memory.
+     * 
+     * @param <T> the type of the thing used to look up locks
+     * @param <D> the type used to map lock instances
+     * @param stripeFunction to convert the input to the thing used to look up
+     * the individual locks
+     * @param the factory for creating the individual locks
+     * @return a new {@link Function} that provides {@link ManagedLock}
+     * instances that stores created instances with weak references.
+     */
     public static <T, D> Function<T, ManagedLock> weakManagedLockFactory(final Function<T, D> stripeFunction, final Supplier<Lock> lockSupplier) {
         final Function<D, ManagedLock> lockFactory = fromSupplier(managedLockFactory(lockSupplier));
         return managedFactory(weakMemoizer(lockFactory), stripeFunction);
