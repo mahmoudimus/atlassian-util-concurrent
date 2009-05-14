@@ -16,8 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -26,17 +24,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
- * {@link SettableFuture} is a {@link Future} implementation where the responsibility for producing
- * the result is external to the future instance, unlike {@link FutureTask} where the future holds
- * the operation (a {@link Callable} or {@link Runnable} instance) and the first thread that calls
- * {@link FutureTask#run()} executes the operation.
+ * {@link SettableFuture} is a {@link Future} implementation where the
+ * responsibility for producing the result is external to the future instance,
+ * unlike {@link FutureTask} where the future holds the operation (a
+ * {@link Callable} or {@link Runnable} instance) and the first thread that
+ * calls {@link FutureTask#run()} executes the operation.
  * <p>
- * This is useful in situations where all the inputs may not be available at construction time.
+ * This is useful in situations where all the inputs may not be available at
+ * construction time.
  * <p>
  * This class does not support cancellation.
  */
-@ThreadSafe public class SettableFuture<T> implements Future<T> {
+@ThreadSafe
+public class SettableFuture<T> implements Future<T> {
     private volatile AtomicMarkableReference<T> ref = new AtomicMarkableReference<T>(null, false);
     private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -50,9 +53,11 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
                 }
                 return;
             }
+            // /CLOVER:OFF
             if (!ref.compareAndSet(null, value, false, true)) {
                 continue;
             }
+            // /CLOVER:ON
             latch.countDown();
             return;
         }
