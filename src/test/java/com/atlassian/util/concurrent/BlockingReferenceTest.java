@@ -6,11 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -43,164 +43,199 @@ public class BlockingReferenceTest {
     @Test
     public void setSRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW();
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
         }));
-        ref.set("testSRSWReferenceSetGet");
-        final Future<String> take = completionService.take();
-        assertNotNull(take.get());
-        assertSame("testSRSWReferenceSetGet", take.get());
-        Thread.sleep(10);
-        // these threads were already waiting, SRSW will only notify ONE thread
-        // in this state - we are testing that the client who is using this
-        // incorrectly will see dodgy behaviour
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
+        try {
+            ref.set("testSRSWReferenceSetGet");
+            final Future<String> take = executor.completion.take();
+            assertNotNull(take.get());
+            assertSame("testSRSWReferenceSetGet", take.get());
+            Thread.sleep(10);
+            // these threads were already waiting, SRSW will only notify ONE
+            // thread
+            // in this state - we are testing that the client who is using this
+            // incorrectly will see dodgy behaviour
+            final Future<String> poll = executor.completion.poll();
+            Thread.sleep(1);
+            assertNull(poll);
+            Thread.sleep(1);
+            assertNull(executor.completion.poll());
+            Thread.sleep(1);
+            assertNull(executor.completion.poll());
+            Thread.sleep(1);
+            assertNull(executor.completion.poll());
+            Thread.sleep(1);
+            assertNull(executor.completion.poll());
+            Thread.sleep(1);
+            assertNull(executor.completion.poll());
+        } finally {
+            executor.pool.shutdown();
+        }
     }
 
     @Test
     public void initialValueSRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueSRSWReferenceGet");
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
         }));
-        for (int i = 0; i < threads; i++) {
-            assertSame("initialValueSRSWReferenceGet", completionService.take().get());
+        try {
+            for (int i = 0; i < threads; i++) {
+                assertSame("initialValueSRSWReferenceGet", executor.completion.take().get());
+            }
+        } finally {
+            executor.pool.shutdown();
         }
     }
 
     @Test
     public void initialValueMRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueMRSWReferenceGet");
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
         }));
-        for (int i = 0; i < threads; i++) {
-            assertSame("initialValueMRSWReferenceGet", completionService.take().get());
+        try {
+            for (int i = 0; i < threads; i++) {
+                assertSame("initialValueMRSWReferenceGet", executor.completion.take().get());
+            }
+        } finally {
+            executor.pool.shutdown();
         }
     }
 
     @Test
     public void setMRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newMRSW();
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
         }));
-        ref.set("testSRSWReferenceSetGet");
-        for (int i = 0; i < threads; i++) {
-            assertSame("testSRSWReferenceSetGet", completionService.take().get());
+        try {
+            ref.set("testSRSWReferenceSetGet");
+            for (int i = 0; i < threads; i++) {
+                assertSame("testSRSWReferenceSetGet", executor.completion.take().get());
+            }
+            assertNull(executor.completion.poll());
+            assertNotNull(ref.peek());
+        } finally {
+            executor.pool.shutdown();
         }
-        assertNull(completionService.poll());
-        assertNotNull(ref.peek());
     }
 
     @Test
     public void setSRSWReferenceTake() throws Exception {
+        final CountDownLatch running = new CountDownLatch(1);
         final BlockingReference<String> ref = BlockingReference.newSRSW();
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
             public String call() throws Exception {
+                running.await();
                 return ref.take();
             }
         }));
-        ref.set("testSRSWReferenceSetGet");
-        assertSame("testSRSWReferenceSetGet", completionService.take().get());
-        Thread.sleep(10);
-        assertNull(completionService.poll());
-        assertNull(ref.peek());
-        ref.set("setSRSWReferenceTake2");
-        assertSame("setSRSWReferenceTake2", completionService.take().get());
-        assertNull(completionService.poll());
-        assertNull(ref.peek());
-        ref.set("setSRSWReferenceTake3");
-        assertSame("setSRSWReferenceTake3", completionService.take().get());
-        assertNull(completionService.poll());
-        assertNull(ref.peek());
+        try {
+            ref.set("testSRSWReferenceSetGet");
+            running.countDown();
+            assertSame("testSRSWReferenceSetGet", executor.completion.take().get());
+            Thread.sleep(10);
+            assertNull(executor.completion.poll());
+            assertNull(ref.peek());
+            ref.set("setSRSWReferenceTake2");
+            assertSame("setSRSWReferenceTake2", executor.completion.take().get());
+            assertNull(executor.completion.poll());
+            assertNull(ref.peek());
+            ref.set("setSRSWReferenceTake3");
+            assertSame("setSRSWReferenceTake3", executor.completion.take().get());
+            assertNull(executor.completion.poll());
+            assertNull(ref.peek());
+        } finally {
+            executor.pool.shutdown();
+        }
     }
 
     @Test
     public void setMRSWReferenceTake() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newMRSW();
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(threads, ref, new Callable<String>() {
+        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.take();
             }
         }));
-        ref.set("setMRSWReferenceTake");
-        assertSame("setMRSWReferenceTake", completionService.take().get());
-        Thread.sleep(10);
-        assertNull(completionService.poll());
-        assertNull(ref.peek());
-        ref.set("setMRSWReferenceTake2");
-        assertSame("setMRSWReferenceTake2", completionService.take().get());
-        ref.set("setMRSWReferenceTake3");
-        assertSame("setMRSWReferenceTake3", completionService.take().get());
-        ref.set("setMRSWReferenceTake4");
-        assertSame("setMRSWReferenceTake4", completionService.take().get());
-        assertNull(completionService.poll());
-        assertNull(ref.peek());
+        try {
+            ref.set("setMRSWReferenceTake");
+            assertSame("setMRSWReferenceTake", executor.completion.take().get());
+            Thread.sleep(10);
+            assertNull(executor.completion.poll());
+            assertNull(ref.peek());
+            ref.set("setMRSWReferenceTake2");
+            assertSame("setMRSWReferenceTake2", executor.completion.take().get());
+            ref.set("setMRSWReferenceTake3");
+            assertSame("setMRSWReferenceTake3", executor.completion.take().get());
+            ref.set("setMRSWReferenceTake4");
+            assertSame("setMRSWReferenceTake4", executor.completion.take().get());
+            assertNull(executor.completion.poll());
+            assertNull(ref.peek());
+        } finally {
+            executor.pool.shutdown();
+        }
     }
 
-    @Test
-    public void timeoutSRSWReferenceGet() throws InterruptedException {
+    @Test(expected = TimeoutException.class)
+    public void timeoutSRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW();
-        try {
-            ref.get(1, TimeUnit.NANOSECONDS);
-            fail("TimeoutException expected");
-        } catch (final TimeoutException expected) {}
+        ref.get(1, TimeUnit.NANOSECONDS);
     }
 
-    @Test
-    public void timeoutSRSWReferenceTake() throws InterruptedException {
+    @Test(expected = TimeoutException.class)
+    public void timeoutSRSWReferenceTake() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW();
-        try {
-            ref.take(1, TimeUnit.NANOSECONDS);
-            fail("TimeoutException expected");
-        } catch (final TimeoutException expected) {}
+        ref.take(1, TimeUnit.NANOSECONDS);
     }
 
-    @Test
-    public void timeoutMRSWReferenceGet() throws InterruptedException {
+    @Test(expected = TimeoutException.class)
+    public void timeoutMRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newMRSW();
-        try {
-            ref.get(1, TimeUnit.NANOSECONDS);
-            fail("TimeoutException expected");
-        } catch (final TimeoutException expected) {}
+        ref.get(1, TimeUnit.NANOSECONDS);
     }
 
-    @Test
-    public void timeoutMRSWReferenceTake() throws InterruptedException {
+    @Test(expected = TimeoutException.class)
+    public void timeoutMRSWReferenceTake() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newMRSW();
-        try {
-            ref.take(1, TimeUnit.NANOSECONDS);
-            fail("TimeoutException expected");
-        } catch (final TimeoutException expected) {}
+        ref.take(1, TimeUnit.NANOSECONDS);
     }
 
-    private ExecutorCompletionService<String> getCompletionService(final CallableFactory factory) throws InterruptedException {
+    @Test(expected = TimeoutException.class)
+    public void timeoutSRSWReferenceTakeIfTaken() throws Exception {
+        final BlockingReference<String> ref = BlockingReference.newSRSW();
+        ref.set("blah");
+        assertSame("blah", ref.take(1, TimeUnit.NANOSECONDS));
+        ref.take(1, TimeUnit.NANOSECONDS);
+    }
+
+    @Test(expected = TimeoutException.class)
+    public void timeoutMRSWReferenceTakeIfTaken() throws Exception {
+        final BlockingReference<String> ref = BlockingReference.newMRSW();
+        ref.set("blah");
+        assertSame("blah", ref.take(1, TimeUnit.NANOSECONDS));
+        ref.take(1, TimeUnit.NANOSECONDS);
+    }
+
+    private Executor<String> getCompletionService(final CallableFactory factory) throws InterruptedException {
         final int threads = factory.threads();
-        final ExecutorCompletionService<String> completionService = new ExecutorCompletionService<String>(newFixedThreadPool(threads));
+        final ExecutorService pool = newFixedThreadPool(threads);
+        final ExecutorCompletionService<String> completionService = new ExecutorCompletionService<String>(pool);
         for (int i = 0; i < threads; i++) {
             completionService.submit(factory.get());
         }
         factory.await();
-        return completionService;
+        return new Executor<String>(pool, completionService);
     }
 
     interface CallableFactory extends Supplier<Callable<String>> {
@@ -209,7 +244,7 @@ public class BlockingReferenceTest {
         void await();
     }
 
-    private CallableFactory factory(final int threads, final BlockingReference<String> ref, final Callable<String> delegate) {
+    private CallableFactory factory(final int threads, final Callable<String> delegate) {
         final CountDownLatch start = new CountDownLatch(threads);
 
         final Supplier<Callable<String>> supplier = new Supplier<Callable<String>>() {
@@ -263,5 +298,15 @@ public class BlockingReferenceTest {
         assertSame("test3", ref.take());
         assertTrue(ref.isEmpty());
         assertNull(ref.peek());
+    }
+
+    class Executor<T> {
+        final ExecutorService pool;
+        final ExecutorCompletionService<T> completion;
+
+        Executor(final ExecutorService executor, final ExecutorCompletionService<T> completion) {
+            this.pool = executor;
+            this.completion = completion;
+        }
     }
 }

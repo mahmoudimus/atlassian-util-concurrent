@@ -14,7 +14,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PerformanceAnalysis {
+public class PerformanceTest {
 
     public static void main(final String[] args) {
         final List<Q> queues = new ArrayList<Q>();
@@ -25,7 +25,7 @@ public class PerformanceAnalysis {
         queues.add(new LockedQueue());
         queues.add(new PhasedQueue());
         // queues.add(new LinkedQueue());
-        System.out.println(new PerformanceAnalysis().runTest(queues));
+        System.out.println(new PerformanceTest().runTest(queues));
     }
 
     public String runTest(final List<Q> queues) {

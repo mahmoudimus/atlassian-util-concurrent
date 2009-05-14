@@ -6,9 +6,10 @@ final class Util {
     static void pause(final int millis) {
         try {
             Thread.sleep(millis);
-        }
-        catch (final InterruptedException e) {
+        } catch (final InterruptedException e) {
+            // /CLOVER:OFF
             throw new RuntimeException(e);
+            // /CLOVER:ON
         }
     }
 
