@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
@@ -12,67 +11,55 @@ import java.util.TreeMap;
  * {@link CopyOnWriteSortedMap} instances.
  * 
  * @author Jed Wesley-Smith
+ * @deprecated use the static factory methods is {@link CopyOnWriteMap} and
+ * {@link CopyOnWriteSortedMap} directly.
  */
+@Deprecated
+// /CLOVER:OFF
 public class CopyOnWriteMaps {
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
+     * 
+     * @deprecated use the {@link CopyOnWriteMap#newHashMap()} instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
-        return new CopyOnWriteMap<K, V>() {
-            private static final long serialVersionUID = 5221824943734164497L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new HashMap<K, V>(map);
-            }
-        };
+        return CopyOnWriteMap.newHashMap();
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
      * using the supplied map as the initial values.
+     * 
+     * @deprecated use the {@link CopyOnWriteMap#newHashMap(Map)} instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteMap<K, V>(map) {
-            private static final long serialVersionUID = -7616159260882572421L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new HashMap<K, V>(map);
-            }
-        };
+        return CopyOnWriteMap.newHashMap(map);
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying
      * {@link LinkedHashMap}. Iterators for this map will be return elements in
      * insertion order.
+     * 
+     * @deprecated use the {@link CopyOnWriteMap#newLinkedMap()} instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
-        return new CopyOnWriteMap<K, V>() {
-            private static final long serialVersionUID = -4597421704607601676L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new LinkedHashMap<K, V>(map);
-            }
-        };
+        return CopyOnWriteMap.newLinkedMap();
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying
      * {@link LinkedHashMap} using the supplied map as the initial values.
      * Iterators for this map will be return elements in insertion order.
+     * 
+     * @deprecated use the {@link CopyOnWriteMap#newLinkedMap(Map)} instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteMap<K, V>(map) {
-            private static final long serialVersionUID = -8659999465009072124L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new LinkedHashMap<K, V>(map);
-            }
-        };
+        return CopyOnWriteMap.newLinkedMap(map);
     }
 
     //
@@ -82,16 +69,12 @@ public class CopyOnWriteMaps {
     /**
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap} and the sort uses the key's natural order.
+     * 
+     * @deprecated use {@link CopyOnWriteSortedMap#newTreeMap()} instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
-        return new CopyOnWriteSortedMap<K, V>() {
-            private static final long serialVersionUID = 8015823768891873357L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                return new TreeMap<K, V>(map);
-            };
-        };
+        return CopyOnWriteSortedMap.newTreeMap();
     }
 
     /**
@@ -100,16 +83,11 @@ public class CopyOnWriteMaps {
      * the initial values are supplied.
      * 
      * @param the map to use as the initial values.
+     * @deprecated use {@link CopyOnWriteSortedMap#newTreeMap(Map)} instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteSortedMap<K, V>() {
-            private static final long serialVersionUID = 6065245106313875871L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                return new TreeMap<K, V>(map);
-            };
-        };
+        return CopyOnWriteSortedMap.newTreeMap(map);
     }
 
     /**
@@ -117,19 +95,12 @@ public class CopyOnWriteMaps {
      * instances are {@link TreeMap}.
      * 
      * @param the Comparator to use for ordering the keys.
+     * @deprecated use {@link CopyOnWriteSortedMap#newTreeMap(Comparator)}
+     * instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Comparator<? super K> comparator) {
-
-        return new CopyOnWriteSortedMap<K, V>() {
-            private static final long serialVersionUID = -7243810284130497340L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
-                treeMap.putAll(map);
-                return treeMap;
-            };
-        };
+        return CopyOnWriteSortedMap.newTreeMap(comparator);
     }
 
     /**
@@ -139,17 +110,12 @@ public class CopyOnWriteMaps {
      * 
      * @param map to use as the initial values.
      * @param comparator for ordering.
+     * @deprecated use {@link CopyOnWriteSortedMap#newTreeMap(Map, Comparator)}
+     * instead.
      */
+    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final Map<? extends K, ? extends V> map, final Comparator<? super K> comparator) {
-        return new CopyOnWriteSortedMap<K, V>() {
-            private static final long serialVersionUID = -6016130690072425548L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
-                treeMap.putAll(map);
-                return treeMap;
-            };
-        };
+        return CopyOnWriteSortedMap.newTreeMap(map, comparator);
     }
 }
+// /CLOVER:ON

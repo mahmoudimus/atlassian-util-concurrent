@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -74,6 +75,67 @@ import net.jcip.annotations.ThreadSafe;
 public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 7935514534647505917L;
 
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
+     */
+    public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
+        return new CopyOnWriteMap<K, V>() {
+            private static final long serialVersionUID = 5221824943734164497L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new HashMap<K, V>(map);
+            }
+        };
+    }
+
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
+     * using the supplied map as the initial values.
+     */
+    public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
+        return new CopyOnWriteMap<K, V>(map) {
+            private static final long serialVersionUID = -7616159260882572421L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new HashMap<K, V>(map);
+            }
+        };
+    }
+
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying
+     * {@link LinkedHashMap}. Iterators for this map will be return elements in
+     * insertion order.
+     */
+    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
+        return new CopyOnWriteMap<K, V>() {
+            private static final long serialVersionUID = -4597421704607601676L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new LinkedHashMap<K, V>(map);
+            }
+        };
+    }
+
+    /**
+     * Creates a new {@link CopyOnWriteMap} with an underlying
+     * {@link LinkedHashMap} using the supplied map as the initial values.
+     * Iterators for this map will be return elements in insertion order.
+     */
+    public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
+        return new CopyOnWriteMap<K, V>(map) {
+            private static final long serialVersionUID = -8659999465009072124L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+                return new LinkedHashMap<K, V>(map);
+            }
+        };
+    }
+
     //
     // constructors
     //
@@ -99,5 +161,6 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
     }
 
     @Override
-    public abstract <N extends Map<? extends K, ? extends V>> Map<K, V> copy(N map);
+    @GuardedBy("internal-lock")
+    protected abstract <N extends Map<? extends K, ? extends V>> Map<K, V> copy(N map);
 }

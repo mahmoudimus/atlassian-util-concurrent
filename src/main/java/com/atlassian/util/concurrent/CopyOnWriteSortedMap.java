@@ -16,12 +16,15 @@
 
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Assertions.notNull;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -67,6 +70,82 @@ import net.jcip.annotations.ThreadSafe;
 public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, SortedMap<K, V>> implements SortedMap<K, V> {
     private static final long serialVersionUID = 7375772978175545647L;
 
+    /**
+     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+     * instances are {@link TreeMap} and the sort uses the key's natural order.
+     */
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
+        return new CopyOnWriteSortedMap<K, V>() {
+            private static final long serialVersionUID = 8015823768891873357L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                return new TreeMap<K, V>(map);
+            };
+        };
+    }
+
+    /**
+     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+     * instances are {@link TreeMap}, the sort uses the key's natural order and
+     * the initial values are supplied.
+     * 
+     * @param the map to use as the initial values.
+     */
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
+        return new CopyOnWriteSortedMap<K, V>(map) {
+            private static final long serialVersionUID = 6065245106313875871L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                return new TreeMap<K, V>(map);
+            };
+        };
+    }
+
+    /**
+     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+     * instances are {@link TreeMap}.
+     * 
+     * @param the Comparator to use for ordering the keys.
+     */
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
+        notNull("comparator", comparator);
+        return new CopyOnWriteSortedMap<K, V>() {
+            private static final long serialVersionUID = -7243810284130497340L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
+                treeMap.putAll(map);
+                return treeMap;
+            };
+        };
+    }
+
+    /**
+     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+     * instances are {@link TreeMap}, the sort uses the key's natural order and
+     * the initial values are supplied.
+     * 
+     * @param map to use as the initial values.
+     * @param comparator for ordering.
+     */
+    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map,
+        final @NotNull Comparator<? super K> comparator) {
+        notNull("comparator", comparator);
+        return new CopyOnWriteSortedMap<K, V>(map) {
+            private static final long serialVersionUID = -6016130690072425548L;
+
+            @Override
+            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
+                treeMap.putAll(map);
+                return treeMap;
+            };
+        };
+    }
+
     //
     // constructors
     //
@@ -93,7 +172,8 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
     //
 
     @Override
-    public abstract <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(N map);
+    @GuardedBy("internal-lock")
+    protected abstract <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(N map);
 
     public Comparator<? super K> comparator() {
         return getDelegate().comparator();
