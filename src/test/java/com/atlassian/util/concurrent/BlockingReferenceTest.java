@@ -278,7 +278,7 @@ public class BlockingReferenceTest {
         };
     }
 
-    private void assertSimple(final BlockingReference<String> ref) throws InterruptedException {
+    private void assertSimple(final BlockingReference<String> ref) throws InterruptedException, TimeoutException {
         assertTrue(ref.isEmpty());
         assertNull(ref.peek());
         ref.set("test");
@@ -298,6 +298,12 @@ public class BlockingReferenceTest {
         assertSame("test3", ref.take());
         assertTrue(ref.isEmpty());
         assertNull(ref.peek());
+        ref.set("test4");
+        assertFalse(ref.isEmpty());
+        assertSame("test4", ref.get(1, TimeUnit.SECONDS));
+        assertFalse(ref.isEmpty());
+        assertSame("test4", ref.take(1, TimeUnit.SECONDS));
+        assertTrue(ref.isEmpty());
     }
 
     class Executor<T> {
