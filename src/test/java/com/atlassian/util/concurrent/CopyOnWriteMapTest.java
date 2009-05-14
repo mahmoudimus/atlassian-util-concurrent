@@ -97,67 +97,75 @@ public class CopyOnWriteMapTest {
     }
 
     @Test
-    public void hashAndEquality() throws Exception {
+    public void delegateHashMap() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(map, cowMap);
         assertEquals(map.hashCode(), cowMap.hashCode());
+        assertEquals(map.toString(), cowMap.toString());
     }
 
     @Test
-    public void hashAndEqualityKeySet() throws Exception {
+    public void delegateKeySet() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(map.keySet(), cowMap.keySet());
         assertEquals(map.keySet().hashCode(), cowMap.keySet().hashCode());
+        assertEquals(map.keySet().toString(), cowMap.keySet().toString());
     }
 
     @Test
-    public void hashAndEqualityValues() throws Exception {
+    public void delegateEqualityValues() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
         assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
+        assertEquals(map.values().toString(), cowMap.values().toString());
     }
 
     @Test
-    public void hashAndEqualityEntrySet() throws Exception {
+    public void delegateEntrySet() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newHashMap(map);
         assertEquals(map.entrySet(), cowMap.entrySet());
         assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
+        assertEquals(map.entrySet().toString(), cowMap.entrySet().toString());
     }
 
     @Test
-    public void hashAndEqualityLinked() throws Exception {
+    public void delegateLinked() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newLinkedMap(map);
         assertEquals(map, cowMap);
         assertEquals(map.hashCode(), cowMap.hashCode());
+        assertEquals(map.toString(), cowMap.toString());
     }
 
     @Test
-    public void hashAndEqualityKeySetLinked() throws Exception {
+    public void delegateKeySetLinked() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newLinkedMap(map);
         assertEquals(map.keySet(), cowMap.keySet());
         assertEquals(map.keySet().hashCode(), cowMap.keySet().hashCode());
+        assertEquals(map.keySet().toString(), cowMap.keySet().toString());
     }
 
     @Test
-    public void hashAndEqualityValuesLinked() throws Exception {
+    public void delegateValuesLinked() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newLinkedMap(map);
         assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
         assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
+        assertEquals(map.values().toString(), cowMap.values().toString());
     }
 
     @Test
-    public void hashAndEqualityEntrySetLinked() throws Exception {
+    public void delegateEntrySetLinked() throws Exception {
         final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
         final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.newLinkedMap(map);
         assertEquals(map.entrySet(), cowMap.entrySet());
         assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
+        assertEquals(map.entrySet().toString(), cowMap.entrySet().toString());
     }
 
     @Test
