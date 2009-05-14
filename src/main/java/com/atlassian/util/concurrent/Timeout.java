@@ -115,17 +115,21 @@ public class Timeout {
     // util
     //
 
-    void await(final Awaitable latch) throws TimeoutException, InterruptedException {
-        if (!latch.await(getTime(), getUnit())) {
+    void await(final Awaitable waitable) throws TimeoutException, InterruptedException {
+        if (!waitable.await(getTime(), getUnit())) {
             throw new TimedOutException(this);
         }
     }
 
+    // TODO unused, retire?
+    // /CLOVER:OFF
     void await(final Condition condition) throws TimeoutException, InterruptedException {
         if (!condition.await(getTime(), getUnit())) {
             throw new TimedOutException(this);
         }
     }
+
+    // /CLOVER:ON
 
     /**
      * Supply time and precision to a {@link Timeout}.
