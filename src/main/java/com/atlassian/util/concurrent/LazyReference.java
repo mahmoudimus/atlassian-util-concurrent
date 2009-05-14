@@ -160,9 +160,8 @@ public abstract class LazyReference<T> extends WeakReference<T> {
     }
 
     /**
-     * Has the {@link #create()} reference been initialized.
-     * 
-     * @return true if the task is complete
+     * Cancel the initializing operation if it has not already run. Will try and
+     * interrupt if it is currently running.
      */
     public void cancel() {
         future.cancel(true);
