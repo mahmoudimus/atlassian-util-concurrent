@@ -20,40 +20,47 @@ import static com.atlassian.util.concurrent.Assertions.notNull;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * {@link WeakCacheFunction} caches an element per Descriptor.
+ * {@link WeakMemoizer} caches the result of another function. The result is
+ * {@link WeakReference weakly referenced} internally. This is useful if the
+ * result is expensive to compute or the identity of the result is particularly
+ * important.
  * <p>
- * Each element is {@link WeakReference weakly referenced} internally.
+ * If the results from this function are further cached then they will tend to
+ * stay in this cache for longer.
  * 
- * @param <K> comparable descriptor, should have a good hash function.
+ * @param <K> comparable descriptor, the usual rules for any {@link HashMap} key
+ * apply.
+ * @param <V> the value
  */
-class WeakCacheFunction<K, V> implements Function<K, V> {
-    static <K, V> WeakCacheFunction<K, V> create(final int initialCapacity, final Function<K, V> delegate) {
-        return new WeakCacheFunction<K, V>(initialCapacity, delegate);
+class WeakMemoizer<K, V> implements Function<K, V> {
+    static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
+        return new WeakMemoizer<K, V>(delegate);
     }
 
-    private final ConcurrentMap<K, MappedReference<K, V>> locks;
+    private final ConcurrentMap<K, MappedReference<K, V>> map;
     private final ReferenceQueue<V> queue = new ReferenceQueue<V>();
     private final Function<K, V> delegate;
 
     /**
-     * Construct a new {@link WeakCacheFunction} instance.
+     * Construct a new {@link WeakMemoizer} instance.
      * 
      * @param initialCapacity how large the internal map should be initially.
      * @param delegate for creating the initial values.
      * @throws IllegalArgumentException if the initial capacity of elements is
      * negative.
      */
-    WeakCacheFunction(final int initialCapacity, final @NotNull Function<K, V> delegate) {
-        locks = new ConcurrentHashMap<K, MappedReference<K, V>>(initialCapacity);
+    WeakMemoizer(final @NotNull Function<K, V> delegate) {
+        this.map = new ConcurrentHashMap<K, MappedReference<K, V>>();
         this.delegate = notNull("delegate", delegate);
     }
 
     /**
-     * Get a Lock for the supplied Descriptor.
+     * Get a result for the supplied Descriptor.
      * 
      * @param descriptor must not be null
      * @return descriptor lock
@@ -62,15 +69,15 @@ class WeakCacheFunction<K, V> implements Function<K, V> {
         expungeStaleEntries();
         notNull("descriptor", descriptor);
         while (true) {
-            final MappedReference<K, V> reference = locks.get(descriptor);
+            final MappedReference<K, V> reference = map.get(descriptor);
             if (reference != null) {
                 final V value = reference.get();
                 if (value != null) {
                     return value;
                 }
-                locks.remove(descriptor, reference);
+                map.remove(descriptor, reference);
             }
-            locks.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
+            map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
         }
     }
 
@@ -78,6 +85,7 @@ class WeakCacheFunction<K, V> implements Function<K, V> {
     @SuppressWarnings("unchecked")
     private void expungeStaleEntries() {
         MappedReference<K, V> ref;
+        // /CLOVER:OFF
         while ((ref = (MappedReference<K, V>) queue.poll()) != null) {
             final K key = ref.getDescriptor();
             if (key == null) {
@@ -85,8 +93,9 @@ class WeakCacheFunction<K, V> implements Function<K, V> {
                 // should not be able to be null - but we have seen it happen!
                 continue;
             }
-            locks.remove(key, ref);
+            map.remove(key, ref);
         }
+        // /CLOVER:ON
     }
 
     /**

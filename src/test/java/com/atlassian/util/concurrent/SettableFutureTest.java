@@ -6,6 +6,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -95,5 +97,18 @@ public class SettableFutureTest {
         complete.await();
         assertEquals(12, count.get());
         assertTrue(future.isDone());
+    }
+
+    @Test
+    public void getTimeOut() throws InterruptedException, TimeoutException {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.set(2);
+        assertEquals(Integer.valueOf(2), future.get(1, TimeUnit.NANOSECONDS));
+    }
+
+    @Test(expected = TimeoutException.class)
+    public void getTimesOut() throws InterruptedException, TimeoutException {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.get(1, TimeUnit.NANOSECONDS);
     }
 }

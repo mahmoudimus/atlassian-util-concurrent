@@ -24,20 +24,22 @@ public final class Suppliers {
      * the input argument.
      * 
      * @param <D> the input type
-     * @param <R> the result type
+     * @param <T> the result type
      * @param input used as the argument when calling the function.
      * @param function asked to get the result.
      * @return the result
      */
-    public static <D, R> Supplier<R> fromFunction(final D input, final Function<D, R> function) {
-        return new Supplier<R>() {
-            public R get() {
+    public static <D, T> Supplier<T> fromFunction(final D input, final Function<D, T> function) {
+        return new Supplier<T>() {
+            public T get() {
                 return function.get(input);
             }
         };
     }
 
+    // /CLOVER:OFF
     private Suppliers() {
         throw new AssertionError("cannot instantiate!");
     }
+    // /CLOVER:ON
 }

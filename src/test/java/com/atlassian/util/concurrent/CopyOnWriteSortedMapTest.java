@@ -21,43 +21,135 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.junit.Test;
-
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 
+import org.junit.Test;
+
 public class CopyOnWriteSortedMapTest {
 
-    @Test public void comparator() {
-        final SortedMap<String, String> map = CopyOnWriteMaps.newTreeMap(String.CASE_INSENSITIVE_ORDER);
-        assertNotNull(map.comparator());
-        assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
-        map.put("one", "two");
-        assertNotNull(map.comparator());
-        assertEquals(String.CASE_INSENSITIVE_ORDER, map.comparator());
+    private static final class ReverseComparator<T> implements Comparator<T> {
+        private final Comparator<T> comparator;
+
+        ReverseComparator(final Comparator<T> comparator) {
+            this.comparator = comparator;
+        }
+
+        public int compare(final T o1, final T o2) {
+            return 0 - comparator.compare(o1, o2);
+        };
     }
 
-    @Test public void firstKey() {
-        final SortedMap<String, String> map = CopyOnWriteMaps.newTreeMap();
+    private static final class StringComparator implements Comparator<String> {
+        public int compare(final String o1, final String o2) {
+            return o1.compareTo(o2);
+        };
+    }
+
+    @Test
+    public void mapConstructor() {
+        final MapBuilder<String, String> builder = MapBuilder.builder();
+        builder.add("one", "value").add("two", "value").add("three", "value");
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap());
+
+        assertEquals(3, map.size());
+    }
+
+    @Test
+    public void mapComparatorConstructor() {
+        final MapBuilder<String, String> builder = MapBuilder.builder();
+        builder.add("one", "value").add("two", "value").add("three", "value");
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap(), new ReverseComparator<String>(new StringComparator()));
+
+        assertEquals(3, map.size());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void mapNullConstructor() {
+        CopyOnWriteSortedMap.newTreeMap((Map) null);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void comparatorNullConstructor() {
+        CopyOnWriteSortedMap.newTreeMap((Comparator) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void mapNullComparatorConstructor() {
+        CopyOnWriteSortedMap.newTreeMap(null, new StringComparator());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void mapComparatorNullConstructor() {
+        CopyOnWriteSortedMap.newTreeMap(Collections.emptyMap(), null);
+    }
+
+    @Test
+    public void comparator() {
+        final Comparator<String> comparator = new StringComparator();
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(comparator);
+        assertNotNull(map.comparator());
+        assertEquals(comparator, map.comparator());
+        map.put("one", "two");
+        assertNotNull(map.comparator());
+        assertEquals(1, map.size());
+        assertEquals(comparator, map.comparator());
+        map.put("two", "value");
+        assertEquals(2, map.size());
+        map.put("three", "value");
+        assertEquals(3, map.size());
+    }
+
+    @Test
+    public void firstKey() {
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
         map.put("three", "value");
         assertEquals("one", map.firstKey());
     }
 
-    @Test public void lastKey() {
-        final SortedMap<String, String> map = CopyOnWriteMaps.newTreeMap();
+    @Test
+    public void firstKeyWithReverse() {
+        final MapBuilder<String, String> builder = MapBuilder.builder();
+        builder.add("one", "value").add("two", "value").add("three", "value");
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap(), new ReverseComparator<String>(new StringComparator()));
+        map.put("one", "value");
+        map.put("two", "value");
+        map.put("three", "value");
+
+        assertEquals(3, map.size());
+        assertEquals("two", map.firstKey());
+    }
+
+    @Test
+    public void lastKey() {
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
         map.put("three", "value");
         assertEquals("two", map.lastKey());
     }
 
-    @Test public void headMap() {
-        final SortedMap<String, String> map = CopyOnWriteMaps.newTreeMap();
+    @Test
+    public void lastKeyWithReverse() {
+        final MapBuilder<String, String> builder = MapBuilder.builder();
+        builder.add("one", "value").add("two", "value").add("three", "value");
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap(), new ReverseComparator<String>(new StringComparator()));
+
+        assertEquals(3, map.size());
+        assertEquals("one", map.lastKey());
+    }
+
+    @Test
+    public void headMap() {
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
         map.put("3", "three");
@@ -71,8 +163,9 @@ public class CopyOnWriteSortedMapTest {
         assertUnmodifiableMap(headMap, "3", "three");
     }
 
-    @Test public void tailMap() {
-        final SortedMap<String, String> map = CopyOnWriteMaps.newTreeMap();
+    @Test
+    public void tailMap() {
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
         map.put("3", "three");
@@ -86,8 +179,9 @@ public class CopyOnWriteSortedMapTest {
         assertUnmodifiableMap(tailMap, "1", "one");
     }
 
-    @Test public void subMap() {
-        final CopyOnWriteSortedMap<String, String> map = CopyOnWriteMaps.newTreeMap();
+    @Test
+    public void subMap() {
+        final CopyOnWriteSortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
         map.put("3", "three");
@@ -100,6 +194,12 @@ public class CopyOnWriteSortedMapTest {
         assertTrue(subMap.containsValue("three"));
 
         assertUnmodifiableMap(subMap, "1", "one");
+    }
+
+    @Test
+    public void serializableTreeMap() {
+        final CopyOnWriteSortedMap<Object, Object> map = CopyOnWriteSortedMap.newTreeMap();
+        CopyOnWriteMapTest.assertMutableMapSerializable(map);
     }
 
     static <K, V> void assertUnmodifiableMap(final Map<K, V> map, final K key, final V value) {
@@ -174,7 +274,6 @@ public class CopyOnWriteSortedMapTest {
         try {
             runnable.run();
             fail("should have thrown UnsupportedOperationException");
-        }
-        catch (final UnsupportedOperationException ignore) {}
+        } catch (final UnsupportedOperationException ignore) {}
     }
 }

@@ -20,12 +20,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
- * {@link LockManager} allows {@link Callable callables} and {@link Runnable
- * runnables} to be run under a lock that is resolved against an input object.
+ * {@link LockManager} allows {@link Callable callables}, {@link Supplier
+ * suppliers} and {@link Runnable runnables} to be run under a lock that is
+ * resolved against an input object.
  * 
  * @param <T> The input type that we lock on.
  * @param <D> The stripe type that we stripe locks on.
+ * @deprecated use a {@link Function} that returns a {@link ManagedLock}
+ * instead.
  */
+@Deprecated
 public interface LockManager<T> {
 
     /**

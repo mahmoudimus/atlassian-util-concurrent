@@ -20,15 +20,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
- * {@link LockManaged} allows {@link Callable callables} and {@link Runnable
+ * {@link ManagedLock} allows {@link Callable callables}, {@link Runnable
  * runnables} and {@link Supplier suppliers} to be run under a lock that is
  * resolved against an input object.
  * 
  * @param <T> The input type that we lock on.
  * @param <D> The stripe type that we stripe locks on.
+ * 
+ * @since 0.0.7
  */
-public interface LockManaged {
-
+public interface ManagedLock {
     /**
      * Execute the supplied {@link Callable} under a lock determined by the
      * descriptor.
@@ -39,7 +40,7 @@ public interface LockManaged {
      * @return whatever the supplied {@link Callable} returns
      * @throws Exception if the supplied {@link Callable} throws an exception
      */
-    <R> R withLock(final Callable<R> callable) throws Exception;
+    <R> R withLock(final @NotNull Callable<R> callable) throws Exception;
 
     /**
      * Execute the supplied {@link Supplier} under a lock determined by the
@@ -53,7 +54,7 @@ public interface LockManaged {
      * @param callable the operation to perform under lock
      * @return whatever the supplied {@link Callable} returns
      */
-    <R> R withLock(final Supplier<R> supplier);
+    <R> R withLock(final @NotNull Supplier<R> supplier);
 
     /**
      * Execute the supplied {@link Runnable} under a lock determined by the
@@ -62,27 +63,25 @@ public interface LockManaged {
      * @param descriptor to look up the lock
      * @param runnable the operation to perform under lock
      */
-    void withLock(final Runnable runnable);
+    void withLock(final @NotNull Runnable runnable);
 
     /**
-     * Maintains two lock managers that internally use the same map of
+     * Maintains two managed locks that internally use the same
      * {@link ReadWriteLock read/write locks}
-     * 
-     * @param <T>
      */
-    interface ReadWrite<T> {
+    interface ReadWrite {
         /**
          * For performing operations that require read locks
          * 
          * @return a lock manager that uses read locks
          */
-        LockManaged read();
+        ManagedLock read();
 
         /**
          * For performing operations that require write locks
          * 
          * @return a lock manager that uses write locks
          */
-        LockManaged write();
+        ManagedLock write();
     }
 }

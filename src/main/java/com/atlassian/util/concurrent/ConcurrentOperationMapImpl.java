@@ -16,15 +16,16 @@
 
 package com.atlassian.util.concurrent;
 
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-@ThreadSafe public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
+import net.jcip.annotations.ThreadSafe;
+
+@ThreadSafe
+public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 
     private final ConcurrentMap<K, CallerRunsFuture<R>> map = new ConcurrentHashMap<K, CallerRunsFuture<R>>();
     private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
@@ -49,8 +50,7 @@ import java.util.concurrent.FutureTask;
         }
         try {
             return future.get();
-        }
-        finally {
+        } finally {
             map.remove(key, future);
         }
     }
@@ -60,23 +60,23 @@ import java.util.concurrent.FutureTask;
             super(callable);
         }
 
-        @Override public T get() throws ExecutionException {
+        @Override
+        public T get() throws ExecutionException {
             run();
             try {
                 return super.get();
-            }
-            catch (final InterruptedException e) {
+            } catch (final InterruptedException e) {
+                // /CLOVER:OFF
+                // how to test?
                 throw new RuntimeInterruptedException(e);
-            }
-            catch (final ExecutionException e) {
+                // /CLOVER:ON
+            } catch (final ExecutionException e) {
                 final Throwable cause = e.getCause();
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
-                }
-                else if (cause instanceof Error) {
+                } else if (cause instanceof Error) {
                     throw (Error) cause;
-                }
-                else {
+                } else {
                     throw e;
                 }
             }

@@ -58,7 +58,7 @@ public class ConcurrentOperationMapImplTest {
 
         // Create two threads whose job will be to call runOperation with the
         // same name object
-        new Thread(new Worker(startSignal, doneSignal) {
+        new Thread(new SignallingWorker(startSignal, doneSignal) {
             @Override
             void doWork() {
                 try {
@@ -72,7 +72,7 @@ public class ConcurrentOperationMapImplTest {
                 }
             }
         }).start();
-        new Thread(new Worker(startSignal, doneSignal) {
+        new Thread(new SignallingWorker(startSignal, doneSignal) {
             @Override
             void doWork() {
                 try {
@@ -200,11 +200,11 @@ public class ConcurrentOperationMapImplTest {
         private static final long serialVersionUID = -1416631799712180762L;
     }
 
-    abstract class Worker implements Runnable {
+    abstract class SignallingWorker implements Runnable {
         private final CountDownLatch startSignal;
         private final CountDownLatch doneSignal;
 
-        Worker(final CountDownLatch startSignal, final CountDownLatch doneSignal) {
+        SignallingWorker(final CountDownLatch startSignal, final CountDownLatch doneSignal) {
             this.startSignal = startSignal;
             this.doneSignal = doneSignal;
         }
@@ -213,8 +213,9 @@ public class ConcurrentOperationMapImplTest {
             try {
                 startSignal.await();
                 doWork();
+            } catch (final InterruptedException ex) {} finally {
                 doneSignal.countDown();
-            } catch (final InterruptedException ex) {} // return;
+            }
         }
 
         abstract void doWork();

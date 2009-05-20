@@ -4,14 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.atlassian.util.concurrent.Timeout.TimeSupplier;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
+import com.atlassian.util.concurrent.Timeout.TimeSupplier;
 
 public class TimeoutTest {
-    @Test public void timeInNanoseconds() {
+    @Test
+    public void timeInNanoseconds() {
         final Timeout timeout = new Timeout(1, TimeUnit.SECONDS, new MockTimeSupplier(1000, TimeUnit.NANOSECONDS));
         assertEquals(999999999L, timeout.getTime());
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
@@ -19,7 +20,8 @@ public class TimeoutTest {
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
     }
 
-    @Test public void timeInMicroseconds() {
+    @Test
+    public void timeInMicroseconds() {
         final Timeout timeout = new Timeout(1, TimeUnit.SECONDS, new MockTimeSupplier(1000, TimeUnit.MICROSECONDS));
         assertEquals(999999L, timeout.getTime());
         assertEquals(TimeUnit.MICROSECONDS, timeout.getUnit());
@@ -27,7 +29,8 @@ public class TimeoutTest {
         assertEquals(TimeUnit.MICROSECONDS, timeout.getUnit());
     }
 
-    @Test public void timeInMilliseconds() {
+    @Test
+    public void timeInMilliseconds() {
         final Timeout timeout = new Timeout(1, TimeUnit.SECONDS, new MockTimeSupplier(1000, TimeUnit.MILLISECONDS));
         assertEquals(999L, timeout.getTime());
         assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
@@ -35,7 +38,8 @@ public class TimeoutTest {
         assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
     }
 
-    @Test public void hourInNanoseconds() {
+    @Test
+    public void hourInNanoseconds() {
         final Timeout timeout = new Timeout(3600, TimeUnit.SECONDS, new MockTimeSupplier(1000, TimeUnit.NANOSECONDS));
         assertEquals(3599999999999L, timeout.getTime());
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
@@ -43,7 +47,8 @@ public class TimeoutTest {
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
     }
 
-    @Test public void hourIsExpired() {
+    @Test
+    public void hourIsExpired() {
         final Timeout timeout = new Timeout(3, TimeUnit.NANOSECONDS, new MockTimeSupplier(2, TimeUnit.NANOSECONDS));
         assertEquals(2, timeout.getTime());
         assertFalse(timeout.isExpired());
@@ -51,6 +56,13 @@ public class TimeoutTest {
         assertEquals(0L, timeout.getTime());
         assertEquals(TimeUnit.NANOSECONDS, timeout.getUnit());
         assertTrue(timeout.isExpired());
+    }
+
+    @Test
+    public void millisFactory() {
+        final Timeout timeout = Timeout.getMillisTimeout(2, TimeUnit.MILLISECONDS);
+        assertFalse(timeout.isExpired());
+        assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
     }
 
     class MockTimeSupplier implements TimeSupplier {

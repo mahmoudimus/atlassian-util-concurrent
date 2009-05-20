@@ -1,5 +1,7 @@
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Assertions.notNull;
+
 public final class Functions {
     /**
      * Get a function that uses the Supplier as a factory for all inputs.
@@ -10,12 +12,20 @@ public final class Functions {
      * @return the function
      */
     public static <D, R> Function<D, R> fromSupplier(final @NotNull Supplier<R> supplier) {
-        return new Function<D, R>() {
-            public R get(final D input) {
-                return supplier.get();
-            }
-        };
+        return new FromSupplier<D, R>(supplier);
     }
+
+    private static class FromSupplier<D, R> implements Function<D, R> {
+        private final Supplier<R> supplier;
+
+        FromSupplier(final Supplier<R> supplier) {
+            this.supplier = notNull("supplier", supplier);
+        }
+
+        public R get(final D input) {
+            return supplier.get();
+        }
+    };
 
     /**
      * Get a function that always returns the input.
@@ -27,11 +37,13 @@ public final class Functions {
         return new Identity<T>();
     }
 
-    static class Identity<T> implements Function<T, T> {
+    private static class Identity<T> implements Function<T, T> {
         public T get(final T input) {
             return input;
         }
     }
 
+    // /CLOVER:OFF
     private Functions() {}
+    // /CLOVER:ON
 }

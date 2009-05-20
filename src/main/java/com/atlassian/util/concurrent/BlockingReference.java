@@ -17,7 +17,6 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
-import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +24,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
+
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * A Reference with queue semantics where the current reference may be retrieved
@@ -136,6 +137,7 @@ public class BlockingReference<V> {
         internalSet(initialValue);
     }
 
+    // /CLOVER:OFF
     /**
      * Creates a new SRSW BlockingReference.
      * 
@@ -155,6 +157,8 @@ public class BlockingReference<V> {
     public BlockingReference(@NotNull final V value) {
         this(new BooleanLatch(), value);
     }
+
+    // /CLOVER:ON
 
     //
     // methods
