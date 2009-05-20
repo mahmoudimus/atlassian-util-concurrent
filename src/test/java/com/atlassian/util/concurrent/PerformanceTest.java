@@ -14,7 +14,12 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.junit.Test;
+
 public class PerformanceTest {
+
+    @Test
+    public void test() {}
 
     public static void main(final String[] args) {
         final List<Q> queues = new ArrayList<Q>();
