@@ -279,7 +279,7 @@ public class LazyReferenceTest {
         };
         Thread.currentThread().interrupt();
         ref.get();
-        assertTrue(Thread.currentThread().isInterrupted());
+        assertTrue(Thread.interrupted());
     }
 
     @Test
