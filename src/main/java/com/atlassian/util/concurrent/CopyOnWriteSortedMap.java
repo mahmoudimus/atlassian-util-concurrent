@@ -90,7 +90,7 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * instances are {@link TreeMap}, the sort uses the key's natural order and
      * the initial values are supplied.
      * 
-     * @param the map to use as the initial values.
+     * @param map the map to use as the initial values.
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
         return new CopyOnWriteSortedMap<K, V>(map) {
@@ -107,7 +107,7 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap}.
      * 
-     * @param the Comparator to use for ordering the keys.
+     * @param comparator the Comparator to use for ordering the keys.
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
         notNull("comparator", comparator);

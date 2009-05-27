@@ -82,7 +82,7 @@ public class CopyOnWriteMaps {
      * instances are {@link TreeMap}, the sort uses the key's natural order and
      * the initial values are supplied.
      * 
-     * @param the map to use as the initial values.
+     * @param map the map to use as the initial values.
      * @deprecated use {@link CopyOnWriteSortedMap#newTreeMap(Map)} instead.
      */
     @Deprecated
@@ -94,7 +94,7 @@ public class CopyOnWriteMaps {
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap}.
      * 
-     * @param the Comparator to use for ordering the keys.
+     * @param comparator the Comparator to use for ordering the keys.
      * @deprecated use {@link CopyOnWriteSortedMap#newTreeMap(Comparator)}
      * instead.
      */

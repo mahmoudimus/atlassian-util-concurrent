@@ -54,13 +54,13 @@ public class PhasedLatch implements ReusableLatch {
     /**
      * Await the current phase for the specified period.
      * 
-     * @param long the period of time
+     * @param time the period of time
      * @param unit of time to measure the period in
      * @return true if the phase was passed, false otherwise
      * @throws InterruptedException if interrupted
      */
-    public boolean await(final long period, final TimeUnit unit) throws InterruptedException {
-        return sync.tryAcquireSharedNanos(getPhase(), unit.toNanos(period));
+    public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
+        return sync.tryAcquireSharedNanos(getPhase(), unit.toNanos(time));
     }
 
     /**

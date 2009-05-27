@@ -23,8 +23,9 @@ import java.util.concurrent.locks.Condition;
 import net.jcip.annotations.Immutable;
 
 /**
- * Used to calculate elapsed time for timeouts from when it is created when
- * successively calling blocking methods. Always converts to nanoseconds.
+ * Automatically calculates elapsed time from when it is created. Useful when
+ * successively calling blocking methods and a time since call time needs to be
+ * worked out.
  * <p>
  * Usage:
  * 
@@ -105,7 +106,7 @@ public class Timeout {
     /**
      * Has this timeout expired
      * 
-     * @return
+     * @return true if expired
      */
     public boolean isExpired() {
         return getTime() <= 0;

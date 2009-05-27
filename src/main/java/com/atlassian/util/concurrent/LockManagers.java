@@ -17,15 +17,12 @@ import java.util.concurrent.locks.Lock;
 public class LockManagers {
 
     /**
-     * Convenience method that simply calls
-     * {@link ManagedLocks#weakLockManager(Function)} with the identity
-     * function. So all inputs map directly to an individual lock.
+     * Convenience method that simply calls {@link #weakLockManager(Function)}
+     * with the identity function. So all inputs map directly to an individual
+     * lock.
      * 
      * @param <T> the type of the thing used to look up locks
-     * @param <D> the type used to map lock instances
-     * @param stripeFunction to convert Ts to Ds.
-     * @see ManagedLocks#weakLockManager(Function, int)
-     * @deprecated use {@link #weakManagedLockFactory()} instead.
+     * @deprecated use {@link ManagedLocks#weakManagedLockFactory()} instead.
      */
     @Deprecated
     public static <T> LockManager<T> weakLockManager() {
@@ -56,10 +53,10 @@ public class LockManagers {
      * @param <T> the type of the thing used to look up locks
      * @param <D> the type used to map lock instances
      * @param stripeFunction to convert Ts to Ds.
-     * @param initialCapacity the initial capacity of the internal map.
      * @return a new {@link LockManager} instance that stores created
      * {@link Lock} instances with weak references.
-     * @deprecated use {@link #weakManagedLockFactory(Function, int)} instead.
+     * @deprecated use {@link ManagedLocks#weakManagedLockFactory(Function)}
+     * instead.
      */
     @Deprecated
     public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction) {

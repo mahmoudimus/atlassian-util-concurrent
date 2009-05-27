@@ -28,10 +28,11 @@ import java.util.NoSuchElementException;
  * Thread safety of a Supplier is not mandated by this interface, although
  * serious care and consideration should be taken with any implementations that
  * are not.
+ * <p>
+ * See also Google Collection's Supplier
+ * <code>com.google.common.base.Supplier</code> for a similar interface.
  * 
  * @param <T> the type of object supplied.
- * @see Google Collection's Supplier com.google.common.base.Supplier for a
- * similar interface.
  */
 public interface Supplier<T> {
     /**

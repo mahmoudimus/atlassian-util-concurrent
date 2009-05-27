@@ -24,9 +24,6 @@ import java.util.concurrent.locks.ReadWriteLock;
  * runnables} and {@link Supplier suppliers} to be run under a lock that is
  * resolved against an input object.
  * 
- * @param <T> The input type that we lock on.
- * @param <D> The stripe type that we stripe locks on.
- * 
  * @since 0.0.7
  */
 public interface ManagedLock {
@@ -35,7 +32,6 @@ public interface ManagedLock {
      * descriptor.
      * 
      * @param <R> the result type
-     * @param descriptor to look up the lock
      * @param callable the operation to perform under lock
      * @return whatever the supplied {@link Callable} returns
      * @throws Exception if the supplied {@link Callable} throws an exception
@@ -46,12 +42,11 @@ public interface ManagedLock {
      * Execute the supplied {@link Supplier} under a lock determined by the
      * descriptor.
      * <p>
-     * Unlike {@link #withLock(Object, Callable)} this version returns a result
-     * and does not declare a checked exception.
+     * Unlike {@link #withLock(Callable)} this version returns a result and does
+     * not declare a checked exception.
      * 
      * @param <R> the result type
-     * @param descriptor to look up the lock
-     * @param callable the operation to perform under lock
+     * @param supplier the operation to perform under lock
      * @return whatever the supplied {@link Callable} returns
      */
     <R> R withLock(final @NotNull Supplier<R> supplier);
@@ -60,7 +55,6 @@ public interface ManagedLock {
      * Execute the supplied {@link Runnable} under a lock determined by the
      * descriptor.
      * 
-     * @param descriptor to look up the lock
      * @param runnable the operation to perform under lock
      */
     void withLock(final @NotNull Runnable runnable);

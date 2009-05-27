@@ -80,7 +80,6 @@ public class SettableFuture<T> implements Future<T> {
     }
 
     // not cancellable
-
     public boolean isCancelled() {
         return false;
     }

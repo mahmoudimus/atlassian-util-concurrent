@@ -204,7 +204,7 @@ public class BlockingReference<V> {
      * then {@link InterruptedException} is thrown and the current thread's
      * interrupted status is cleared.
      * 
-     * @param timeout the maximum time to wait
+     * @param time the maximum time to wait
      * @param unit the time unit of the {@code timeout} argument
      * @return the current element
      * @throws InterruptedException if the current thread is interrupted while

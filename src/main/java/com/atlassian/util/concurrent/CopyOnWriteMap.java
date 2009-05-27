@@ -145,7 +145,6 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * initialize the values.
      * 
      * @param map the initial map to initialize with
-     * @param factory the copy function
      */
     public CopyOnWriteMap(final Map<? extends K, ? extends V> map) {
         super(map);
@@ -153,8 +152,6 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
 
     /**
      * Create a new empty {@link CopyOnWriteMap}.
-     * 
-     * @param factory the copy function
      */
     public CopyOnWriteMap() {
         super(Collections.<K, V> emptyMap());
