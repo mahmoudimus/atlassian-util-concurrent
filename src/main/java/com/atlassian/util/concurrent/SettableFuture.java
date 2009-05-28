@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicMarkableReference;
+import java.util.concurrent.atomic.AtomicReference;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -41,7 +41,7 @@ import net.jcip.annotations.ThreadSafe;
  */
 @ThreadSafe
 public class SettableFuture<T> implements Future<T> {
-    private final AtomicMarkableReference<Value<T>> ref = new AtomicMarkableReference<Value<T>>(null, false);
+    private final AtomicReference<Value<T>> ref = new AtomicReference<Value<T>>();
     private final CountDownLatch latch = new CountDownLatch(1);
 
     public void set(final T value) {
@@ -54,18 +54,18 @@ public class SettableFuture<T> implements Future<T> {
 
     public T get() throws InterruptedException, ExecutionException {
         latch.await();
-        return ref.getReference().get();
+        return ref.get().get();
     }
 
     public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (!latch.await(timeout, unit)) {
             throw new TimedOutException(timeout, unit);
         }
-        return ref.getReference().get();
+        return ref.get().get();
     }
 
     public boolean isDone() {
-        return ref.getReference() != null;
+        return ref.get() != null;
     }
 
     // not cancellable
@@ -78,17 +78,16 @@ public class SettableFuture<T> implements Future<T> {
     }
 
     private void setHolder(final Value<T> value) {
-        final boolean[] mark = new boolean[1];
         while (true) {
-            final Value<T> oldValue = ref.get(mark);
-            if (mark[0]) {
+            final Value<T> oldValue = ref.get();
+            if (oldValue != null) {
                 if (!oldValue.equals(value)) {
                     throw new IllegalStateException("cannot change value after it has been set");
                 }
                 return;
             }
             // /CLOVER:OFF
-            if (!ref.compareAndSet(null, value, false, true)) {
+            if (!ref.compareAndSet(null, value)) {
                 continue;
             }
             // /CLOVER:ON
