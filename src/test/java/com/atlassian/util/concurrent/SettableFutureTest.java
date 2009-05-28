@@ -31,6 +31,7 @@ public class SettableFutureTest {
             // /CLOVER:ON
         } catch (final IllegalStateException expected) {}
         assertEquals(Integer.valueOf(1), future.get());
+        assertFalse(future.cancel(true));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -52,6 +53,7 @@ public class SettableFutureTest {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.set(null);
         assertEquals(null, future.get());
+        assertFalse(future.cancel(true));
         assertFalse(future.isCancelled());
     }
 
@@ -61,6 +63,7 @@ public class SettableFutureTest {
         future.set(1);
         future.set(1);
         assertEquals(Integer.valueOf(1), future.get());
+        assertFalse(future.cancel(true));
         assertFalse(future.isCancelled());
     }
 
@@ -70,6 +73,7 @@ public class SettableFutureTest {
         future.set(null);
         future.set(null);
         assertEquals(null, future.get());
+        assertFalse(future.cancel(true));
         assertFalse(future.isCancelled());
     }
 

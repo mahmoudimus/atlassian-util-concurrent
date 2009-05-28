@@ -43,10 +43,32 @@ public class SettableFuture<T> implements Future<T> {
     private final AtomicReference<Value<T>> ref = new AtomicReference<Value<T>>();
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    public void set(final T ref) {
-        setAndCheckValue(new ReferenceValue<T>(ref));
+    /**
+     * Set the value returned by {@link #get()} and {@link #get(long, TimeUnit)}
+     * <p>
+     * Note that this can only be done once unless the value of the second set
+     * equals the first value otherwise an exception will be thrown. It also
+     * cannot be set if this future has been cancelled or an exception has been
+     * set.
+     * 
+     * @param value the value to be set.
+     */
+    public void set(final T value) {
+        setAndCheckValue(new ReferenceValue<T>(value));
     }
 
+    /**
+     * Set the exception thrown as the causal exception of an ExecutionException
+     * by {@link #get()} and {@link #get(long, TimeUnit)}
+     * <p>
+     * Note that this can only be done once unless the value of the second
+     * {@link #setException(Throwable)} equals the first value otherwise an
+     * exception will be thrown (as most exceptions do not implement equals this
+     * effectively means the same reference). It also cannot be set if this
+     * future has been cancelled or a a value has been set.
+     * 
+     * @param value the value to be set.
+     */
     public void setException(final Throwable throwable) {
         setAndCheckValue(new ThrowableValue<T>(throwable));
     }
@@ -135,10 +157,7 @@ public class SettableFuture<T> implements Future<T> {
                 return false;
             }
             final ReferenceValue<?> other = (ReferenceValue<?>) obj;
-            if (value != null) {
-                return value.equals(other.value);
-            }
-            return other.value == null;
+            return (value == null) ? (other.value == null) : value.equals(other.value);
         }
     }
 
