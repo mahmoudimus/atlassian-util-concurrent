@@ -6,6 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -21,10 +22,13 @@ public class SettableFutureTest {
         assertFalse(future.isDone());
         future.set(1);
         assertTrue(future.isDone());
+        assertFalse(future.isCancelled());
         assertEquals(Integer.valueOf(1), future.get());
         try {
             future.set(2);
+            // /CLOVER:OFF
             fail("IllegalStateException expected");
+            // /CLOVER:ON
         } catch (final IllegalStateException expected) {}
         assertEquals(Integer.valueOf(1), future.get());
     }
@@ -48,6 +52,7 @@ public class SettableFutureTest {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.set(null);
         assertEquals(null, future.get());
+        assertFalse(future.isCancelled());
     }
 
     @Test
@@ -56,6 +61,7 @@ public class SettableFutureTest {
         future.set(1);
         future.set(1);
         assertEquals(Integer.valueOf(1), future.get());
+        assertFalse(future.isCancelled());
     }
 
     @Test
@@ -64,15 +70,51 @@ public class SettableFutureTest {
         future.set(null);
         future.set(null);
         assertEquals(null, future.get());
+        assertFalse(future.isCancelled());
     }
 
     @Test
-    public void notCancellable() {
+    public void cancellable() {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        assertTrue(future.cancel(false));
+        assertTrue(future.isCancelled());
+        assertFalse(future.cancel(false));
+    }
+
+    @Test
+    public void cancellableMayInterrupt() {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        assertTrue(future.cancel(true));
+        assertTrue(future.isCancelled());
+        assertFalse(future.cancel(true));
+    }
+
+    @Test(expected = CancellationException.class)
+    public void getThrowsIfCancelled() throws Exception {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
         future.cancel(false);
-        assertEquals(false, future.isCancelled());
-        future.cancel(true);
-        assertEquals(false, future.isCancelled());
+        future.get();
+    }
+
+    @Test(expected = CancellationException.class)
+    public void getTimeoutThrowsIfCancelled() throws Exception {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.cancel(false);
+        future.get(1, TimeUnit.NANOSECONDS);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void setThrowsIfCancelled() {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.cancel(false);
+        future.set(1);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void setExceptionThrowsIfCancelled() {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        future.cancel(false);
+        future.setException(new RuntimeException());
     }
 
     @Test
@@ -119,11 +161,16 @@ public class SettableFutureTest {
         future.get(1, TimeUnit.NANOSECONDS);
     }
 
-    @Test(expected = ExecutionException.class)
-    public void getThrowsExecutionException() throws Exception {
+    @Test(expected = UnsupportedOperationException.class)
+    public void getThrowsWrappingExecutionException() throws Throwable {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
-        future.setException(new IllegalStateException());
-        future.get();
+        future.setException(new UnsupportedOperationException());
+        assertFalse(future.isCancelled());
+        try {
+            future.get();
+        } catch (final ExecutionException e) {
+            throw e.getCause();
+        }
     }
 
     @Test(expected = ExecutionException.class)
@@ -150,8 +197,15 @@ public class SettableFutureTest {
     @Test(expected = IllegalStateException.class)
     public void setExceptionThrowsIfExceptionSet() throws Exception {
         final SettableFuture<Integer> future = new SettableFuture<Integer>();
-        future.set(1);
         future.setException(new UnsupportedOperationException());
         future.setException(new RuntimeException());
+    }
+
+    @Test
+    public void setExceptionDoesntThrowIfSameExceptionSet() throws Exception {
+        final SettableFuture<Integer> future = new SettableFuture<Integer>();
+        final UnsupportedOperationException throwable = new UnsupportedOperationException();
+        future.setException(throwable);
+        future.setException(throwable);
     }
 }

@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -36,20 +37,18 @@ import net.jcip.annotations.ThreadSafe;
  * <p>
  * This is useful in situations where all the inputs may not be available at
  * construction time.
- * <p>
- * This class does not support cancellation.
  */
 @ThreadSafe
 public class SettableFuture<T> implements Future<T> {
     private final AtomicReference<Value<T>> ref = new AtomicReference<Value<T>>();
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    public void set(final T value) {
-        setHolder(new Value<T>(value));
+    public void set(final T ref) {
+        setAndCheckValue(new ReferenceValue<T>(ref));
     }
 
     public void setException(final Throwable throwable) {
-        setHolder(new Value<T>(throwable));
+        setAndCheckValue(new ThrowableValue<T>(throwable));
     }
 
     public T get() throws InterruptedException, ExecutionException {
@@ -68,23 +67,39 @@ public class SettableFuture<T> implements Future<T> {
         return ref.get() != null;
     }
 
-    // not cancellable
     public boolean isCancelled() {
-        return false;
+        return isDone() && (ref.get() instanceof CancelledValue);
     }
 
     public boolean cancel(final boolean mayInterruptIfRunning) {
-        return false;
+        return setValue(new CancelledValue<T>()) == null;
     }
 
-    private void setHolder(final Value<T> value) {
+    /**
+     * Set the inner value and check that if there is an old value it equals the
+     * one we are setting.
+     * 
+     * @param value to set.
+     * @return the old value if set or null.
+     */
+    private void setAndCheckValue(final Value<T> value) {
+        final Value<T> oldValue = setValue(value);
+        if ((oldValue != null) && !value.equals(oldValue)) {
+            throw new IllegalStateException("cannot change value after it has been set");
+        }
+    }
+
+    /**
+     * Set the inner value.
+     * 
+     * @param value to set.
+     * @return the old value if set or null.
+     */
+    private Value<T> setValue(final Value<T> value) {
         while (true) {
             final Value<T> oldValue = ref.get();
             if (oldValue != null) {
-                if (!oldValue.equals(value)) {
-                    throw new IllegalStateException("cannot change value after it has been set");
-                }
-                return;
+                return oldValue;
             }
             // /CLOVER:OFF
             if (!ref.compareAndSet(null, value)) {
@@ -92,45 +107,67 @@ public class SettableFuture<T> implements Future<T> {
             }
             // /CLOVER:ON
             latch.countDown();
-            return;
+            return null;
         }
     }
 
-    private static class Value<T> {
+    /** the inner value */
+    private static interface Value<T> {
+        T get() throws ExecutionException;
+    }
+
+    /** holds a reference */
+    private static class ReferenceValue<T> implements Value<T> {
         private final T value;
-        private final Throwable throwable;
 
-        Value(final T value) {
+        ReferenceValue(final T value) {
             this.value = value;
-            throwable = null;
         }
 
-        Value(final Throwable throwable) {
-            this.throwable = throwable;
-            this.value = null;
-        }
-
-        T get() throws ExecutionException {
-            if (throwable != null) {
-                throw new ExecutionException(throwable);
-            }
+        public T get() {
             return value;
         }
 
-        /**
-         * Simple equality test delegates to members.
-         */
         @Override
         public boolean equals(final Object obj) {
-            final Value<?> other = (Value<?>) obj;
+            // no need to check for reference equality, not possible
+            if (!(obj instanceof ReferenceValue)) {
+                return false;
+            }
+            final ReferenceValue<?> other = (ReferenceValue<?>) obj;
             if (value != null) {
                 return value.equals(other.value);
             }
-            if (other.value != null) {
+            return other.value == null;
+        }
+    }
+
+    /** holds an exception */
+    private static class ThrowableValue<T> implements Value<T> {
+        private final Throwable throwable;
+
+        ThrowableValue(final Throwable throwable) {
+            this.throwable = throwable;
+        }
+
+        public T get() throws ExecutionException {
+            throw new ExecutionException(throwable);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            // no need to check for reference equality, not possible
+            if (!(obj instanceof ThrowableValue)) {
                 return false;
             }
-            // if throwable is null then we are a legitimate null value
-            return (throwable == null) ? (other.throwable == null) : throwable.equals(other.throwable);
+            return throwable.equals(((ThrowableValue<?>) obj).throwable);
+        }
+    }
+
+    // doesn't need to implement equals as cancel doesn't check
+    private static class CancelledValue<T> implements Value<T> {
+        public T get() throws ExecutionException {
+            throw new CancellationException();
         }
     }
 }
