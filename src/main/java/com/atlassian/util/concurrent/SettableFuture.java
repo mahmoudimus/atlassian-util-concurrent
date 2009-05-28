@@ -18,6 +18,7 @@ package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -40,39 +41,27 @@ import net.jcip.annotations.ThreadSafe;
  */
 @ThreadSafe
 public class SettableFuture<T> implements Future<T> {
-    private volatile AtomicMarkableReference<T> ref = new AtomicMarkableReference<T>(null, false);
+    private final AtomicMarkableReference<Value<T>> ref = new AtomicMarkableReference<Value<T>>(null, false);
     private final CountDownLatch latch = new CountDownLatch(1);
 
     public void set(final T value) {
-        final boolean[] mark = new boolean[1];
-        while (true) {
-            final T oldValue = ref.get(mark);
-            if (mark[0]) {
-                if (!equals(oldValue, value)) {
-                    throw new IllegalArgumentException("cannot change value after it has been set");
-                }
-                return;
-            }
-            // /CLOVER:OFF
-            if (!ref.compareAndSet(null, value, false, true)) {
-                continue;
-            }
-            // /CLOVER:ON
-            latch.countDown();
-            return;
-        }
+        setHolder(new Value<T>(value));
     }
 
-    public T get() throws InterruptedException {
+    public void setException(final Throwable throwable) {
+        setHolder(new Value<T>(throwable));
+    }
+
+    public T get() throws InterruptedException, ExecutionException {
         latch.await();
-        return ref.getReference();
+        return ref.getReference().get();
     }
 
-    public T get(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
+    public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (!latch.await(timeout, unit)) {
             throw new TimedOutException(timeout, unit);
         }
-        return ref.getReference();
+        return ref.getReference().get();
     }
 
     public boolean isDone() {
@@ -88,10 +77,61 @@ public class SettableFuture<T> implements Future<T> {
         return false;
     }
 
-    private boolean equals(final T one, final T two) {
-        if (one == null) {
-            return two == null;
+    private void setHolder(final Value<T> value) {
+        final boolean[] mark = new boolean[1];
+        while (true) {
+            final Value<T> oldValue = ref.get(mark);
+            if (mark[0]) {
+                if (!oldValue.equals(value)) {
+                    throw new IllegalStateException("cannot change value after it has been set");
+                }
+                return;
+            }
+            // /CLOVER:OFF
+            if (!ref.compareAndSet(null, value, false, true)) {
+                continue;
+            }
+            // /CLOVER:ON
+            latch.countDown();
+            return;
         }
-        return one.equals(two);
+    }
+
+    private static class Value<T> {
+        private final T value;
+        private final Throwable throwable;
+
+        Value(final T value) {
+            this.value = value;
+            throwable = null;
+        }
+
+        Value(final Throwable throwable) {
+            this.throwable = throwable;
+            this.value = null;
+        }
+
+        T get() throws ExecutionException {
+            if (throwable != null) {
+                throw new ExecutionException(throwable);
+            }
+            return value;
+        }
+
+        /**
+         * Simple equality test delegates to members.
+         */
+        @Override
+        public boolean equals(final Object obj) {
+            final Value<?> other = (Value<?>) obj;
+            if (value != null) {
+                return value.equals(other.value);
+            }
+            if (other.value != null) {
+                return false;
+            }
+            // if throwable is null then we are a legitimate null value
+            return (throwable == null) ? (other.throwable == null) : throwable.equals(other.throwable);
+        }
     }
 }
