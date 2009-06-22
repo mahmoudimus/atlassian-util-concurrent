@@ -39,7 +39,7 @@ import net.jcip.annotations.Immutable;
  * the equivalent of three-quarters of a second.
  */
 @Immutable
-public class Timeout {
+public final class Timeout {
 
     private static final TimeSupplier NANO_SUPPLIER = new TimeSupplier() {
         public long currentTime() {
