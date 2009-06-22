@@ -5,6 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.junit.Ignore;
+
+@Ignore
 final class TestUtil {
     static final int WAIT = 10;
 
