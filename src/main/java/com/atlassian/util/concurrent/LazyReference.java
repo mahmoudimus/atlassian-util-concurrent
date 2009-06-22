@@ -68,6 +68,8 @@ import net.jcip.annotations.ThreadSafe;
  * override {@link #get()}, the garbage collection semantics of WeakReference
  * are irrelevant. The referenced object will not become eligible for GC unless
  * the object holding the reference to this object is collectible.
+ * 
+ * @param T the type of the contained element.
  */
 @ThreadSafe
 public abstract class LazyReference<T> extends WeakReference<T> {
