@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Test;
 
 public class BlockingReferenceTest {
-    final int threads = 20;
+    static final int threads = 20;
 
     @Test
     public void simpleSRSWReference() throws Exception {
@@ -306,7 +306,7 @@ public class BlockingReferenceTest {
         assertTrue(ref.isEmpty());
     }
 
-    class Executor<T> {
+    static class Executor<T> {
         final ExecutorService pool;
         final ExecutorCompletionService<T> completion;
 

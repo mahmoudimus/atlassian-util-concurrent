@@ -23,7 +23,7 @@ public class AssertionsTest {
     }
 
     @Test
-    public void Passes() {
+    public void isTruePasses() {
         isTrue("something", true);
     }
 }

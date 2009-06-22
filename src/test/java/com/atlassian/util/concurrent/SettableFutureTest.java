@@ -1,6 +1,6 @@
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Util.pause;
+import static com.atlassian.util.concurrent.TestUtil.pause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

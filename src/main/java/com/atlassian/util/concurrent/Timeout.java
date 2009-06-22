@@ -118,7 +118,7 @@ public class Timeout {
 
     void await(final Awaitable waitable) throws TimeoutException, InterruptedException {
         if (!waitable.await(getTime(), getUnit())) {
-            throw new TimedOutException(this);
+            throwTimeoutException();
         }
     }
 
@@ -126,8 +126,17 @@ public class Timeout {
     // /CLOVER:OFF
     void await(final Condition condition) throws TimeoutException, InterruptedException {
         if (!condition.await(getTime(), getUnit())) {
-            throw new TimedOutException(this);
+            throwTimeoutException();
         }
+    }
+
+    /**
+     * Always throws a {@link TimeoutException}.
+     * 
+     * @throws TimedOutException, always.
+     */
+    public void throwTimeoutException() throws TimedOutException {
+        throw new TimedOutException(getTime(), getUnit());
     }
 
     // /CLOVER:ON

@@ -16,6 +16,7 @@
 
 package com.atlassian.util.concurrent;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
@@ -95,7 +96,7 @@ public class PhasedLatch implements ReusableLatch {
      * an integer that continually increases. The phase can wrap around past
      * {@link Integer#MAX_VALUE}
      */
-    private class Sync extends AbstractQueuedSynchronizer {
+    private static class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -7753362916930221487L;
 
         public int getCurrentPhase() {
@@ -121,7 +122,9 @@ public class PhasedLatch implements ReusableLatch {
         }
     }
 
-    static class PhaseComparator implements Comparator<Integer> {
+    static class PhaseComparator implements Comparator<Integer>, Serializable {
+        private static final long serialVersionUID = -614957178717195674L;
+
         public int compare(final Integer current, final Integer waitingFor) {
             return waitingFor - current;
         };

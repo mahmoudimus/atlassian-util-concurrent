@@ -16,6 +16,7 @@
 
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.TestUtil.serialize;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -24,10 +25,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -360,14 +357,12 @@ public class CopyOnWriteMapTest {
 
     @Test
     public void serializableHashMap() {
-        final CopyOnWriteMap<Object, Object> map = CopyOnWriteMap.newHashMap();
-        assertMutableMapSerializable(map);
+        assertMutableMapSerializable(CopyOnWriteMap.<Object, Object>newHashMap());
     }
 
     @Test
     public void serializableLinkedMap() {
-        final CopyOnWriteMap<Object, Object> map = CopyOnWriteMap.newLinkedMap();
-        assertMutableMapSerializable(map);
+        assertMutableMapSerializable(CopyOnWriteMap.<Object, Object>newLinkedMap());
     }
 
     @Test
@@ -448,13 +443,7 @@ public class CopyOnWriteMapTest {
     }
 
     static void assertSerializable(final Map<?, ?> map) {
-        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        try {
-            new ObjectOutputStream(bytes).writeObject(map);
-            new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray())).readObject();
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
+        assertEquals(map, serialize(map));
     }
 }
 

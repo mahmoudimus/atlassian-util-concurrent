@@ -65,7 +65,7 @@ public class TimeoutTest {
         assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
     }
 
-    class MockTimeSupplier implements TimeSupplier {
+    static class MockTimeSupplier implements TimeSupplier {
         private int currentTimeCalled;
         private final long time;
         private final TimeUnit unit;

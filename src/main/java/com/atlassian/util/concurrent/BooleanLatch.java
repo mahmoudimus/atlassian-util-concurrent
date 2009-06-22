@@ -16,11 +16,11 @@
 
 package com.atlassian.util.concurrent;
 
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
+
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * A {@link BooleanLatch} is a reusable latch that resets after it is released
@@ -41,7 +41,7 @@ public class BooleanLatch implements ReusableLatch {
      * Synchronization control For BooleanLatch. Uses AQS state to represent
      * released state.
      */
-    private class Sync extends AbstractQueuedSynchronizer {
+    private static class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -3475411235403448115L;
 
         private static final int RELEASED = 0;
@@ -53,11 +53,10 @@ public class BooleanLatch implements ReusableLatch {
 
         @Override
         protected boolean tryAcquire(final int ignore) {
-            final boolean acquired = (getState() == RELEASED);
-            if (acquired) {
-                compareAndSetState(RELEASED, UNAVAILABLE);
+            if (!(getState() == RELEASED)) {
+                return false;
             }
-            return acquired;
+            return compareAndSetState(RELEASED, UNAVAILABLE);
         }
 
         @Override
@@ -160,6 +159,6 @@ public class BooleanLatch implements ReusableLatch {
      * waiting
      */
     public boolean await(final long timeout, final TimeUnit unit) throws InterruptedException {
-        return sync.tryAcquireNanos(1, unit.toNanos(timeout));
+        return sync.tryAcquireNanos(0, unit.toNanos(timeout));
     }
 }

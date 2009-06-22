@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,7 +45,8 @@ public class CopyOnWriteSortedMapTest {
         };
     }
 
-    private static final class StringComparator implements Comparator<String> {
+    @SuppressWarnings("serial")
+    private static final class StringComparator implements Comparator<String>, Serializable {
         public int compare(final String o1, final String o2) {
             return o1.compareTo(o2);
         };

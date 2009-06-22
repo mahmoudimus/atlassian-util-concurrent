@@ -159,6 +159,13 @@ public class SettableFuture<T> implements Future<T> {
             final ReferenceValue<?> other = (ReferenceValue<?>) obj;
             return (value == null) ? (other.value == null) : value.equals(other.value);
         }
+
+        // /CLOVER:OFF
+        @Override
+        public int hashCode() {
+            throw new UnsupportedOperationException();
+        }
+        // /CLOVER:ON
     }
 
     /** holds an exception */
@@ -181,6 +188,13 @@ public class SettableFuture<T> implements Future<T> {
             }
             return throwable.equals(((ThrowableValue<?>) obj).throwable);
         }
+
+        // /CLOVER:OFF
+        @Override
+        public int hashCode() {
+            throw new UnsupportedOperationException();
+        }
+        // /CLOVER:ON
     }
 
     // doesn't need to implement equals as cancel doesn't check

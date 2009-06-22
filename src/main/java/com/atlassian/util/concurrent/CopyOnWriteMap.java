@@ -16,7 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -72,7 +71,7 @@ import net.jcip.annotations.ThreadSafe;
  * @author Jed Wesley-Smith
  */
 @ThreadSafe
-public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> implements Map<K, V>, Serializable {
+public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> {
     private static final long serialVersionUID = 7935514534647505917L;
 
     /**

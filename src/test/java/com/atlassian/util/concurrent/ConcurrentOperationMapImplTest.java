@@ -196,7 +196,7 @@ public class ConcurrentOperationMapImplTest {
         }
     }
 
-    class MyError extends Error {
+    static class MyError extends Error {
         private static final long serialVersionUID = -1416631799712180762L;
     }
 

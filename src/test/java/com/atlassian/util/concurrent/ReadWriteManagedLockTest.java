@@ -86,7 +86,7 @@ public class ReadWriteManagedLockTest {
         lock.write.check();
     }
 
-    class TrackedReadWriteLock implements ReadWriteLock {
+    static class TrackedReadWriteLock implements ReadWriteLock {
         private static final long serialVersionUID = 9210941568120426704L;
 
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -102,7 +102,7 @@ public class ReadWriteManagedLockTest {
         }
     }
 
-    class TrackedLock implements Lock {
+    static class TrackedLock implements Lock {
         private final Lock delegate;
 
         boolean locked;

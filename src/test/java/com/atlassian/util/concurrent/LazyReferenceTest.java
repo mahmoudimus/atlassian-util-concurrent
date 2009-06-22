@@ -1,6 +1,6 @@
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Util.pause;
+import static com.atlassian.util.concurrent.TestUtil.pause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -168,6 +168,18 @@ public class LazyReferenceTest {
 
         final int obj = ref.get();
         assertEquals(10, obj);
+    }
+
+    @Test(expected = InterruptedException.class)
+    public void getInterruptiblyThrowsInterrupted() throws Exception {
+        final LazyReference<String> ref = new LazyReference<String>() {
+            @Override
+            protected String create() throws Exception {
+                return "test";
+            }
+        };
+        Thread.currentThread().interrupt();
+        ref.getInterruptibly();
     }
 
     @Test

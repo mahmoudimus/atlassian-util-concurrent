@@ -409,7 +409,7 @@ class PhasedBlockingReference<V> {
      */
     public V take(final long timeout, final TimeUnit unit) throws TimeoutException, InterruptedException {
         if (!latch.await(timeout, unit)) {
-            throw new TimeoutException();
+            throw new TimedOutException(timeout, unit);
         }
         return ref.getAndSet(null);
     }

@@ -13,7 +13,7 @@ import org.junit.Test;
 
 public class ManagedLockTest {
     @Test
-    public void testSupplierReturnsValue() throws Exception {
+    public void supplierReturnsValue() throws Exception {
         final AtomicBoolean called = new AtomicBoolean();
         assertEquals("blah", manage(new ReentrantLock()).withLock(new Supplier<String>() {
             public String get() {
@@ -25,7 +25,7 @@ public class ManagedLockTest {
     }
 
     @Test
-    public void testCallableReturnsValue() throws Exception {
+    public void callableReturnsValue() throws Exception {
         final AtomicBoolean called = new AtomicBoolean();
         assertEquals("blah", manage(new ReentrantLock()).withLock(new Callable<String>() {
             public String call() {
@@ -37,7 +37,7 @@ public class ManagedLockTest {
     }
 
     @Test
-    public void testRunnableRuns() throws Exception {
+    public void runnableRuns() throws Exception {
         final AtomicBoolean called = new AtomicBoolean();
         manage(new ReentrantLock()).withLock(new Runnable() {
             public void run() {
@@ -48,7 +48,7 @@ public class ManagedLockTest {
     }
 
     @Test
-    public void testLocksAndUnlocksAndThrows() throws Exception {
+    public void locksAndUnlocksAndThrows() throws Exception {
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
         final AtomicBoolean unlocked = new AtomicBoolean();
@@ -87,7 +87,7 @@ public class ManagedLockTest {
     }
 
     @Test
-    public void testLocksAndUnlocksAndRuns() throws Exception {
+    public void locksAndUnlocksAndRuns() throws Exception {
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
         final AtomicBoolean unlocked = new AtomicBoolean();
@@ -119,7 +119,7 @@ public class ManagedLockTest {
     }
 
     @Test
-    public void testLocksAndUnlocksAndThrowsRuntime() throws Exception {
+    public void locksAndUnlocksAndThrowsRuntime() throws Exception {
         final AtomicBoolean called = new AtomicBoolean();
         final AtomicBoolean locked = new AtomicBoolean();
         final AtomicBoolean unlocked = new AtomicBoolean();
@@ -159,7 +159,7 @@ public class ManagedLockTest {
     }
 
     @Test(expected = Exception.class)
-    public void testReThrowsCallableException() throws Exception {
+    public void reThrowsCallableException() throws Exception {
         final ManagedLock manager = new ManagedLocks.ManagedLockImpl(new ReentrantLock());
 
         manager.withLock(new Callable<Void>() {

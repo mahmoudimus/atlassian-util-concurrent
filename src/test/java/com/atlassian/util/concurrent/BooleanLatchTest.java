@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -21,6 +22,38 @@ public class BooleanLatchTest {
         final ExecutorCompletionService<String> completionService = getCompletionService(factory(5, new Callable<String>() {
             public String call() throws Exception {
                 latch.await();
+                return String.valueOf(call.incrementAndGet());
+            }
+        }));
+        latch.release();
+        final Future<String> take = completionService.take();
+        assertNotNull(take.get());
+        assertEquals("1", take.get());
+        Thread.sleep(10);
+        // these threads were already waiting, SRSW will only notify ONE thread
+        // in this state - we are testing that the client who is using this
+        // incorrectly will see dodgy behaviour
+        final Future<String> poll = completionService.poll();
+        assertNull(poll);
+        Thread.sleep(1);
+        assertNull(completionService.poll());
+        Thread.sleep(1);
+        assertNull(completionService.poll());
+        Thread.sleep(1);
+        assertNull(completionService.poll());
+        Thread.sleep(1);
+        assertNull(completionService.poll());
+        Thread.sleep(1);
+        assertNull(completionService.poll());
+    }
+
+    @Test
+    public void singleThreadIsReleasedWithTimeout() throws Exception {
+        final AtomicInteger call = new AtomicInteger();
+        final BooleanLatch latch = new BooleanLatch();
+        final ExecutorCompletionService<String> completionService = getCompletionService(factory(5, new Callable<String>() {
+            public String call() throws Exception {
+                latch.await(100, TimeUnit.SECONDS);
                 return String.valueOf(call.incrementAndGet());
             }
         }));
@@ -67,7 +100,9 @@ public class BooleanLatchTest {
                 try {
                     start.await();
                 } catch (final InterruptedException e) {
+                    // /CLOVER:OFF
                     throw new RuntimeInterruptedException(e);
+                    // /CLOVER:ON
                 }
             }
 

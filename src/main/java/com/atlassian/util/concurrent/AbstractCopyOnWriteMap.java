@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 /**
  * Abstract base class for COW {@link Map} implementations that delegate to an
@@ -42,10 +43,13 @@ import net.jcip.annotations.ThreadSafe;
 abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V>, Serializable {
     private static final long serialVersionUID = 4508989182041753878L;
 
+    @GuardedBy("lock")
     private volatile M delegate;
     private final transient EntrySet entrySet = new EntrySet();
     private final transient KeySet keySet = new KeySet();
     private final transient Values values = new Values();
+
+    @SuppressWarnings
     private final transient Lock lock = new ReentrantLock();
 
     /**
@@ -60,6 +64,14 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         this.delegate = notNull("delegate", copy(notNull("map", map)));
     }
 
+    /**
+     * Copy function, implemented by sub-classes.
+     * 
+     * @param <N> the map to copy and return.
+     * @param map the initial values of the newly created map.
+     * @return a new map. Will never be modified after construction.
+     */
+    @GuardedBy("lock")
     abstract <N extends Map<? extends K, ? extends V>> M copy(N map);
 
     //
@@ -244,7 +256,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         }
     }
 
-    private final class Values extends CollectionView<V> implements Collection<V> {
+    private final class Values extends CollectionView<V> {
 
         @Override
         Collection<V> getDelegate() {

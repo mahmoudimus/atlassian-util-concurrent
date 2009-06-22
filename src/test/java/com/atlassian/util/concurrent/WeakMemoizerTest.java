@@ -12,10 +12,13 @@ import org.junit.Test;
 
 import com.atlassian.util.concurrent.WeakMemoizer.MappedReference;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 public class WeakMemoizerTest {
 
     static final Function<Integer, String> lock() {
         return Functions.fromSupplier(new Supplier<String>() {
+            @SuppressWarnings
             public String get() {
                 return new String("test");
             }
@@ -32,6 +35,7 @@ public class WeakMemoizerTest {
 
     @Test
     public void testLockReferenceNotNull() throws Exception {
+        @SuppressWarnings
         final String value = new String("value");
         final MappedReference<String, String> ref = new MappedReference<String, String>("test", value, new ReferenceQueue<String>());
         assertNotNull(ref.getDescriptor());
