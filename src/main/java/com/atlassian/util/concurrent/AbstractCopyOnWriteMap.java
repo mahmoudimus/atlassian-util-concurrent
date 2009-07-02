@@ -17,18 +17,17 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 /**
  * Abstract base class for COW {@link Map} implementations that delegate to an
@@ -40,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
  * navigable maps.
  */
 @ThreadSafe
-abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<K, V>, Serializable {
+abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements ConcurrentMap<K, V>, Serializable {
     private static final long serialVersionUID = 4508989182041753878L;
 
     @GuardedBy("lock")
@@ -49,7 +48,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     private final transient KeySet keySet = new KeySet();
     private final transient Values values = new Values();
 
-    @SuppressWarnings
+    // import edu.umd.cs.findbugs.annotations.@SuppressWarnings
     private final transient Lock lock = new ReentrantLock();
 
     /**
@@ -90,12 +89,12 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
     }
 
     public final V remove(final Object key) {
-        // short circuit if key doesn't exist
-        if (!delegate.containsKey(key)) {
-            return null;
-        }
         lock.lock();
         try {
+            // short circuit if key doesn't exist
+            if (!delegate.containsKey(key)) {
+                return null;
+            }
             final M map = copy();
             final V result = map.remove(key);
             set(map);
@@ -104,6 +103,56 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             lock.unlock();
         }
     }
+
+    public boolean remove(final Object key, final Object value) {
+        lock.lock();
+        try {
+            if (delegate.containsKey(key) && equals(value, delegate.get(key))) {
+                final M map = copy();
+                map.remove(key);
+                set(map);
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean replace(final K key, final V oldValue, final V newValue) {
+        lock.lock();
+        try {
+            if (delegate.containsKey(key) && equals(oldValue, delegate.get(key))) {
+                final M map = copy();
+                map.put(key, newValue);
+                set(map);
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            lock.unlock();
+        }
+    };
+
+    public V replace(final K key, final V value) {
+        lock.lock();
+        try {
+            if (delegate.containsKey(key)) {
+                final M map = copy();
+                try {
+                    return map.put(key, value);
+                } finally {
+                    set(map);
+                }
+            } else {
+                return null;
+            }
+        } finally {
+            lock.unlock();
+        }
+    };
 
     public final V put(final K key, final V value) {
         lock.lock();
@@ -116,6 +165,21 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
             lock.unlock();
         }
     }
+
+    public V putIfAbsent(final K key, final V value) {
+        lock.lock();
+        try {
+            if (!delegate.containsKey(key)) {
+                final M map = copy();
+                final V result = map.put(key, value);
+                set(map);
+                return result;
+            }
+            return delegate.get(key);
+        } finally {
+            lock.unlock();
+        }
+    };
 
     public final void putAll(final Map<? extends K, ? extends V> t) {
         lock.lock();
@@ -454,5 +518,12 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Map<
         public final boolean addAll(final Collection<? extends E> c) {
             throw new UnsupportedOperationException();
         }
+    }
+
+    private boolean equals(final Object o1, final Object o2) {
+        if (o1 == null) {
+            return o2 == null;
+        }
+        return o1.equals(o2);
     }
 }
