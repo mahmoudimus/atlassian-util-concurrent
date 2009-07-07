@@ -22,6 +22,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -163,6 +165,117 @@ public class CopyOnWriteMapTest {
         assertEquals(map.entrySet(), cowMap.entrySet());
         assertEquals(map.entrySet().hashCode(), cowMap.entrySet().hashCode());
         assertEquals(map.entrySet().toString(), cowMap.entrySet().toString());
+    }
+
+    @Test
+    public void putIfAbsentWorksIfAbsent() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").toMap());
+        assertNull(map.putIfAbsent("key2", "value2"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value2"));
+    }
+
+    @Test
+    public void putIfAbsentFailsIfPresent() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        map.putIfAbsent("key2", "value3");
+        assertNotNull(map.putIfAbsent("key2", "value2"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value2"));
+        assertFalse(map.containsValue("value3"));
+    }
+
+    @Test
+    public void removeWorksIfValueSame() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        assertTrue(map.remove("key2", "value2"));
+        assertEquals(1, map.size());
+        assertFalse(map.containsKey("key2"));
+        assertFalse(map.containsValue("value2"));
+    }
+
+    @Test
+    public void removeFailsIfValueDifferent() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        assertFalse(map.remove("key2", "value3"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value2"));
+        assertFalse(map.containsValue("value3"));
+    }
+
+    @Test
+    public void unconditionalReplaceWorksIfKeyMapped() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        assertNotNull(map.replace("key2", "value3"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value3"));
+        assertFalse(map.containsValue("value2"));
+    }
+
+    @Test
+    public void unconditionalReplaceFailsIfKeyMissing() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        assertNull(map.replace("key3", "value3"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value2"));
+        assertFalse(map.containsKey("key3"));
+        assertFalse(map.containsValue("value3"));
+    }
+
+    @Test
+    public void conditionalReplaceWorksIfKeyAndValueMapped() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        assertTrue(map.replace("key2", "value2", "value3"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value3"));
+        assertFalse(map.containsValue("value2"));
+    }
+
+    @Test
+    public void conditionalReplaceWorksIfValueNull() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            null).toMap());
+        assertTrue(map.replace("key2", null, "value3"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value3"));
+        assertFalse(map.containsValue(null));
+    }
+
+    @Test
+    public void conditionalReplaceFailsIfValueDifferent() throws Exception {
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(MapBuilder.<String, String> builder().add("key", "value").add("key2",
+            "value2").toMap());
+        assertFalse(map.replace("key2", "value3", "value4"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value2"));
+        assertFalse(map.containsValue("value3"));
+        assertFalse(map.containsValue("value4"));
+    }
+
+    @Test
+    public void conditionalReplaceFailsIfKeyMissing() throws Exception {
+        final Map<String, String> init = MapBuilder.<String, String> builder().add("key", "value").add("key2", "value2").toMap();
+        final ConcurrentMap<String, String> map = CopyOnWriteMap.newHashMap(init);
+        assertFalse(map.replace("key3", "value2", "value3"));
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsValue("value2"));
+        assertFalse(map.containsKey("key3"));
+        assertFalse(map.containsValue("value3"));
     }
 
     @Test
@@ -357,12 +470,12 @@ public class CopyOnWriteMapTest {
 
     @Test
     public void serializableHashMap() {
-        assertMutableMapSerializable(CopyOnWriteMap.<Object, Object>newHashMap());
+        assertMutableMapSerializable(CopyOnWriteMap.<Object, Object> newHashMap());
     }
 
     @Test
     public void serializableLinkedMap() {
-        assertMutableMapSerializable(CopyOnWriteMap.<Object, Object>newLinkedMap());
+        assertMutableMapSerializable(CopyOnWriteMap.<Object, Object> newLinkedMap());
     }
 
     @Test
