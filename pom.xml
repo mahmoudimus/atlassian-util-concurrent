@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>atlassian-public-pom</artifactId>
 		<groupId>com.atlassian.pom</groupId>
@@ -13,7 +14,17 @@
 	<description>This project contains utility classes that are used by
 		various products and projects inside Atlassian and may have some
 		utility to the world at large.</description>
-	<url>https://labs.atlassian.com/wiki/display/CONCURRENT/Home</url>
+	<url>https://labs.atlassian.com/wiki/display/CONCURRENT/Home</url>	
+	<issueManagement>
+		<system>JIRA</system>
+		<url>http://labs.atlassian.com/browse/CONCURRENT</url>
+	</issueManagement>
+	<developers>
+		<developer>
+			<name>Jed Wesley-Smith</name>
+			<email>jed@atlassian.com</email>
+		</developer>
+	</developers>
 	<scm>
 		<connection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</connection>
 		<developerConnection>scm:svn:https://labs.atlassian.com/svn/CONCURRENT/trunk</developerConnection>
@@ -74,6 +85,7 @@
 			<groupId>net.jcip</groupId>
 			<artifactId>jcip-annotations</artifactId>
 			<version>1.0</version>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- Test dependencies -->
@@ -81,7 +93,7 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.6</version>
-			<scope>provided</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -99,11 +111,13 @@
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
 			<version>1.3.8</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
 			<version>1.3.8</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 	<distributionManagement>
