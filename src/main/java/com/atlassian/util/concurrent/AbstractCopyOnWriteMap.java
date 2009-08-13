@@ -123,14 +123,13 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
     public boolean replace(final K key, final V oldValue, final V newValue) {
         lock.lock();
         try {
-            if (delegate.containsKey(key) && equals(oldValue, delegate.get(key))) {
-                final M map = copy();
-                map.put(key, newValue);
-                set(map);
-                return true;
-            } else {
+            if (!delegate.containsKey(key) || !equals(oldValue, delegate.get(key))) {
                 return false;
             }
+            final M map = copy();
+            map.put(key, newValue);
+            set(map);
+            return true;
         } finally {
             lock.unlock();
         }
@@ -139,15 +138,14 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
     public V replace(final K key, final V value) {
         lock.lock();
         try {
-            if (delegate.containsKey(key)) {
-                final M map = copy();
-                try {
-                    return map.put(key, value);
-                } finally {
-                    set(map);
-                }
-            } else {
+            if (!delegate.containsKey(key)) {
                 return null;
+            }
+            final M map = copy();
+            try {
+                return map.put(key, value);
+            } finally {
+                set(map);
             }
         } finally {
             lock.unlock();
