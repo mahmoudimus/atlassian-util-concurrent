@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
 
@@ -62,6 +63,21 @@ public class TimeoutTest {
     public void millisFactory() {
         final Timeout timeout = Timeout.getMillisTimeout(2, TimeUnit.MILLISECONDS);
         assertFalse(timeout.isExpired());
+        assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
+    }
+
+    @Test(expected = TimedOutException.class)
+    public void throwsTimeoutException() throws TimeoutException, InterruptedException {
+        final Timeout timeout = Timeout.getMillisTimeout(0, TimeUnit.MILLISECONDS);
+        timeout.await(new Awaitable() {
+            public void await() throws InterruptedException {
+                Thread.sleep(1);
+            }
+
+            public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
+                return false;
+            }
+        });
         assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
     }
 

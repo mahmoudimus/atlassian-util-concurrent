@@ -130,6 +130,8 @@ public final class Timeout {
         }
     }
 
+    // /CLOVER:ON
+
     /**
      * Always throws a {@link TimeoutException}.
      * 
@@ -138,8 +140,6 @@ public final class Timeout {
     public void throwTimeoutException() throws TimedOutException {
         throw new TimedOutException(getTime(), getUnit());
     }
-
-    // /CLOVER:ON
 
     /**
      * Supply time and precision to a {@link Timeout}.
