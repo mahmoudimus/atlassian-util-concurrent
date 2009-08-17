@@ -1,36 +1,15 @@
-/**
- * Copyright 2008 Atlassian Pty Ltd 
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at 
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
- * limitations under the License.
- */
-
 package com.atlassian.util.concurrent;
+
+import com.atlassian.util.concurrent.LazyReference.InitializationException;
 
 import net.jcip.annotations.ThreadSafe;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-
 /**
  * Lazily loaded reference that is not constructed until required. This class is
- * used to maintain a reference to an object that is expensive to create and
- * must be constructed once and once only. This reference behaves as though the
- * <code>final</code> keyword has been used (you cannot reset it once it has
- * been constructed). Object creation is guaranteed to be thread-safe and the
- * first thread that calls {@link #get()} will be the one that creates it.
+ * used to maintain a reference to an object that is expensive to create, but
+ * may need to be reset and recomputed at a later time. Object creation is
+ * guaranteed to be thread-safe and the first thread that calls {@link #get()}
+ * will be the one that creates it.
  * <p>
  * Usage: clients need to implement the {@link #create()} method to return the
  * object this reference will hold.
@@ -39,7 +18,7 @@ import java.util.concurrent.FutureTask;
  * <p>
  * 
  * <pre>
- * final LazyReference&lt;MyObject&gt; ref = new LazyReference() {
+ * final ResettableLazyReference&lt;MyObject&gt; ref = new ResettableLazyReference() {
  *     protected MyObject create() throws Exception {
  *         // Do expensive object construction here
  *         return new MyObject();
@@ -61,28 +40,12 @@ import java.util.concurrent.FutureTask;
  * {@link InitializationException} that {@link #get()} or
  * {@link #getInterruptibly()} throws and your {@link #create()} will not be
  * called again.
- * <p>
- * Implementation note. This class extends {@link WeakReference} as
- * {@link Reference} does not have a public constructor. WeakReference is
- * preferable as it does not have any members and therefore doesn't increase the
- * memory footprint. As we never pass a referent through to the super-class and
- * override {@link #get()}, the garbage collection semantics of WeakReference
- * are irrelevant. The referenced object will not become eligible for GC unless
- * the object holding the reference to this object is collectible.
  * 
  * @param T the type of the contained element.
  */
 @ThreadSafe
-public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T> {
-    private final FutureTask<T> future = new FutureTask<T>(new Callable<T>() {
-        public T call() throws Exception {
-            return create();
-        }
-    });
-
-    public LazyReference() {
-        super(null);
-    }
+public abstract class ResettableLazyReference<T> implements Supplier<T> {
+    private volatile InternalReference referrent = new InternalReference();
 
     /**
      * The object factory method, guaranteed to be called once and only once.
@@ -106,23 +69,8 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * exception. The {@link InitializationException#getCause()} will contain
      * the exception thrown by the {@link #create()} method
      */
-    @Override
-    public final T get() {
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    return getInterruptibly();
-                } catch (final InterruptedException ignore) {
-                    // ignore and try again
-                    interrupted = true;
-                }
-            }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
-        }
+    public T get() {
+        return referrent.get();
     }
 
     /**
@@ -142,24 +90,24 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * {@link InitializationException} to everybody calling this method).
      */
     public final T getInterruptibly() throws InterruptedException {
-        if (!future.isDone()) {
-            future.run();
-        }
+        return referrent.getInterruptibly();
+    }
 
-        try {
-            return future.get();
-        } catch (final ExecutionException e) {
-            throw new InitializationException(e);
-        }
+    /**
+     * Reset the internal reference. Anyone currently in the process of getting
+     * the old reference will still receive that reference however.
+     */
+    public void reset() {
+        referrent = new InternalReference();
     }
 
     /**
      * Has the {@link #create()} reference been initialized.
      * 
-     * @return true if the task is complete
+     * @return true if the task is complete and has not been reset.
      */
     public boolean isInitialized() {
-        return future.isDone();
+        return referrent.isInitialized();
     }
 
     /**
@@ -167,18 +115,16 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * interrupt if it is currently running.
      */
     public void cancel() {
-        future.cancel(true);
+        referrent.cancel();
     }
 
     /**
-     * If the factory {@link LazyReference#create()} method threw an exception,
-     * this wraps it.
+     * The internal LazyReference that may get thrown away
      */
-    public static class InitializationException extends RuntimeException {
-        private static final long serialVersionUID = 3638376010285456759L;
-
-        InitializationException(final ExecutionException e) {
-            super((e.getCause() != null) ? e.getCause() : e);
+    class InternalReference extends LazyReference<T> {
+        @Override
+        protected T create() throws Exception {
+            return ResettableLazyReference.this.create();
         }
     }
 }
