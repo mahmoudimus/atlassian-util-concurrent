@@ -28,15 +28,14 @@ public class RuntimeInterruptedException extends RuntimeException {
 
     public RuntimeInterruptedException(final InterruptedException cause) {
         super(notNull("cause", cause));
-        Thread.currentThread().interrupt();
     }
 
     public RuntimeInterruptedException(final String message, final InterruptedException cause) {
         super(message, notNull("cause", cause));
-        Thread.currentThread().interrupt();
     }
 
-    @Override public InterruptedException getCause() {
+    @Override
+    public InterruptedException getCause() {
         return (InterruptedException) super.getCause();
     }
 }
