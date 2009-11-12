@@ -16,6 +16,8 @@
 
 package com.atlassian.util.concurrent;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
@@ -25,8 +27,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * {@link SettableFuture} is a {@link Future} implementation where the
@@ -90,7 +90,7 @@ public class SettableFuture<T> implements Future<T> {
     }
 
     public boolean isCancelled() {
-        return isDone() && (ref.get() instanceof CancelledValue);
+        return isDone() && (ref.get() instanceof CancelledValue<?>);
     }
 
     public boolean cancel(final boolean mayInterruptIfRunning) {
@@ -153,7 +153,7 @@ public class SettableFuture<T> implements Future<T> {
         @Override
         public boolean equals(final Object obj) {
             // no need to check for reference equality, not possible
-            if (!(obj instanceof ReferenceValue)) {
+            if (!(obj instanceof ReferenceValue<?>)) {
                 return false;
             }
             final ReferenceValue<?> other = (ReferenceValue<?>) obj;
@@ -183,7 +183,7 @@ public class SettableFuture<T> implements Future<T> {
         @Override
         public boolean equals(final Object obj) {
             // no need to check for reference equality, not possible
-            if (!(obj instanceof ThrowableValue)) {
+            if (!(obj instanceof ThrowableValue<?>)) {
                 return false;
             }
             return throwable.equals(((ThrowableValue<?>) obj).throwable);
