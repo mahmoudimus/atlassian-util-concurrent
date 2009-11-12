@@ -21,13 +21,13 @@ import static com.atlassian.util.concurrent.Functions.fromSupplier;
 import static com.atlassian.util.concurrent.ManagedLocks.ManagedFactory.managedFactory;
 import static com.atlassian.util.concurrent.WeakMemoizer.weakMemoizer;
 
+import com.atlassian.util.concurrent.ManagedLock.ReadWrite;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import com.atlassian.util.concurrent.ManagedLock.ReadWrite;
 
 /**
  * Static factory for producing {@link ManagedLock} and {@link ReadWrite}
@@ -39,9 +39,12 @@ import com.atlassian.util.concurrent.ManagedLock.ReadWrite;
  * returns.
  * <p>
  * Several methods take stripe functions. These functions should return the same
- * value for the life of their input, ie they should be based on immutable
+ * value for the life of their input, i.e. they should be based on immutable
  * properties of the input value - otherwise the stripe function might point to
- * a different lock depending on the state of the input.
+ * a different lock depending on the state of the input. Whatever they return
+ * will be used as a map key, so it should be a good candidate for a map key,
+ * i.e. correctly implement {@link Object#hashCode()} and
+ * {@link Object#equals(Object)} and be immutable.
  * 
  * @since 0.0.7
  */
@@ -78,7 +81,7 @@ public class ManagedLocks {
      * use excess memory.
      * 
      * @param <T> the type of the thing used to look up locks
-     * @param <D> the type used to map lock instances
+     * @param <D> the type used to map lock instances, should be a good map key
      * @param stripeFunction to convert the input to the thing used to look up
      * the individual locks
      * @param lockFactory the factory for creating the individual locks
@@ -97,7 +100,7 @@ public class ManagedLocks {
      * {@link #lockFactory() default lock factory}.
      * 
      * @param <T> the type of the thing used to look up locks
-     * @param <D> the type used to map lock instances
+     * @param <D> the type used to map lock instances, should be a good map key
      * @param stripeFunction to convert Ts to Ds.
      * @see #weakManagedLockFactory(Function, Supplier)
      */
@@ -129,7 +132,7 @@ public class ManagedLocks {
      * infrequently accessed locks should not use excess memory.
      * 
      * @param <T> the type of the thing used to look up locks
-     * @param <D> the type used to map lock instances
+     * @param <D> the type used to map lock instances, should be a good map key
      * @param stripeFunction to convert the input to the thing used to look up
      * the individual locks
      * @param lockFactory the factory for creating the individual locks
@@ -156,7 +159,7 @@ public class ManagedLocks {
      * default {@link ReentrantReadWriteLock locks}
      * 
      * @param <T> the type of the thing used to look up locks
-     * @param <D> the type used to map lock instances
+     * @param <D> the type used to map lock instances, should be a good map key
      * @param stripeFunction
      * @return a new {@link Function} that provides
      * {@link ManagedLock.ReadWrite} instances that stores created instances

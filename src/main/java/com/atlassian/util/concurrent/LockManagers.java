@@ -61,8 +61,7 @@ public class LockManagers {
     @Deprecated
     public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction) {
         final Function<D, ManagedLock> lockFactory = fromSupplier(managedLockFactory(lockFactory()));
-        final WeakMemoizer<D, ManagedLock> memoizer = weakMemoizer(lockFactory);
-        return createManager(memoizer, stripeFunction);
+        return createManager(stripeFunction, weakMemoizer(lockFactory));
     }
 
     /**
@@ -72,16 +71,16 @@ public class LockManagers {
      * @param <D> the type used for the internal lock resolution.
      */
     static class Manager<T, D> implements LockManager<T> {
-        static final <T, D> Manager<T, D> createManager(final Function<D, ManagedLock> lockFactory, final Function<T, D> stripeFunction) {
-            return new Manager<T, D>(lockFactory, stripeFunction);
+        static final <T, D> Manager<T, D> createManager(final Function<T, D> stripeFunction, final Function<D, ManagedLock> lockFactory) {
+            return new Manager<T, D>(stripeFunction, lockFactory);
         }
 
         private final Function<D, ManagedLock> lockFactory;
         private final Function<T, D> stripeFunction;
 
-        Manager(final Function<D, ManagedLock> lockFactory, final Function<T, D> stripeFunction) {
-            this.lockFactory = lockFactory;
+        Manager(final Function<T, D> stripeFunction, final Function<D, ManagedLock> lockFactory) {
             this.stripeFunction = stripeFunction;
+            this.lockFactory = lockFactory;
         }
 
         public <R> R withLock(final T descriptor, final Supplier<R> supplier) {
