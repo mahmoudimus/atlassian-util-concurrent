@@ -20,9 +20,9 @@ import net.jcip.annotations.ThreadSafe;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
  * Lazily loaded reference that is not constructed until required. This class is
@@ -74,11 +74,7 @@ import java.util.concurrent.FutureTask;
  */
 @ThreadSafe
 public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T> {
-    private final FutureTask<T> future = new FutureTask<T>(new Callable<T>() {
-        public T call() throws Exception {
-            return create();
-        }
-    });
+    private final Sync sync = new Sync();
 
     public LazyReference() {
         super(null);
@@ -142,12 +138,12 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * {@link InitializationException} to everybody calling this method).
      */
     public final T getInterruptibly() throws InterruptedException {
-        if (!future.isDone()) {
-            future.run();
+        if (!sync.isDone()) {
+            sync.run();
         }
 
         try {
-            return future.get();
+            return sync.get();
         } catch (final ExecutionException e) {
             throw new InitializationException(e);
         }
@@ -159,7 +155,7 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * @return true if the task is complete
      */
     public boolean isInitialized() {
-        return future.isDone();
+        return sync.isDone();
     }
 
     /**
@@ -167,7 +163,7 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * interrupt if it is currently running.
      */
     public void cancel() {
-        future.cancel(true);
+        sync.cancel(true);
     }
 
     /**
@@ -179,6 +175,151 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
 
         InitializationException(final ExecutionException e) {
             super((e.getCause() != null) ? e.getCause() : e);
+        }
+    }
+
+    /**
+     * Synchronization control for LazyReference. Note that this must be a
+     * non-static inner class in order to invoke the protected <tt>create</tt>
+     * method. Taken from FutureTask AQS implementation and pruned to be as
+     * compact as possible.
+     * 
+     * Uses AQS sync state to represent run status.
+     */
+    private final class Sync extends AbstractQueuedSynchronizer {
+
+        /** State value representing that task is running */
+        private static final int RUNNING = 1;
+        /** State value representing that task ran */
+        private static final int RAN = 2;
+        /** State value representing that task was cancelled */
+        private static final int CANCELLED = 4;
+
+        /** The result to return from get() */
+        private T result;
+        /** The exception to throw from get() */
+        private Throwable exception;
+
+        /**
+         * The thread running task. When nulled after set/cancel, this indicates
+         * that the results are accessible. Must be volatile, to ensure
+         * visibility upon completion.
+         */
+        private volatile Thread runner;
+
+        private boolean ranOrCancelled(final int state) {
+            return (state & (RAN | CANCELLED)) != 0;
+        }
+
+        /**
+         * Implements AQS base acquire to succeed if ran or cancelled
+         */
+        @Override
+        protected int tryAcquireShared(final int ignore) {
+            return isDone() ? 1 : -1;
+        }
+
+        /**
+         * Implements AQS base release to always signal after setting final done
+         * status by nulling runner thread.
+         */
+        @Override
+        protected boolean tryReleaseShared(final int ignore) {
+            runner = null;
+            return true;
+        }
+
+        boolean isDone() {
+            return ranOrCancelled(getState()) && (runner == null);
+        }
+
+        T get() throws InterruptedException, ExecutionException {
+            acquireSharedInterruptibly(0);
+            if (getState() == CANCELLED) {
+                throw new CancellationException();
+            }
+            if (exception != null) {
+                throw new ExecutionException(exception);
+            }
+            return result;
+        }
+
+        void set(final T v) {
+            for (;;) {
+                final int s = getState();
+                if (s == RAN) {
+                    return;
+                }
+                if (s == CANCELLED) {
+                    // aggressively release to set runner to null,
+                    // in case we are racing with a cancel request
+                    // that will try to interrupt runner
+                    releaseShared(0);
+                    return;
+                }
+                if (compareAndSetState(s, RAN)) {
+                    result = v;
+                    releaseShared(0);
+                    return;
+                }
+            }
+        }
+
+        void setException(final Throwable t) {
+            for (;;) {
+                final int s = getState();
+                if (s == RAN) {
+                    return;
+                }
+                if (s == CANCELLED) {
+                    // aggressively release to set runner to null,
+                    // in case we are racing with a cancel request
+                    // that will try to interrupt runner
+                    releaseShared(0);
+                    return;
+                }
+                if (compareAndSetState(s, RAN)) {
+                    exception = t;
+                    result = null;
+                    releaseShared(0);
+                    return;
+                }
+            }
+        }
+
+        void cancel(final boolean mayInterruptIfRunning) {
+            for (;;) {
+                final int s = getState();
+                if (ranOrCancelled(s)) {
+                    return;
+                }
+                if (compareAndSetState(s, CANCELLED)) {
+                    break;
+                }
+            }
+            if (mayInterruptIfRunning) {
+                final Thread r = runner;
+                if (r != null) {
+                    r.interrupt();
+                }
+            }
+            releaseShared(0);
+        }
+
+        void run() {
+            if (!compareAndSetState(0, RUNNING)) {
+                return;
+            }
+            try {
+                runner = Thread.currentThread();
+                if (getState() == RUNNING) {
+                    set(create());
+                } else {
+                    releaseShared(0); // cancel
+                }
+            } catch (final Throwable ex) {
+                setException(ex);
+            }
         }
     }
 }
