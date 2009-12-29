@@ -6,6 +6,10 @@ import static com.atlassian.util.concurrent.Assertions.notNull;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Factory for creating {@link ThreadFactory} instances. All factory
+ * implementations produce named threads to give good stack-traces.
+ */
 public class ThreadFactories {
     public enum Type {
         DAEMON(true), USER(false);
@@ -17,15 +21,40 @@ public class ThreadFactories {
         }
     }
 
-    public static ThreadFactory namedThreadFactory(final String name) {
+    /**
+     * Get a {@link ThreadFactory} with the required name prefix. The produced
+     * threads are user threads and have normal priority.
+     * 
+     * @param name the prefix to use for naming the threads.
+     * @return a configured {@link ThreadFactory}
+     */
+    public static ThreadFactory namedThreadFactory(@NotNull final String name) {
         return new Default(name, Type.USER, Thread.NORM_PRIORITY);
     }
 
-    public static ThreadFactory namedThreadFactory(final String name, final Type type) {
+    /**
+     * Get a {@link ThreadFactory} with the required name prefix and type (user
+     * or daemon). The produced threads have normal priority.
+     * 
+     * @param name the prefix to use for naming the threads.
+     * @param type whether they are User or Daemon threads.
+     * @return a configured {@link ThreadFactory}
+     */
+    public static ThreadFactory namedThreadFactory(@NotNull final String name, @NotNull final Type type) {
         return new Default(name, type, Thread.NORM_PRIORITY);
     }
 
-    public static ThreadFactory namedThreadFactory(final String name, final Type type, final int priority) {
+    /**
+     * Get a {@link ThreadFactory} with the required name prefix, type and
+     * priority.
+     * 
+     * @param name the prefix to use for naming the threads.
+     * @param type whether they are User or Daemon threads.
+     * @param priority the thread priority, must not be lower than
+     * {@link Thread#MIN_PRIORITY} or greater than {@link Thread#MAX_PRIORITY}
+     * @return a configured {@link ThreadFactory}
+     */
+    public static ThreadFactory namedThreadFactory(@NotNull final String name, @NotNull final Type type, final int priority) {
         return new Default(name, type, priority);
     }
 
