@@ -17,6 +17,8 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
@@ -44,12 +46,15 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
 
     @GuardedBy("lock")
     private volatile M delegate;
-    private final transient EntrySet entrySet = new EntrySet();
-    private final transient KeySet keySet = new KeySet();
-    private final transient Values values = new Values();
 
     // import edu.umd.cs.findbugs.annotations.@SuppressWarnings
     private final transient Lock lock = new ReentrantLock();
+
+    // private final transient EntrySet entrySet = new EntrySet();
+    // private final transient KeySet keySet = new KeySet();
+    // private final transient Values values = new Values();
+    // private final View.Type viewType;
+    private final View<K, V> view;
 
     /**
      * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
@@ -59,8 +64,9 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
      * @param map the initial map to initialize with
      * @param factory the copy function
      */
-    protected <N extends Map<? extends K, ? extends V>> AbstractCopyOnWriteMap(final N map) {
+    protected <N extends Map<? extends K, ? extends V>> AbstractCopyOnWriteMap(final N map, final View.Type viewType) {
         this.delegate = notNull("delegate", copy(notNull("map", map)));
+        this.view = notNull("viewType", viewType).get(this);
     }
 
     /**
@@ -215,15 +221,15 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
     //
 
     public final Set<Map.Entry<K, V>> entrySet() {
-        return entrySet;
+        return view.entrySet();
     }
 
     public final Set<K> keySet() {
-        return keySet;
+        return view.keySet();
     }
 
     public final Collection<V> values() {
-        return values;
+        return view.values();
     }
 
     //
@@ -545,5 +551,80 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
             return o2 == null;
         }
         return o1.equals(o2);
+    }
+
+    /**
+     * Provides access to the views of the underlying key, value and entry
+     * collections.
+     */
+    public static abstract class View<K, V> {
+        View() {}
+
+        abstract Set<K> keySet();
+
+        abstract Set<Entry<K, V>> entrySet();
+
+        abstract Collection<V> values();
+
+        /**
+         * The different types of {@link View} available
+         */
+        public enum Type {
+            STABLE {
+                @Override
+                <K, V, M extends Map<K, V>> View<K, V> get(final AbstractCopyOnWriteMap<K, V, M> host) {
+                    return host.new Immutable();
+                }
+            },
+            LIVE {
+                @Override
+                <K, V, M extends Map<K, V>> View<K, V> get(final AbstractCopyOnWriteMap<K, V, M> host) {
+                    return host.new Mutable();
+                }
+            };
+            abstract <K, V, M extends Map<K, V>> View<K, V> get(AbstractCopyOnWriteMap<K, V, M> host);
+        }
+    }
+
+    class Immutable extends View<K, V> implements Serializable {
+        @Override
+        public Set<K> keySet() {
+            return unmodifiableSet(delegate.keySet());
+        }
+
+        @Override
+        public Set<Entry<K, V>> entrySet() {
+            return unmodifiableSet(delegate.entrySet());
+        }
+
+        @Override
+        public Collection<V> values() {
+            return unmodifiableCollection(delegate.values());
+        }
+    }
+
+    class Mutable extends View<K, V> implements Serializable {
+        private final transient KeySet keySet = new KeySet();
+        private final transient EntrySet entrySet = new EntrySet();
+        private final transient Values values = new Values();
+
+        @Override
+        public Set<K> keySet() {
+            return keySet;
+        }
+
+        @Override
+        public Set<Entry<K, V>> entrySet() {
+            return entrySet;
+        }
+
+        @Override
+        public Collection<V> values() {
+            return values;
+        }
+
+        Object readResolve() {
+            return new Mutable();
+        }
     }
 }

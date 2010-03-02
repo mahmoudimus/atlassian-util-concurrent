@@ -17,6 +17,8 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -24,14 +26,10 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
-
 /**
- * /** A thread-safe variant of {@link SortedMap} in which all mutative
- * operations (the "destructive" operations described by {@link SortedMap} put,
- * remove and so on) are implemented by making a fresh copy of the underlying
- * map.
+ * A thread-safe variant of {@link SortedMap} in which all mutative operations
+ * (the "destructive" operations described by {@link SortedMap} put, remove and
+ * so on) are implemented by making a fresh copy of the underlying map.
  * <p>
  * This is ordinarily too costly, but may be <em>more</em> efficient than
  * alternatives when traversal operations vastly out-number mutations, and is
@@ -54,9 +52,15 @@ import net.jcip.annotations.ThreadSafe;
  * therefore the semantics of what this map will cope with as far as null keys
  * and values, iteration ordering etc.
  * <p>
- * Views of the keys, values and entries are modifiable and will cause a copy.
- * Views taken using {@link #subMap(Object, Object)}, {@link #headMap(Object)}
- * and {@link #tailMap(Object)} are unmodifiable.
+ * Collection views of the keys, values and entries are optionally
+ * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
+ * are modifiable will cause a copy if a modifying method is called on them.
+ * Methods on these will reflect the current state of the collection, although
+ * iterators will be snapshot style. If the collection views are stable they are
+ * unmodifiable, and will be a snapshot of the state of the map at the time the
+ * collection was asked for. Regardless of the View policy though, all Views
+ * taken using {@link #subMap(Object, Object)}, {@link #headMap(Object)} and
+ * {@link #tailMap(Object)} are unmodifiable.
  * <p>
  * <strong>Please note</strong> that the thread-safety guarantees are limited to
  * the thread-safety of the non-mutative (non-destructive) operations of the
@@ -75,7 +79,7 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * instances are {@link TreeMap} and the sort uses the key's natural order.
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
-        return new CopyOnWriteSortedMap<K, V>() {
+        return new CopyOnWriteSortedMap<K, V>(View.Type.LIVE) {
             private static final long serialVersionUID = 8015823768891873357L;
 
             @Override
@@ -93,7 +97,7 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * @param map the map to use as the initial values.
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteSortedMap<K, V>(map) {
+        return new CopyOnWriteSortedMap<K, V>(map, View.Type.LIVE) {
             private static final long serialVersionUID = 6065245106313875871L;
 
             @Override
@@ -112,7 +116,7 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      */
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
         notNull("comparator", comparator);
-        return new CopyOnWriteSortedMap<K, V>() {
+        return new CopyOnWriteSortedMap<K, V>(View.Type.LIVE) {
             private static final long serialVersionUID = -7243810284130497340L;
 
             @Override
@@ -135,7 +139,7 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map,
         final @NotNull Comparator<? super K> comparator) {
         notNull("comparator", comparator);
-        return new CopyOnWriteSortedMap<K, V>(map) {
+        return new CopyOnWriteSortedMap<K, V>(map, View.Type.LIVE) {
             private static final long serialVersionUID = -6016130690072425548L;
 
             @Override
@@ -154,8 +158,8 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
     /**
      * Create a new empty {@link CopyOnWriteMap}.
      */
-    protected CopyOnWriteSortedMap() {
-        super(Collections.<K, V> emptyMap());
+    protected CopyOnWriteSortedMap(final View.Type viewType) {
+        super(Collections.<K, V> emptyMap(), viewType);
     }
 
     /**
@@ -164,8 +168,8 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * 
      * @param map the initial map to initialize with
      */
-    protected CopyOnWriteSortedMap(final Map<? extends K, ? extends V> map) {
-        super(map);
+    protected CopyOnWriteSortedMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
+        super(map, viewType);
     }
 
     //

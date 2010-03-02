@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.junit.Test;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,8 +30,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
-
-import org.junit.Test;
 
 public class CopyOnWriteSortedMapTest {
 
@@ -225,7 +225,7 @@ public class CopyOnWriteSortedMapTest {
         assertUnmodifiableCollection(map.values(), value);
     }
 
-    private static <T> void assertUnmodifiableCollection(final Collection<T> coll, final T element) {
+    static <T> void assertUnmodifiableCollection(final Collection<T> coll, final T element) {
         assertThrowsUnsupportedOp(new Runnable() {
             public void run() {
                 coll.clear();

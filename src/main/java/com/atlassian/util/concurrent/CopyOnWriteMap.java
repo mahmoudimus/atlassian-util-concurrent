@@ -16,15 +16,17 @@
 
 package com.atlassian.util.concurrent;
 
+import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
+
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
-
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * A thread-safe variant of {@link Map} in which all mutative operations (the
@@ -56,8 +58,13 @@ import net.jcip.annotations.ThreadSafe;
  * There are supplied implementations for the common Collections {@link Map}
  * implementations via the {@link CopyOnWriteMaps} static factory methods.
  * <p>
- * Collection views of the keys, values and entries are modifiable and will
- * cause a copy.
+ * Collection views of the keys, values and entries are optionally
+ * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
+ * are modifiable will cause a copy if a modifying method is called on them.
+ * Methods on these will reflect the current state of the collection, although
+ * iterators will be snapshot style. If the collection views are stable they are
+ * unmodifiable, and will be a snapshot of the state of the map at the time the
+ * collection was asked for.
  * <p>
  * <strong>Please note</strong> that the thread-safety guarantees are limited to
  * the thread-safety of the non-mutative (non-destructive) operations of the
@@ -74,65 +81,81 @@ import net.jcip.annotations.ThreadSafe;
 public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> {
     private static final long serialVersionUID = 7935514534647505917L;
 
+    public static Factory factory() {
+        return new Factory();
+    }
+
+    public static class Factory {
+        private View.Type viewType = View.Type.LIVE;
+
+        /**
+         * Views are stable (fixed in time) and unmodifiable.
+         */
+        Factory stableViews() {
+            viewType = View.Type.STABLE;
+            return this;
+        }
+
+        public <K, V> CopyOnWriteMap<K, V> newHashMap() {
+            return new Hash<K, V>(viewType);
+        }
+
+        public <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
+            return new Hash<K, V>(map, viewType);
+        }
+
+        public <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
+            return new Linked<K, V>(viewType);
+        }
+
+        public <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
+            return new Linked<K, V>(map, viewType);
+        }
+    }
+
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
+     * 
+     * @deprecated since 0.0.12 use the {@link Factory} instead
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
-        return new CopyOnWriteMap<K, V>() {
-            private static final long serialVersionUID = 5221824943734164497L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new HashMap<K, V>(map);
-            }
-        };
+        return factory().newHashMap();
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
      * using the supplied map as the initial values.
+     * 
+     * @deprecated since 0.0.12 use the {@link Factory} instead
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteMap<K, V>(map) {
-            private static final long serialVersionUID = -7616159260882572421L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new HashMap<K, V>(map);
-            }
-        };
+        return factory().newHashMap(map);
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying
      * {@link LinkedHashMap}. Iterators for this map will be return elements in
      * insertion order.
+     * 
+     * @deprecated since 0.0.12 use the {@link Factory} instead
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
-        return new CopyOnWriteMap<K, V>() {
-            private static final long serialVersionUID = -4597421704607601676L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new LinkedHashMap<K, V>(map);
-            }
-        };
+        return factory().newLinkedMap();
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying
      * {@link LinkedHashMap} using the supplied map as the initial values.
      * Iterators for this map will be return elements in insertion order.
+     * 
+     * @deprecated since 0.0.12 use the {@link Factory} instead
      */
+    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
-        return new CopyOnWriteMap<K, V>(map) {
-            private static final long serialVersionUID = -8659999465009072124L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
-                return new LinkedHashMap<K, V>(map);
-            }
-        };
+        return factory().newLinkedMap(map);
     }
 
     //
@@ -144,19 +167,89 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * initialize the values.
      * 
      * @param map the initial map to initialize with
+     * @deprecated since 0.0.12 use the versions that explicitly specify
+     * View.Type
      */
+    @Deprecated
     public CopyOnWriteMap(final Map<? extends K, ? extends V> map) {
-        super(map);
+        this(map, View.Type.LIVE);
     }
 
     /**
      * Create a new empty {@link CopyOnWriteMap}.
+     * 
+     * @deprecated since 0.0.12 use the versions that explicitly specify
+     * View.Type
      */
+    @Deprecated
     public CopyOnWriteMap() {
-        super(Collections.<K, V> emptyMap());
+        this(Collections.<K, V> emptyMap(), View.Type.LIVE);
+    }
+
+    /**
+     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
+     * initialize the values. This map may be optionally modified using any of
+     * the key, entry or value views
+     * 
+     * @param map the initial map to initialize with
+     */
+    public CopyOnWriteMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
+        super(map, viewType);
+    }
+
+    /**
+     * Create a new empty {@link CopyOnWriteMap}. This map may be optionally
+     * modified using any of the key, entry or value views
+     */
+    public CopyOnWriteMap(final View.Type viewType) {
+        super(Collections.<K, V> emptyMap(), viewType);
     }
 
     @Override
     @GuardedBy("internal-lock")
     protected abstract <N extends Map<? extends K, ? extends V>> Map<K, V> copy(N map);
+
+    //
+    // inner classes
+    //
+
+    /**
+     * Uses {@link HashMap} instances as its internal storage.
+     */
+    static class Hash<K, V> extends CopyOnWriteMap<K, V> {
+        private static final long serialVersionUID = 5221824943734164497L;
+
+        Hash(final Map<? extends K, ? extends V> map, final Type viewType) {
+            super(map, viewType);
+        }
+
+        Hash(final Type viewType) {
+            super(viewType);
+        }
+
+        @Override
+        public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+            return new HashMap<K, V>(map);
+        }
+    }
+
+    /**
+     * Uses {@link LinkedHashMap} instances as its internal storage.
+     */
+    static class Linked<K, V> extends CopyOnWriteMap<K, V> {
+        private static final long serialVersionUID = -8659999465009072124L;
+
+        Linked(final Map<? extends K, ? extends V> map, final Type viewType) {
+            super(map, viewType);
+        }
+
+        Linked(final Type viewType) {
+            super(viewType);
+        }
+
+        @Override
+        public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+            return new LinkedHashMap<K, V>(map);
+        }
+    }
 }
