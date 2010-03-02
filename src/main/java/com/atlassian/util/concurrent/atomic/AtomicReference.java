@@ -9,6 +9,7 @@ import com.atlassian.util.concurrent.Supplier;
  * {@link #getAndSetIf(Object, Object)} and {@link #update(Function)}.
  * 
  * @inheritDoc
+ * @since 0.0.12
  */
 public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicReference<V> {
 

@@ -18,6 +18,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * operations on {@link AtomicReference} classes and the like.
  * <p>
  * All methods are thread safe.
+ * 
+ * @since 0.0.12
  */
 @ThreadSafe
 public final class Atomics {

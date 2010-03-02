@@ -6,6 +6,9 @@ import com.atlassian.util.concurrent.Function;
  * {@link java.util.concurrent.atomic.AtomicInteger} with richer functionality.
  * This class implements commonly implemented patterns of use of compareAndSet
  * such as {@link #getOrSetAndGetIf(int, int)} and {@link #update(Function)}.
+ * 
+ * @inheritDoc
+ * @since 0.0.12
  */
 public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
 

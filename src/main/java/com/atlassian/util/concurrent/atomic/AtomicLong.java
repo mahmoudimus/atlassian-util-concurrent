@@ -6,6 +6,9 @@ import com.atlassian.util.concurrent.Function;
  * {@link java.util.concurrent.atomic.AtomicLong} with richer functionality.
  * This class implements commonly implemented patterns of use of compareAndSet
  * such as {@link #getAndSetIf(long, long)} and {@link #update(Function)}.
+ * 
+ * @inheritDoc
+ * @since 0.0.12
  */
 public class AtomicLong extends java.util.concurrent.atomic.AtomicLong {
 

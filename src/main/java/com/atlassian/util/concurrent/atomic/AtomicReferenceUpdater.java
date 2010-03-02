@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>
  * 
  * @param <T> the type of the reference.
+ * @since 0.0.12
  */
 public abstract class AtomicReferenceUpdater<T> implements Function<T, T> {
     private final AtomicReference<T> reference;

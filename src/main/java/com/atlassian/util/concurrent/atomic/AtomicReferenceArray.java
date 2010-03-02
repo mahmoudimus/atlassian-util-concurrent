@@ -9,6 +9,7 @@ import com.atlassian.util.concurrent.Supplier;
  * {@link #getAndSetIf(int, Object, Object)} and {@link #update(int, Function)}.
  * 
  * @param E the element type of the array.
+ * @since 0.0.12
  */
 public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicReferenceArray<E> {
 

@@ -6,6 +6,9 @@ import com.atlassian.util.concurrent.Function;
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
  * {@link #getAndSetIf(int, Object, Object)} and {@link #update(int, Function)}.
+ * 
+ * @inheritDoc
+ * @since 0.0.12
  */
 public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray {
 
