@@ -56,7 +56,7 @@ public class CopyOnWriteSortedMapTest {
     public void mapConstructor() {
         final MapBuilder<String, String> builder = MapBuilder.builder();
         builder.add("one", "value").add("two", "value").add("three", "value");
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap());
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().addAll(builder.toMap()).newTreeMap();
 
         assertEquals(3, map.size());
     }
@@ -65,7 +65,8 @@ public class CopyOnWriteSortedMapTest {
     public void mapComparatorConstructor() {
         final MapBuilder<String, String> builder = MapBuilder.builder();
         builder.add("one", "value").add("two", "value").add("three", "value");
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap(), new ReverseComparator<String>(new StringComparator()));
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().ordering(
+            new ReverseComparator<String>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
 
         assertEquals(3, map.size());
     }
@@ -95,7 +96,7 @@ public class CopyOnWriteSortedMapTest {
     @Test
     public void comparator() {
         final Comparator<String> comparator = new StringComparator();
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(comparator);
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().ordering(comparator).newTreeMap();
         assertNotNull(map.comparator());
         assertEquals(comparator, map.comparator());
         map.put("one", "two");
@@ -110,7 +111,7 @@ public class CopyOnWriteSortedMapTest {
 
     @Test
     public void firstKey() {
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
         map.put("three", "value");
@@ -121,7 +122,8 @@ public class CopyOnWriteSortedMapTest {
     public void firstKeyWithReverse() {
         final MapBuilder<String, String> builder = MapBuilder.builder();
         builder.add("one", "value").add("two", "value").add("three", "value");
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap(), new ReverseComparator<String>(new StringComparator()));
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().ordering(
+            new ReverseComparator<String>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
         map.put("three", "value");
@@ -132,7 +134,7 @@ public class CopyOnWriteSortedMapTest {
 
     @Test
     public void lastKey() {
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().newTreeMap();
         map.put("one", "value");
         map.put("two", "value");
         map.put("three", "value");
@@ -143,7 +145,8 @@ public class CopyOnWriteSortedMapTest {
     public void lastKeyWithReverse() {
         final MapBuilder<String, String> builder = MapBuilder.builder();
         builder.add("one", "value").add("two", "value").add("three", "value");
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap(builder.toMap(), new ReverseComparator<String>(new StringComparator()));
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().addAll(builder.toMap()).ordering(
+            new ReverseComparator<String>(new StringComparator())).newTreeMap();
 
         assertEquals(3, map.size());
         assertEquals("one", map.lastKey());
@@ -151,7 +154,7 @@ public class CopyOnWriteSortedMapTest {
 
     @Test
     public void headMap() {
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
         map.put("3", "three");
@@ -167,7 +170,7 @@ public class CopyOnWriteSortedMapTest {
 
     @Test
     public void tailMap() {
-        final SortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
+        final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
         map.put("3", "three");
@@ -183,7 +186,7 @@ public class CopyOnWriteSortedMapTest {
 
     @Test
     public void subMap() {
-        final CopyOnWriteSortedMap<String, String> map = CopyOnWriteSortedMap.newTreeMap();
+        final CopyOnWriteSortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().newTreeMap();
         map.put("1", "one");
         map.put("2", "two");
         map.put("3", "three");
@@ -200,7 +203,7 @@ public class CopyOnWriteSortedMapTest {
 
     @Test
     public void serializableTreeMap() {
-        final CopyOnWriteSortedMap<Object, Object> map = CopyOnWriteSortedMap.newTreeMap();
+        final CopyOnWriteSortedMap<Object, Object> map = CopyOnWriteSortedMap.builder().newTreeMap();
         CopyOnWriteMapTest.assertMutableMapSerializable(map);
     }
 

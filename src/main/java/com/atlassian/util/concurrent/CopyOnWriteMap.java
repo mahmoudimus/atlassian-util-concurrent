@@ -55,8 +55,8 @@ import java.util.WeakHashMap;
  * iteration ordering etc. See the note below about suitable candidates for
  * underlying Map implementations
  * <p>
- * There are supplied implementations for the common Collections {@link Map}
- * implementations via the {@link CopyOnWriteMaps} static factory methods.
+ * There are supplied implementations for the common j.u.c {@link Map}
+ * implementations via the {@link CopyOnWriteMaps} static {@link Builder}.
  * <p>
  * Collection views of the keys, values and entries are optionally
  * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
@@ -81,57 +81,85 @@ import java.util.WeakHashMap;
 public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, Map<K, V>> {
     private static final long serialVersionUID = 7935514534647505917L;
 
-    public static Factory factory() {
-        return new Factory();
+    /**
+     * Get a {@link Builder} for a {@link CopyOnWriteMap} instance.
+     * 
+     * @param <K> key type
+     * @param <V> value type
+     * @return a fresh builder
+     */
+    public static <K, V> Builder<K, V> builder() {
+        return new Builder<K, V>();
     }
 
-    public static class Factory {
-        private View.Type viewType = View.Type.LIVE;
+    /**
+     * Build a {@link CopyOnWriteMap} and specify all the options.
+     * 
+     * @param <K> key type
+     * @param <V> value type
+     */
+    public static class Builder<K, V> {
+        private View.Type viewType = View.Type.STABLE;
+        private final Map<K, V> initialValues = new HashMap<K, V>();
+
+        Builder() {}
 
         /**
          * Views are stable (fixed in time) and unmodifiable.
          */
-        Factory stableViews() {
+        public Builder<K, V> stableViews() {
             viewType = View.Type.STABLE;
             return this;
         }
 
-        public <K, V> CopyOnWriteMap<K, V> newHashMap() {
-            return new Hash<K, V>(viewType);
+        /**
+         * Views are live (reflecting concurrent updates) and mutator methods
+         * are supported.
+         */
+        public Builder<K, V> addAll(final Map<? extends K, ? extends V> values) {
+            initialValues.putAll(values);
+            return this;
         }
 
-        public <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
-            return new Hash<K, V>(map, viewType);
+        /**
+         * Views are live (reflecting concurrent updates) and mutator methods
+         * are supported.
+         */
+        public Builder<K, V> liveViews() {
+            viewType = View.Type.STABLE;
+            return this;
         }
 
-        public <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
-            return new Linked<K, V>(viewType);
+        public CopyOnWriteMap<K, V> newHashMap() {
+            return new Hash<K, V>(initialValues, viewType);
         }
 
-        public <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
-            return new Linked<K, V>(map, viewType);
+        public CopyOnWriteMap<K, V> newLinkedMap() {
+            return new Linked<K, V>(initialValues, viewType);
         }
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
      * 
-     * @deprecated since 0.0.12 use the {@link Factory} instead
+     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
     @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
-        return factory().newHashMap();
+        final Builder<K, V> builder = builder();
+        return builder.newHashMap();
     }
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
      * using the supplied map as the initial values.
      * 
-     * @deprecated since 0.0.12 use the {@link Factory} instead
+     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
     @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
-        return factory().newHashMap(map);
+        final Builder<K, V> builder = builder();
+        return builder.addAll(map).newHashMap();
     }
 
     /**
@@ -139,11 +167,12 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * {@link LinkedHashMap}. Iterators for this map will be return elements in
      * insertion order.
      * 
-     * @deprecated since 0.0.12 use the {@link Factory} instead
+     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
     @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
-        return factory().newLinkedMap();
+        final Builder<K, V> builder = builder();
+        return builder.newLinkedMap();
     }
 
     /**
@@ -151,11 +180,12 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * {@link LinkedHashMap} using the supplied map as the initial values.
      * Iterators for this map will be return elements in insertion order.
      * 
-     * @deprecated since 0.0.12 use the {@link Factory} instead
+     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
     @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
-        return factory().newLinkedMap(map);
+        final Builder<K, V> builder = builder();
+        return builder.addAll(map).newLinkedMap();
     }
 
     //
@@ -171,7 +201,7 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * View.Type
      */
     @Deprecated
-    public CopyOnWriteMap(final Map<? extends K, ? extends V> map) {
+    protected CopyOnWriteMap(final Map<? extends K, ? extends V> map) {
         this(map, View.Type.LIVE);
     }
 
@@ -182,7 +212,7 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * View.Type
      */
     @Deprecated
-    public CopyOnWriteMap() {
+    protected CopyOnWriteMap() {
         this(Collections.<K, V> emptyMap(), View.Type.LIVE);
     }
 
@@ -193,7 +223,7 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * 
      * @param map the initial map to initialize with
      */
-    public CopyOnWriteMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
+    protected CopyOnWriteMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
         super(map, viewType);
     }
 
@@ -201,7 +231,7 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * Create a new empty {@link CopyOnWriteMap}. This map may be optionally
      * modified using any of the key, entry or value views
      */
-    public CopyOnWriteMap(final View.Type viewType) {
+    protected CopyOnWriteMap(final View.Type viewType) {
         super(Collections.<K, V> emptyMap(), viewType);
     }
 
@@ -223,10 +253,6 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
             super(map, viewType);
         }
 
-        Hash(final Type viewType) {
-            super(viewType);
-        }
-
         @Override
         public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
             return new HashMap<K, V>(map);
@@ -241,10 +267,6 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
 
         Linked(final Map<? extends K, ? extends V> map, final Type viewType) {
             super(map, viewType);
-        }
-
-        Linked(final Type viewType) {
-            super(viewType);
         }
 
         @Override
