@@ -24,6 +24,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -86,9 +87,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
     public final void clear() {
         lock.lock();
         try {
-            final M map = copy();
-            map.clear();
-            set(map);
+            set(copy(Collections.<K, V>emptyMap()));
         } finally {
             lock.unlock();
         }
