@@ -90,8 +90,9 @@ public class ThreadFactories {
             notNull("type", type);
             isTrue("priority too low", priority >= Thread.MIN_PRIORITY);
             isTrue("priority too high", priority <= Thread.MAX_PRIORITY);
-            final SecurityManager s = System.getSecurityManager();
-            group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+            final SecurityManager securityManager = System.getSecurityManager();
+            final ThreadGroup parent = (securityManager != null) ? securityManager.getThreadGroup() : Thread.currentThread().getThreadGroup();
+            group = new ThreadGroup(parent, name);
             namePrefix = name + ":thread-";
             this.type = type;
             this.priority = priority;
