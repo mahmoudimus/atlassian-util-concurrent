@@ -126,7 +126,7 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
          * are supported.
          */
         public Builder<K, V> liveViews() {
-            viewType = View.Type.STABLE;
+            viewType = View.Type.LIVE;
             return this;
         }
 
