@@ -16,17 +16,17 @@
 
 package com.atlassian.util.concurrent;
 
-import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
-
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
+
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
+import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
 
 /**
  * A thread-safe variant of {@link Map} in which all mutative operations (the
@@ -141,10 +141,9 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      */
-    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
         final Builder<K, V> builder = builder();
         return builder.newHashMap();
@@ -153,10 +152,9 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
     /**
      * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
      * using the supplied map as the initial values.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      */
-    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
         final Builder<K, V> builder = builder();
         return builder.addAll(map).newHashMap();
@@ -166,10 +164,9 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * Creates a new {@link CopyOnWriteMap} with an underlying
      * {@link LinkedHashMap}. Iterators for this map will be return elements in
      * insertion order.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      */
-    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
         final Builder<K, V> builder = builder();
         return builder.newLinkedMap();
@@ -179,10 +176,9 @@ public abstract class CopyOnWriteMap<K, V> extends AbstractCopyOnWriteMap<K, V, 
      * Creates a new {@link CopyOnWriteMap} with an underlying
      * {@link LinkedHashMap} using the supplied map as the initial values.
      * Iterators for this map will be return elements in insertion order.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      */
-    @Deprecated
     public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
         final Builder<K, V> builder = builder();
         return builder.addAll(map).newLinkedMap();

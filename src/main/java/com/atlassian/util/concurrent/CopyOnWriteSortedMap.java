@@ -18,17 +18,17 @@ package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
-import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
-
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
+import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
 
 /**
  * A thread-safe variant of {@link SortedMap} in which all mutative operations
@@ -155,10 +155,9 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
     /**
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap} and the sort uses the key's natural order.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      */
-    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
         final Builder<K, V> builder = builder();
         return builder.newTreeMap();
@@ -168,12 +167,11 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap}, the sort uses the key's natural order and
      * the initial values are supplied.
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      * 
      * @param map the map to use as the initial values.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
-    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
         final Builder<K, V> builder = builder();
         notNull("map", map);
@@ -183,13 +181,12 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
     /**
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap}.
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      * 
      * @param comparator the Comparator to use for ordering the keys. Note,
      * should be serializable if this map is to be serialized.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
-    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
         final Builder<K, V> builder = builder();
         notNull("comparator", comparator);
@@ -200,13 +197,12 @@ public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<
      * Create a new {@link CopyOnWriteSortedMap} where the underlying map
      * instances are {@link TreeMap}, the sort uses the key's natural order and
      * the initial values are supplied.
+     * <p>
+     * This map has {@link View.Type.STABLE stable} views.
      * 
      * @param map to use as the initial values.
      * @param comparator for ordering.
-     * 
-     * @deprecated since 0.0.12 use the {@link Builder} instead
      */
-    @Deprecated
     public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map,
         final @NotNull Comparator<? super K> comparator) {
         final Builder<K, V> builder = builder();
