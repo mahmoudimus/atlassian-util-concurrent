@@ -16,13 +16,14 @@
 
 package com.atlassian.util.concurrent;
 
-import net.jcip.annotations.ThreadSafe;
-
+import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Lazily loaded reference that is not constructed until required. This class is
@@ -62,6 +63,8 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * {@link #getInterruptibly()} throws and your {@link #create()} will not be
  * called again.
  * <p>
+ * This class is NOT {@link Serializable}.
+ * <p>
  * Implementation note. This class extends {@link WeakReference} as
  * {@link Reference} does not have a public constructor. WeakReference is
  * preferable as it does not have any members and therefore doesn't increase the
@@ -74,6 +77,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  */
 @ThreadSafe
 public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T> {
+
     private final Sync sync = new Sync();
 
     public LazyReference() {
@@ -187,6 +191,12 @@ public abstract class LazyReference<T> extends WeakReference<T> implements Suppl
      * Uses AQS sync state to represent run status.
      */
     private final class Sync extends AbstractQueuedSynchronizer {
+
+        /**
+         * only here to shut up the compiler warnings, the outer class is NOT
+         * serializable
+         */
+        private static final long serialVersionUID = -1645412544240373524L;
 
         /** State value representing that task is running */
         private static final int RUNNING = 1;
