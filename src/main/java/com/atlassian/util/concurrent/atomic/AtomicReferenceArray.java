@@ -29,6 +29,8 @@ import com.atlassian.util.concurrent.Supplier;
  */
 public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicReferenceArray<E> {
 
+    private static final long serialVersionUID = 6669693075971189L;
+
     //
     // ctors
     //
@@ -131,11 +133,8 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
             oldValue = get(index);
             newValue = newValueFactory.get(oldValue);
             // test first to implement TTAS optimisation
-            if (get(index) != oldValue) {
-                continue;
-            }
             // then compare and set
-        } while (!compareAndSet(index, oldValue, newValue));
+        } while ((get(index) != oldValue) || !compareAndSet(index, oldValue, newValue));
         return newValue;
     }
 }

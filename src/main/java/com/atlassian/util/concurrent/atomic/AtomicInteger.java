@@ -28,6 +28,8 @@ import com.atlassian.util.concurrent.Function;
  */
 public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
 
+    private static final long serialVersionUID = 8415715351483640403L;
+
     //
     // ctors
     //
@@ -92,11 +94,8 @@ public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
             oldValue = get();
             newValue = newValueFactory.get(oldValue);
             // test first to implement TTAS optimisation
-            if (get() != oldValue) {
-                continue;
-            }
             // then compare and set
-        } while (!compareAndSet(oldValue, newValue));
+        } while ((get() != oldValue) || !compareAndSet(oldValue, newValue));
         return newValue;
     }
 }

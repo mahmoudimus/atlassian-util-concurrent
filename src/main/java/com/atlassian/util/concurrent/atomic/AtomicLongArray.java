@@ -28,6 +28,8 @@ import com.atlassian.util.concurrent.Function;
  */
 public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray {
 
+    private static final long serialVersionUID = 4358621597645662644L;
+
     //
     // ctors
     //
@@ -98,11 +100,8 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
             oldValue = get(index);
             newValue = newValueFactory.get(oldValue);
             // test first to implement TTAS optimisation
-            if (get(index) != oldValue) {
-                continue;
-            }
             // then compare and set
-        } while (!compareAndSet(index, oldValue, newValue));
+        } while ((get(index) != oldValue) || !compareAndSet(index, oldValue, newValue));
         return newValue;
     }
 }
