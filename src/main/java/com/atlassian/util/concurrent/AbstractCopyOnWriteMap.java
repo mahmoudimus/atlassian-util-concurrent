@@ -19,8 +19,6 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -31,6 +29,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Abstract base class for COW {@link Map} implementations that delegate to an
@@ -585,7 +586,10 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
         }
     }
 
-    class Immutable extends View<K, V> implements Serializable {
+    final class Immutable extends View<K, V> implements Serializable {
+
+        private static final long serialVersionUID = -4158727180429303818L;
+
         @Override
         public Set<K> keySet() {
             return unmodifiableSet(delegate.keySet());
@@ -602,7 +606,10 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
         }
     }
 
-    class Mutable extends View<K, V> implements Serializable {
+    final class Mutable extends View<K, V> implements Serializable {
+
+        private static final long serialVersionUID = 1624520291194797634L;
+
         private final transient KeySet keySet = new KeySet();
         private final transient EntrySet entrySet = new EntrySet();
         private final transient Values values = new Values();
