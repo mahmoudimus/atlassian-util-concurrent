@@ -61,6 +61,16 @@ public class ManagedLocks {
     }
 
     /**
+     * Get a {@link ManagedLock} that manages a {@link ReentrantLock}.
+     * 
+     * @return a managed lock
+     */
+    public static @NotNull
+    ManagedLock newManagedLock() {
+        return manage(new ReentrantLock());
+    }
+
+    /**
      * Get a {@link ManagedLock.ReadWrite} that manages the supplied
      * {@link ReadWriteLock}.
      * 
