@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Test;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
@@ -14,8 +16,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import org.junit.Test;
 
 public class BlockingReferenceTest {
     static final int threads = 20;
@@ -54,13 +54,12 @@ public class BlockingReferenceTest {
             assertNotNull(take.get());
             assertSame("testSRSWReferenceSetGet", take.get());
             Thread.sleep(10);
-            // these threads were already waiting, SRSW will only notify ONE
-            // thread
+            // these threads were already waiting,
+            // SRSW will only notify ONE thread
             // in this state - we are testing that the client who is using this
             // incorrectly will see dodgy behaviour
-            final Future<String> poll = executor.completion.poll();
             Thread.sleep(1);
-            assertNull(poll);
+            assertNull(executor.completion.poll());
             Thread.sleep(1);
             assertNull(executor.completion.poll());
             Thread.sleep(1);
