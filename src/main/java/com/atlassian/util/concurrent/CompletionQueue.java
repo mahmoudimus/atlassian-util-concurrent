@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorCompletionService;
  * collection of jobs to be issued to an {@link Executor} and return an
  * {@link Iterable} of the results that is in the order that the results return.
  */
-class CompletionQueue {
+public final class CompletionQueue {
     /**
      * Exception handling policies
      */
@@ -37,14 +37,16 @@ class CompletionQueue {
         abstract <T> Function<Supplier<T>, Supplier<T>> handler();
     }
 
-    private CompletionQueue() {}
+    private CompletionQueue() {
+        throw new AssertionError("Cannot instantiate");
+    }
 
     /**
      * Convenience method for calling
      * {@link #completionQueue(Iterable, Executor, Exceptions)} where
      * {@link Exceptions#THROW exceptions are thrown}.
      */
-    public static <T> Iterable<T> completionQueue(final Iterable<Callable<T>> callables, final Executor executor) {
+    public static <T> Iterable<T> completionQueue(final Iterable<? extends Callable<T>> callables, final Executor executor) {
         return completionQueue(callables, executor, Exceptions.THROW);
     }
 
@@ -59,7 +61,7 @@ class CompletionQueue {
      * @return an Iterable that returns the results in the order in which they
      * return
      */
-    public static <T> Iterable<T> completionQueue(final Iterable<Callable<T>> callables, final Executor executor, final Exceptions handle) {
+    public static <T> Iterable<T> completionQueue(final Iterable<? extends Callable<T>> callables, final Executor executor, final Exceptions handle) {
         // we must copy the resulting Iterable<Suppliers> so each iterator
         // doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor)));
