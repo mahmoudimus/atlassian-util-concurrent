@@ -19,29 +19,6 @@ import java.util.concurrent.ExecutorCompletionService;
  */
 public final class CompletionQueue {
     /**
-     * Exception handling policies
-     */
-    enum Exceptions {
-        IGNORE_EXCEPTIONS {
-            @Override
-            public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return Functions.ignoreExceptions();
-            }
-        },
-        THROW {
-            @Override
-            public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return Functions.identity();
-            }
-        };
-        abstract <T> Function<Supplier<T>, Supplier<T>> handler();
-    }
-
-    private CompletionQueue() {
-        throw new AssertionError("Cannot instantiate");
-    }
-
-    /**
      * Convenience method for calling
      * {@link #completionQueue(Iterable, Executor, Exceptions)} where
      * {@link Exceptions#THROW exceptions are thrown}.
@@ -58,16 +35,42 @@ public final class CompletionQueue {
      * @param <T> the result type
      * @param callables the jobs to run
      * @param executor the pool to run them on
+     * @param handle exception handling policy, note that
+     * {@link Exceptions#IGNORE_EXCEPTIONS} will cause nulls in the resulting
+     * iterable
      * @return an Iterable that returns the results in the order in which they
      * return
      */
     public static <T> Iterable<T> completionQueue(final Iterable<? extends Callable<T>> callables, final Executor executor, final Exceptions handle) {
-        // we must copy the resulting Iterable<Suppliers> so each iterator
-        // doesn't resubmit the jobs
+        // we must copy the resulting Iterable<Supplier> so
+        // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor)));
         final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, handle.<T> handler());
-        final Function<Supplier<? extends T>, T> fromSupplier = Functions.<T> fromSupplier();
-        return transform(handled, fromSupplier);
+        return transform(handled, Functions.<T> fromSupplier());
+    }
+
+    /** do not ctor */
+    private CompletionQueue() {
+        throw new AssertionError("Cannot instantiate");
+    }
+
+    /**
+     * Exception handling policies
+     */
+    public enum Exceptions {
+        IGNORE_EXCEPTIONS {
+            @Override
+            public <T> Function<Supplier<T>, Supplier<T>> handler() {
+                return Functions.ignoreExceptions();
+            }
+        },
+        THROW {
+            @Override
+            public <T> Function<Supplier<T>, Supplier<T>> handler() {
+                return Functions.identity();
+            }
+        };
+        abstract <T> Function<Supplier<T>, Supplier<T>> handler();
     }
 
     /**
