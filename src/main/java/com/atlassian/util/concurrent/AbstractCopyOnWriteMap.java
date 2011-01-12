@@ -19,6 +19,8 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -29,9 +31,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * Abstract base class for COW {@link Map} implementations that delegate to an
@@ -60,11 +59,10 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
 
     /**
      * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
-     * initialize the values and the {@link CopyFunction} for creating our
-     * actual delegate instances.
+     * initialize the values.
      * 
      * @param map the initial map to initialize with
-     * @param factory the copy function
+     * @param viewType for writable or read-only key, value and entrySet views
      */
     protected <N extends Map<? extends K, ? extends V>> AbstractCopyOnWriteMap(final N map, final View.Type viewType) {
         this.delegate = notNull("delegate", copy(notNull("map", map)));
@@ -88,7 +86,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
     public final void clear() {
         lock.lock();
         try {
-            set(copy(Collections.<K, V>emptyMap()));
+            set(copy(Collections.<K, V> emptyMap()));
         } finally {
             lock.unlock();
         }
