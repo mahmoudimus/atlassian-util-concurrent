@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.atlassian.util.concurrent.Function;
+import com.google.common.base.Function;
 
 /**
  * {@link java.util.concurrent.atomic.AtomicLong} with richer functionality.
@@ -90,7 +90,7 @@ public class AtomicLong extends java.util.concurrent.atomic.AtomicLong {
         long oldValue, newValue;
         do {
             oldValue = get();
-            newValue = newValueFactory.get(oldValue);
+            newValue = newValueFactory.apply(oldValue);
             // test first to implement TTAS optimisation
             // then compare and set
         } while ((get() != oldValue) || !compareAndSet(oldValue, newValue));

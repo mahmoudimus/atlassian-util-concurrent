@@ -44,12 +44,12 @@ import net.jcip.annotations.ThreadSafe;
  * @param <R> the resource type it resolves to.
  */
 @ThreadSafe
-public interface Function<D, R> {
+public interface Function<D, R> extends com.google.common.base.Function<D, R> {
     /**
      * Resolves an output <R> where an input <D> is given.
      * 
      * @param input an object of type D.
      * @return the output of type R.
      */
-    R get(D input);
+    R apply(D input);
 }

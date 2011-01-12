@@ -17,9 +17,9 @@
 package com.atlassian.util.concurrent.atomic;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
-import static com.atlassian.util.concurrent.Suppliers.memoize;
+import static com.google.common.base.Suppliers.ofInstance;
 
-import com.atlassian.util.concurrent.Supplier;
+import com.google.common.base.Supplier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -130,7 +130,7 @@ public final class Atomics {
      * newly created value.
      */
     public static <T> T getAndSetIfNull(final AtomicReference<T> reference, final T newValue) {
-        return getAndSetIf(reference, null, memoize(newValue));
+        return getAndSetIf(reference, null, ofInstance(newValue));
     }
 
     /**
@@ -234,7 +234,7 @@ public final class Atomics {
      * greater than the array size.
      */
     public static <T> T getAndSetIfNull(final AtomicReferenceArray<T> reference, final int index, final T newValue) {
-        return getAndSetIf(reference, index, null, memoize(newValue));
+        return getAndSetIf(reference, index, null, ofInstance(newValue));
     }
 
     /**

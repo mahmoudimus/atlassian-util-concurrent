@@ -16,13 +16,13 @@
 
 package com.atlassian.util.concurrent;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-
-import net.jcip.annotations.ThreadSafe;
 
 @ThreadSafe
 public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
@@ -32,7 +32,7 @@ public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<
 
     public ConcurrentOperationMapImpl() {
         this(new Function<Callable<R>, CallerRunsFuture<R>>() {
-            public CallerRunsFuture<R> get(final Callable<R> input) {
+            public CallerRunsFuture<R> apply(final Callable<R> input) {
                 return new CallerRunsFuture<R>(input);
             }
         });
@@ -45,7 +45,7 @@ public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<
     public R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
         CallerRunsFuture<R> future = map.get(key);
         while (future == null) {
-            map.putIfAbsent(key, futureFactory.get(operation));
+            map.putIfAbsent(key, futureFactory.apply(operation));
             future = map.get(key);
         }
         try {

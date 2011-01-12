@@ -18,9 +18,9 @@ package com.atlassian.util.concurrent.atomic;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.atlassian.util.concurrent.Function;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <strong>Experimental</strong>. Please note this class is experimental and may
@@ -56,7 +56,7 @@ public abstract class AtomicReferenceUpdater<T> implements Function<T, T> {
         T oldValue, newValue;
         do {
             oldValue = reference.get();
-            newValue = get(oldValue);
+            newValue = apply(oldValue);
             // test first to implement TTAS
             // then compare and set
         } while ((reference.get() != oldValue) || !reference.compareAndSet(oldValue, newValue));

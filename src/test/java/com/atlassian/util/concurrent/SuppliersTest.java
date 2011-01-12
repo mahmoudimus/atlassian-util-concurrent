@@ -3,10 +3,11 @@ package com.atlassian.util.concurrent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+@SuppressWarnings("deprecation")
 public class SuppliersTest {
     @Test
     public void memoize() {
@@ -19,7 +20,7 @@ public class SuppliersTest {
     public void fromFunction() {
         final AtomicInteger count = new AtomicInteger();
         final Function<Integer, Integer> function = new Function<Integer, Integer>() {
-            public Integer get(final Integer input) {
+            public Integer apply(final Integer input) {
                 assertSame(1, input);
                 return count.incrementAndGet();
             }

@@ -16,14 +16,16 @@
 
 package com.atlassian.util.concurrent;
 
+import net.jcip.annotations.ThreadSafe;
+
+import com.google.common.base.Supplier;
+
 import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
-
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * Lazily loaded reference that is not constructed until required. This class is

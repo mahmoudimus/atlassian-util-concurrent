@@ -6,6 +6,9 @@ import static com.atlassian.util.concurrent.ManagedLocks.lockFactory;
 import static com.atlassian.util.concurrent.ManagedLocks.managedLockFactory;
 import static com.atlassian.util.concurrent.WeakMemoizer.weakMemoizer;
 
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 
@@ -84,15 +87,15 @@ public class LockManagers {
         }
 
         public <R> R withLock(final T descriptor, final Supplier<R> supplier) {
-            return lockFactory.get(stripeFunction.get(descriptor)).withLock(supplier);
+            return lockFactory.apply(stripeFunction.apply(descriptor)).withLock(supplier);
         }
 
         public <R> R withLock(final T descriptor, final Callable<R> callable) throws Exception {
-            return lockFactory.get(stripeFunction.get(descriptor)).withLock(callable);
+            return lockFactory.apply(stripeFunction.apply(descriptor)).withLock(callable);
         }
 
         public void withLock(final T descriptor, final Runnable runnable) {
-            lockFactory.get(stripeFunction.get(descriptor)).withLock(runnable);
+            lockFactory.apply(stripeFunction.apply(descriptor)).withLock(runnable);
         }
     }
 }

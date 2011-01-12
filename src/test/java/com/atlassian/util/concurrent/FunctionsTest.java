@@ -16,7 +16,7 @@ public class FunctionsTest {
             }
         };
         final Function<String, Integer> function = Functions.fromSupplier(supplier);
-        assertEquals(Integer.valueOf(0), function.get("some"));
+        assertEquals(Integer.valueOf(0), function.apply("some"));
         assertEquals(Integer.valueOf(1), supplier.get());
     }
 
@@ -28,6 +28,6 @@ public class FunctionsTest {
     @Test
     public void identity() {
         final Function<String, String> function = Functions.identity();
-        assertSame("same", function.get("same"));
+        assertSame("same", function.apply("same"));
     }
 }

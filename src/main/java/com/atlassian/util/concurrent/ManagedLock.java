@@ -16,6 +16,8 @@
 
 package com.atlassian.util.concurrent;
 
+import com.google.common.base.Supplier;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReadWriteLock;
 

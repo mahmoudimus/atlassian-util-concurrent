@@ -1,6 +1,6 @@
 package com.atlassian.util.concurrent.atomic;
 
-import static com.atlassian.util.concurrent.Suppliers.memoize;
+import static com.google.common.base.Suppliers.ofInstance;
 import static org.junit.Assert.assertEquals;
 
 import com.atlassian.util.concurrent.Supplier;
@@ -24,7 +24,7 @@ public class AtomicsTest {
         final String from = "from";
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>(from);
-        assertEquals(to, Atomics.getAndSetIf(ref, from, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIf(ref, from, ofInstance(to)));
     }
 
     @Test
@@ -37,7 +37,7 @@ public class AtomicsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void getAndSetIfRefNPE() {
-        Atomics.getAndSetIf((AtomicReference<String>) null, "", memoize(""));
+        Atomics.getAndSetIf((AtomicReference<String>) null, "", ofInstance(""));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -49,7 +49,7 @@ public class AtomicsTest {
     public void getAndSetIfNull() {
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>(null);
-        assertEquals(to, Atomics.getAndSetIfNull(ref, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIfNull(ref, ofInstance(to)));
     }
 
     @Test
@@ -73,7 +73,7 @@ public class AtomicsTest {
         final String from = "from";
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>(old);
-        assertEquals(old, Atomics.getAndSetIf(ref, from, memoize(to)));
+        assertEquals(old, Atomics.getAndSetIf(ref, from, ofInstance(to)));
     }
 
     @Test
@@ -81,7 +81,7 @@ public class AtomicsTest {
         final String from = "from";
         final String to = from;
         final AtomicReference<String> ref = new AtomicReference<String>(from);
-        assertEquals(to, Atomics.getAndSetIf(ref, from, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIf(ref, from, ofInstance(to)));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class AtomicsTest {
         final String to = from;
         final String different = "blah";
         final AtomicReference<String> ref = new AtomicReference<String>(different);
-        assertEquals(different, Atomics.getAndSetIf(ref, from, memoize(to)));
+        assertEquals(different, Atomics.getAndSetIf(ref, from, ofInstance(to)));
     }
 
     //
@@ -102,7 +102,7 @@ public class AtomicsTest {
         final String from = "from";
         final String to = "to";
         final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-        assertEquals(to, Atomics.getAndSetIf(ref, 0, from, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
     }
 
     @Test
@@ -118,12 +118,12 @@ public class AtomicsTest {
         final String from = "from";
         final String to = "to";
         final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-        assertEquals(to, Atomics.getAndSetIf(ref, 0, from, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getAndSetIfArrayNPE() {
-        Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "", memoize(""));
+        Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "", ofInstance(""));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -135,7 +135,7 @@ public class AtomicsTest {
     public void getAndSetArrayIfNull() {
         final String to = "to";
         final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { null });
-        assertEquals(to, Atomics.getAndSetIfNull(ref, 0, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIfNull(ref, 0, ofInstance(to)));
     }
 
     @Test
@@ -159,7 +159,7 @@ public class AtomicsTest {
         final String from = "from";
         final String to = "to";
         final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { old });
-        assertEquals(old, Atomics.getAndSetIf(ref, 0, from, memoize(to)));
+        assertEquals(old, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
     }
 
     @Test
@@ -167,7 +167,7 @@ public class AtomicsTest {
         final String from = "from";
         final String to = from;
         final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-        assertEquals(to, Atomics.getAndSetIf(ref, 0, from, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
     }
 
     @Test
@@ -176,12 +176,12 @@ public class AtomicsTest {
         final String to = from;
         final String different = "blah";
         final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { different });
-        assertEquals(different, Atomics.getAndSetIf(ref, 0, from, memoize(to)));
+        assertEquals(different, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void getAndSetArrayThrowsIndexOutOfBounds() {
-        Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test", memoize("blah"));
+        Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test", ofInstance("blah"));
     }
 
     //

@@ -16,8 +16,8 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.atlassian.util.concurrent.Function;
-import com.atlassian.util.concurrent.Supplier;
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 
 /**
  * AtomicReference with richer functionality. This class implements commonly
@@ -125,7 +125,7 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
         V oldValue, newValue;
         do {
             oldValue = get();
-            newValue = newValueFactory.get(oldValue);
+            newValue = newValueFactory.apply(oldValue);
             // test first to implement TTAS optimisation
             // then compare and set
         } while ((get() != oldValue) || !compareAndSet(oldValue, newValue));

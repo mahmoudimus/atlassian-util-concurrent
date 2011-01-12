@@ -19,12 +19,12 @@ package com.atlassian.util.concurrent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import org.junit.Test;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Test;
 
 /**
  * Copyright 2007 Atlassian Software. All rights reserved.
@@ -40,7 +40,7 @@ public class ConcurrentOperationMapImplTest {
 
         final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>(
             new Function<Callable<Integer>, ConcurrentOperationMapImpl.CallerRunsFuture<Integer>>() {
-                public ConcurrentOperationMapImpl.CallerRunsFuture<Integer> get(final Callable<Integer> input) {
+                public ConcurrentOperationMapImpl.CallerRunsFuture<Integer> apply(final Callable<Integer> input) {
                     return new ConcurrentOperationMapImpl.CallerRunsFuture<Integer>(input) {
                         @Override
                         public Integer get() throws ExecutionException {

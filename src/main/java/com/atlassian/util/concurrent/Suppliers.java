@@ -16,9 +16,15 @@
 
 package com.atlassian.util.concurrent;
 
+import com.google.common.base.Function;
+
 /**
  * Useful {@link Supplier} implementations.
+ * 
+ * @deprecated Since 1.0. Use {@link com.google.common.base.Suppliers} instead,
+ * see the methods for the alternatives provided.
  */
+@Deprecated
 public final class Suppliers {
     /**
      * A {@link Supplier} that always returns the supplied source.
@@ -26,7 +32,10 @@ public final class Suppliers {
      * @param <T> the type
      * @param source the object that is always returned.
      * @return a supplier that always returns the supplied argument
+     * @deprecated use
+     * {@link com.google.common.base.Suppliers#ofInstance(Object)} instead.
      */
+    @Deprecated
     public static <T> Supplier<T> memoize(final T source) {
         return new Supplier<T>() {
             public T get() {
@@ -44,11 +53,16 @@ public final class Suppliers {
      * @param input used as the argument when calling the function.
      * @param function asked to get the result.
      * @return the result
+     * @deprecated use
+     * {@link com.google.common.base.Suppliers#compose(Function, com.google.common.base.Supplier)}
+     * where the supplier is
+     * {@link com.google.common.base.Suppliers#ofInstance(Object)}
      */
+    @Deprecated
     public static <D, T> Supplier<T> fromFunction(final D input, final Function<D, T> function) {
         return new Supplier<T>() {
             public T get() {
-                return function.get(input);
+                return function.apply(input);
             }
         };
     }

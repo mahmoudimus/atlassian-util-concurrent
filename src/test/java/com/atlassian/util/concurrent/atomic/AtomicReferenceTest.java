@@ -79,7 +79,7 @@ public class AtomicReferenceTest {
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>(from);
         final Function<String, String> newValueFactory = new Function<String, String>() {
-            public String get(final String input) {
+            public String apply(final String input) {
                 return to;
             }
         };
@@ -94,7 +94,7 @@ public class AtomicReferenceTest {
         assertEquals(to, ref.update(new Function<Integer, Integer>() {
             int x = from;
 
-            public Integer get(final Integer input) {
+            public Integer apply(final Integer input) {
                 if (x < to) {
                     ref.set(++x);
                 }

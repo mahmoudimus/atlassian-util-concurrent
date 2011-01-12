@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.atlassian.util.concurrent.Function;
+import com.google.common.base.Function;
 
 /**
  * AtomicReferenceArray with richer functionality. This class implements
@@ -98,7 +98,7 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
         long oldValue, newValue;
         do {
             oldValue = get(index);
-            newValue = newValueFactory.get(oldValue);
+            newValue = newValueFactory.apply(oldValue);
             // test first to implement TTAS optimisation
             // then compare and set
         } while ((get(index) != oldValue) || !compareAndSet(index, oldValue, newValue));

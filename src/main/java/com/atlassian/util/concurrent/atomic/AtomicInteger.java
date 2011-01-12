@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.atlassian.util.concurrent.Function;
+import com.google.common.base.Function;
 
 /**
  * {@link java.util.concurrent.atomic.AtomicInteger} with richer functionality.
@@ -92,7 +92,7 @@ public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
         int oldValue, newValue;
         do {
             oldValue = get();
-            newValue = newValueFactory.get(oldValue);
+            newValue = newValueFactory.apply(oldValue);
             // test first to implement TTAS optimisation
             // then compare and set
         } while ((get() != oldValue) || !compareAndSet(oldValue, newValue));
