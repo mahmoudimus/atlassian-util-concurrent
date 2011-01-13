@@ -2,18 +2,19 @@ package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertNull;
 
-import com.atlassian.util.concurrent.CompletionQueue.Exceptions;
+import com.atlassian.util.concurrent.AsyncCompletion.Exceptions;
 
 import org.junit.Test;
 
 import com.google.common.base.Supplier;
 
-public class CompletionQueueExceptionHandlersTest {
+public class AsyncCompletionExceptionHandlersTest {
     @Test(expected = TestException.class)
     public void exceptionsThrow() {
         exception(Exceptions.THROW);
     }
 
+    @Test
     public void exceptionsIgnored() {
         assertNull(exception(Exceptions.IGNORE_EXCEPTIONS));
     }

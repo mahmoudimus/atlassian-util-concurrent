@@ -1,57 +1,111 @@
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.transform;
 
 import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.Callables;
 
+import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Convenient encapsulation of {@link CompletionService} usage that allows a
  * collection of jobs to be issued to an {@link Executor} and return an
  * {@link Iterable} of the results that is in the order that the results return.
+ * <p>
+ * Unlike {@link ExecutorService#invokeAll(java.util.Collection)}
+ * {@link #invokeAll(Iterable)} here does not itself block, rather the
+ * {@link Iterator#next()} calls to the returned {@link Iterable} will block the
+ * first time it is iterated. This allows the client to defer the reification of
+ * the result until it is ready to use it.
+ * <p>
+ * To create an instance of this class, please use the supplied {@link Builder}.
  */
-public final class CompletionQueue {
-    /**
-     * Convenience method for calling
-     * {@link #completionQueue(Iterable, Executor, Exceptions)} where
-     * {@link Exceptions#THROW exceptions are thrown}.
-     */
-    public static <T> Iterable<T> completionQueue(final Iterable<? extends Callable<T>> callables, final Executor executor) {
-        return completionQueue(callables, executor, Exceptions.THROW);
+public final class AsyncCompletion {
+
+    private final Executor executor;
+    private final Exceptions policy;
+
+    AsyncCompletion(final Executor executor, final Exceptions policy) {
+        this.executor = notNull("executor", executor);
+        this.policy = notNull("plicy", policy);
     }
 
     /**
-     * Queue the {@link Callable jobs} on the {@link Executor} and return a
-     * lazily evaluated {@link Iterable} of the results in the order they return
-     * in (fastest first).
+     * Queue the {@link Callable jobs} on the contained {@link Executor} and
+     * return a lazily evaluated {@link Iterable} of the results in the order
+     * they return in (fastest first).
      * 
      * @param <T> the result type
      * @param callables the jobs to run
      * @param executor the pool to run them on
-     * @param handle exception handling policy, note that
-     * {@link Exceptions#IGNORE_EXCEPTIONS} will cause nulls in the resulting
-     * iterable
      * @return an Iterable that returns the results in the order in which they
      * return
      */
-    public static <T> Iterable<T> completionQueue(final Iterable<? extends Callable<T>> callables, final Executor executor, final Exceptions handle) {
+    public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables) {
         // we must copy the resulting Iterable<Supplier> so
         // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor)));
-        final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, handle.<T> handler());
+        final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
         return transform(handled, Functions.<T> fromSupplier());
     }
 
-    /** do not ctor */
-    private CompletionQueue() {
-        throw new AssertionError("Cannot instantiate");
+    /**
+     * For creating instances of a {@link AsyncCompletion}.
+     */
+    public static class Builder {
+        Executor executor;
+        Exceptions policy = Exceptions.THROW;
+
+        /**
+         * Create a Builder with the supplied Executor
+         * 
+         * @param executor
+         */
+        public Builder(@NotNull final Executor executor) {
+            this.executor = notNull("executor", executor);
+        }
+
+        /**
+         * Ignore exceptions thrown by any {@link Callables}, note will cause
+         * nulls in the resulting iterable!
+         */
+        public Builder ignoreExceptions() {
+            return handleExceptions(Exceptions.IGNORE_EXCEPTIONS);
+        }
+
+        public Builder handleExceptions(final Exceptions policy) {
+            this.policy = policy;
+            return this;
+        }
+
+        /**
+         * Create a {@link AsyncCompletion} that limits the number of jobs
+         * executed to the underlying executor to a hard limit.
+         * <p>
+         * Note: this only makes sense if the underlying executor does not have
+         * a limit on the number of threads it will create, or the limit is much
+         * higher than this limit.
+         * 
+         * @param limit the number of parallel jobs to execute at any one time
+         * @see LimitedExecutor for more discussion of how this limit is
+         * relevant
+         */
+        public AsyncCompletion limitParallelExecutionTo(final int limit) {
+            return new AsyncCompletion(new LimitedExecutor(executor, limit), policy);
+        }
+
+        public AsyncCompletion build() {
+            return new AsyncCompletion(executor, policy);
+        }
     }
 
     /**
