@@ -11,8 +11,11 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Class that limits the number submitted jobs to an Executor and stores the
  * overflow in a queue. This is to get around the fact that the
  * {@link ThreadPoolExecutor} can either be limited in pool size or be limited
- * in queue size, but not both. This class implements a limit on the pool size
- * if using a cached thread pool.
+ * in queue size, but not both (it sort of can, but a pool will not grow until
+ * its queue is full).
+ * <p>
+ * This class implements a limit on the pool size if using a cached thread pool
+ * and stores the overflow in its own queue.
  * <p>
  * This class only makes sense in conjunction with a cached thread pool that
  * uses a bound queue such as <code>SynchronousQueue</code>. This kind of pool
