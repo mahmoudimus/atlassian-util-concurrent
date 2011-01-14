@@ -51,11 +51,11 @@ import java.util.concurrent.ExecutorService;
  * @since 1.0
  */
 @ThreadSafe
-public final class AsyncCompletion {
+public final class AsyncCompleter {
     private final Executor executor;
     private final Exceptions policy;
 
-    AsyncCompletion(final Executor executor, final Exceptions policy) {
+    AsyncCompleter(final Executor executor, final Exceptions policy) {
         this.executor = notNull("executor", executor);
         this.policy = notNull("plicy", policy);
     }
@@ -87,7 +87,7 @@ public final class AsyncCompletion {
     }
 
     /**
-     * For creating instances of a {@link AsyncCompletion}.
+     * For creating instances of a {@link AsyncCompleter}.
      */
     public static class Builder {
         Executor executor;
@@ -116,7 +116,7 @@ public final class AsyncCompletion {
         }
 
         /**
-         * Create a {@link AsyncCompletion} that limits the number of jobs
+         * Create a {@link AsyncCompleter} that limits the number of jobs
          * executed to the underlying executor to a hard limit.
          * <p>
          * Note: this only makes sense if the underlying executor does not have
@@ -127,12 +127,12 @@ public final class AsyncCompletion {
          * @see LimitedExecutor for more discussion of how this limit is
          * relevant
          */
-        public AsyncCompletion limitParallelExecutionTo(final int limit) {
-            return new AsyncCompletion(new LimitedExecutor(executor, limit), policy);
+        public AsyncCompleter limitParallelExecutionTo(final int limit) {
+            return new AsyncCompleter(new LimitedExecutor(executor, limit), policy);
         }
 
-        public AsyncCompletion build() {
-            return new AsyncCompletion(executor, policy);
+        public AsyncCompleter build() {
+            return new AsyncCompleter(executor, policy);
         }
     }
 

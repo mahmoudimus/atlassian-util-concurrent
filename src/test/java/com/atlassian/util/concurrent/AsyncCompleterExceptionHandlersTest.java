@@ -2,13 +2,13 @@ package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertNull;
 
-import com.atlassian.util.concurrent.AsyncCompletion.Exceptions;
+import com.atlassian.util.concurrent.AsyncCompleter.Exceptions;
 
 import org.junit.Test;
 
 import com.google.common.base.Supplier;
 
-public class AsyncCompletionExceptionHandlersTest {
+public class AsyncCompleterExceptionHandlersTest {
     @Test(expected = TestException.class)
     public void exceptionsThrow() {
         exception(Exceptions.THROW);

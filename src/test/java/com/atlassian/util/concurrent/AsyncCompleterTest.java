@@ -3,7 +3,7 @@ package com.atlassian.util.concurrent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import com.atlassian.util.concurrent.AsyncCompletion.Exceptions;
+import com.atlassian.util.concurrent.AsyncCompleter.Exceptions;
 
 import org.junit.Test;
 
@@ -17,10 +17,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class AsyncCompletionTest {
+public class AsyncCompleterTest {
     @Test
     public void testReverseOrder() {
-        final AsyncCompletion queue = new AsyncCompletion.Builder(new Executor() {
+        final AsyncCompleter queue = new AsyncCompleter.Builder(new Executor() {
             private final AtomicReference<Runnable> first = new AtomicReference<Runnable>();
 
             public void execute(final Runnable command) {
@@ -40,7 +40,7 @@ public class AsyncCompletionTest {
 
     @Test
     public void testOrder() {
-        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
             public void execute(final Runnable command) {
                 command.run();
             }
@@ -54,7 +54,7 @@ public class AsyncCompletionTest {
     @Test
     public void testSingleExecute() {
         final AtomicInteger count = new AtomicInteger();
-        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
             public void execute(final Runnable command) {
                 count.getAndIncrement();
                 command.run();
@@ -69,7 +69,7 @@ public class AsyncCompletionTest {
 
     @Test
     public void testNullLastFiltered() {
-        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
             public void execute(final Runnable command) {
                 command.run();
             }
@@ -82,7 +82,7 @@ public class AsyncCompletionTest {
 
     @Test
     public void testNullFirstFiltered() {
-        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
             public void execute(final Runnable command) {
                 command.run();
             }
@@ -96,7 +96,7 @@ public class AsyncCompletionTest {
     @Test
     public void testLimitedExecute() {
         final List<Runnable> jobs = Lists.newArrayList();
-        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
             public void execute(final Runnable command) {
                 jobs.add(command);
             }
