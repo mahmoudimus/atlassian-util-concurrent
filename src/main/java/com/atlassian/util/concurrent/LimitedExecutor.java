@@ -1,4 +1,22 @@
+/**
+ * Copyright 2011 Atlassian Pty Ltd 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package com.atlassian.util.concurrent;
+
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -23,7 +41,10 @@ import java.util.concurrent.ThreadPoolExecutor;
  * available to execute the job, otherwise a new thread is constructed. Wrapping
  * this Executor around a fixed thread executor doesn't make sense as the limit
  * is already applied by the available thread count.
+ * 
+ * @since 1.0
  */
+@ThreadSafe
 final class LimitedExecutor implements Executor {
     private final Executor delegate;
     private final BlockingQueue<Runnable> overflow = new LinkedBlockingQueue<Runnable>();
