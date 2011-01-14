@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +25,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
-
-import net.jcip.annotations.ThreadSafe;
 
 /**
  * A Reference with queue semantics where the current reference may be retrieved
@@ -56,7 +55,6 @@ import net.jcip.annotations.ThreadSafe;
  * take/get separately.
  * 
  * @param <V> the value type
- * @author Jed Wesley-Smith
  * @see BlockingQueue
  */
 @ThreadSafe
