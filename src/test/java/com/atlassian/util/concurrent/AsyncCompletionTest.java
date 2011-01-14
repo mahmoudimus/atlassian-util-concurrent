@@ -2,7 +2,6 @@ package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.atlassian.util.concurrent.AsyncCompletion.Exceptions;
 
@@ -69,6 +68,32 @@ public class AsyncCompletionTest {
     }
 
     @Test
+    public void testNullLastFiltered() {
+        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+            public void execute(final Runnable command) {
+                command.run();
+            }
+        }).build();
+        final ImmutableList<Callable<Integer>> input = ImmutableList.of(callable(1), callable((Integer) null));
+        final Iterator<Integer> queued = completion.invokeAll(input).iterator();
+        assertEquals(1, queued.next().intValue());
+        assertFalse(queued.hasNext());
+    }
+
+    @Test
+    public void testNullFirstFiltered() {
+        final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
+            public void execute(final Runnable command) {
+                command.run();
+            }
+        }).build();
+        final ImmutableList<Callable<Integer>> input = ImmutableList.of(callable((Integer) null), callable(2));
+        final Iterator<Integer> queued = completion.invokeAll(input).iterator();
+        assertEquals(2, queued.next().intValue());
+        assertFalse(queued.hasNext());
+    }
+
+    @Test
     public void testLimitedExecute() {
         final List<Runnable> jobs = Lists.newArrayList();
         final AsyncCompletion completion = new AsyncCompletion.Builder(new Executor() {
@@ -80,8 +105,7 @@ public class AsyncCompletionTest {
 
         final Iterator<Integer> iterator = queued.iterator();
         assertEquals(1, jobs.size());
-        // can't test that next() will block, but it should
-        assertTrue(iterator.hasNext());
+        // can't test that hasNext() will block, but it should
         jobs.get(0).run();
         assertEquals(2, jobs.size());
         // can test that next() will not block anymore
@@ -90,17 +114,16 @@ public class AsyncCompletionTest {
         jobs.get(1).run();
         assertEquals(3, jobs.size());
         assertEquals(2, iterator.next().intValue());
-        assertTrue(iterator.hasNext());
         jobs.get(2).run();
         assertEquals(3, jobs.size());
         assertEquals(3, iterator.next().intValue());
         assertFalse(iterator.hasNext());
     }
 
-    Callable<Integer> callable(final int i) {
-        return new Callable<Integer>() {
-            public Integer call() throws Exception {
-                return i;
+    <T> Callable<T> callable(final T input) {
+        return new Callable<T>() {
+            public T call() throws Exception {
+                return input;
             }
         };
     }
