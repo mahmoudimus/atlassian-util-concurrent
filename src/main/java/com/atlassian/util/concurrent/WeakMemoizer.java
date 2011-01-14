@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import net.jcip.annotations.ThreadSafe;
 
 import com.google.common.base.Function;
 
@@ -39,6 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * apply.
  * @param <V> the value
  */
+@ThreadSafe
 class WeakMemoizer<K, V> implements Function<K, V> {
     static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
         return new WeakMemoizer<K, V>(delegate);
