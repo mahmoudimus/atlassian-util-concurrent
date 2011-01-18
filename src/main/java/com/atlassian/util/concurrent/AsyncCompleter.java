@@ -17,7 +17,6 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
-import static com.atlassian.util.concurrent.Functions.toGoogleFunction;
 import static com.google.common.base.Functions.identity;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Suppliers.memoize;
@@ -86,7 +85,7 @@ public final class AsyncCompleter {
         // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor)));
         final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
-        return filter(transform(handled, toGoogleFunction(Functions.<T> fromSupplier())), notNull());
+        return filter(transform(handled, new ValueExtractor<T>()), notNull());
     }
 
     /**
@@ -146,7 +145,7 @@ public final class AsyncCompleter {
         IGNORE_EXCEPTIONS {
             @Override
             public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return toGoogleFunction(Functions.<T> ignoreExceptions());
+                return new ExceptionIgnorer<T>();
             }
         },
         THROW {
@@ -190,6 +189,35 @@ public final class AsyncCompleter {
             completionService.submit(task);
             // never call get twice as it gets a new element from the queue
             return memoize(nextCompleteItem);
+        }
+    }
+
+    private static final class ValueExtractor<T> implements Function<Supplier<T>, T> {
+        @Override
+        public T apply(final Supplier<T> input) {
+            return input.get();
+        }
+    }
+
+    static class ExceptionIgnorer<T> implements Function<Supplier<T>, Supplier<T>> {
+        public Supplier<T> apply(final Supplier<T> from) {
+            return new ReturnNull<T>(from);
+        }
+
+        static class ReturnNull<T> implements Supplier<T> {
+            private final Supplier<T> delegate;
+
+            ReturnNull(final Supplier<T> delegate) {
+                this.delegate = notNull("delegate", delegate);
+            }
+
+            public T get() {
+                try {
+                    return delegate.get();
+                } catch (final RuntimeException ignore) {
+                    return null;
+                }
+            }
         }
     }
 }

@@ -18,8 +18,6 @@ package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
-import com.google.common.base.Supplier;
-
 public final class Functions {
     /**
      * Get a function that uses the Supplier as a factory for all inputs.

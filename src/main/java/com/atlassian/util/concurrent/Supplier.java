@@ -31,7 +31,7 @@ import java.util.NoSuchElementException;
  * 
  * @param <T> the type of object supplied.
  */
-public interface Supplier<T> extends com.google.common.base.Supplier<T> {
+public interface Supplier<T> {
     /**
      * Produce an object. Retrieve an instance of the appropriate type. The
      * returned object may or may not be a new instance, depending on the

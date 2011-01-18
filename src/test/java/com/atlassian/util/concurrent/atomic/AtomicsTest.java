@@ -3,9 +3,9 @@ package com.atlassian.util.concurrent.atomic;
 import static com.google.common.base.Suppliers.ofInstance;
 import static org.junit.Assert.assertEquals;
 
-import com.atlassian.util.concurrent.Supplier;
-
 import org.junit.Test;
+
+import com.google.common.base.Supplier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;

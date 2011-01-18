@@ -18,8 +18,6 @@ package com.atlassian.util.concurrent;
 
 import net.jcip.annotations.ThreadSafe;
 
-import com.google.common.base.Supplier;
-
 import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -78,7 +76,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @param T the type of the contained element.
  */
 @ThreadSafe
-public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T> {
+public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T>, com.google.common.base.Supplier<T> {
 
     private final Sync sync = new Sync();
 
