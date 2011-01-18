@@ -19,8 +19,6 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 import net.jcip.annotations.ThreadSafe;
 
-import com.google.common.base.Function;
-
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -69,7 +67,7 @@ class WeakMemoizer<K, V> implements Function<K, V> {
      * @param descriptor must not be null
      * @return descriptor lock
      */
-    public V apply(final K descriptor) {
+    public V get(final K descriptor) {
         expungeStaleEntries();
         notNull("descriptor", descriptor);
         while (true) {
@@ -81,7 +79,7 @@ class WeakMemoizer<K, V> implements Function<K, V> {
                 }
                 map.remove(descriptor, reference);
             }
-            map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.apply(descriptor), queue));
+            map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
         }
     }
 

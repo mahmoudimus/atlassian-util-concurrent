@@ -16,7 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import com.google.common.base.Function;
 
 /**
  * Useful {@link Supplier} implementations.
@@ -62,9 +61,33 @@ public final class Suppliers {
     public static <D, T> Supplier<T> fromFunction(final D input, final Function<D, T> function) {
         return new Supplier<T>() {
             public T get() {
-                return function.apply(input);
+                return function.get(input);
             }
         };
+    }
+
+    /**
+     * Map to a google-collections Supplier.
+     * 
+     * @param <T> type
+     * @param function the function to map
+     * @return the mapped function.
+     */
+    public static <T> com.google.common.base.Supplier<T> toGoogleSupplier(final Supplier<T> supplier) {
+        return new ToGoogleAdapter<T>(supplier);
+    }
+
+    static class ToGoogleAdapter<T> implements com.google.common.base.Supplier<T> {
+        private final Supplier<T> delegate;
+
+        ToGoogleAdapter(final Supplier<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public T get() {
+            return delegate.get();
+        }
     }
 
     // /CLOVER:OFF

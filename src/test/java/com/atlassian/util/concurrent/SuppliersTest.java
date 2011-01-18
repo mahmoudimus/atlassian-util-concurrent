@@ -20,7 +20,7 @@ public class SuppliersTest {
     public void fromFunction() {
         final AtomicInteger count = new AtomicInteger();
         final Function<Integer, Integer> function = new Function<Integer, Integer>() {
-            public Integer apply(final Integer input) {
+            public Integer get(final Integer input) {
                 assertSame(1, input);
                 return count.incrementAndGet();
             }

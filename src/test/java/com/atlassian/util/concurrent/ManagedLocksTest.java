@@ -16,7 +16,7 @@ public class ManagedLocksTest {
     @Test(expected = IllegalArgumentException.class)
     public void weakManagedLockFactoryNullLockSupplier() throws Exception {
         ManagedLocks.weakManagedLockFactory(new Function<Object, Object>() {
-            public Object apply(final Object input) {
+            public Object get(final Object input) {
                 return new Object();
             }
         }, null);
@@ -35,7 +35,7 @@ public class ManagedLocksTest {
     @Test(expected = IllegalArgumentException.class)
     public void weakRWManagedLockFactoryNullLockSupplier() throws Exception {
         ManagedLocks.weakReadWriteManagedLockFactory(new Function<Object, Object>() {
-            public Object apply(final Object input) {
+            public Object get(final Object input) {
                 return new Object();
             }
         }, null);
@@ -87,12 +87,12 @@ public class ManagedLocksTest {
     @Test
     public void managedFactory() throws Exception {
         final Function<Integer, ManagedLock> lockFactory = ManagedLocks.weakManagedLockFactory();
-        assertNotNull(lockFactory.apply(1));
+        assertNotNull(lockFactory.get(1));
     }
 
     @Test
     public void managedReadWriteFactory() throws Exception {
         final Function<Integer, ManagedLock.ReadWrite> lockFactory = ManagedLocks.weakReadWriteManagedLockFactory();
-        assertNotNull(lockFactory.apply(1));
+        assertNotNull(lockFactory.get(1));
     }
 }

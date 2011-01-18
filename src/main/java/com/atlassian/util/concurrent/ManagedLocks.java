@@ -23,9 +23,6 @@ import static com.atlassian.util.concurrent.WeakMemoizer.weakMemoizer;
 
 import com.atlassian.util.concurrent.ManagedLock.ReadWrite;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -160,9 +157,9 @@ public class ManagedLocks {
         notNull("stripeFunction", stripeFunction);
         final Function<D, ReadWrite> readWriteManagedLockFactory = fromSupplier(managedReadWriteLockFactory(lockFactory));
         final WeakMemoizer<D, ManagedLock.ReadWrite> locks = weakMemoizer(readWriteManagedLockFactory);
-        return new com.atlassian.util.concurrent.Function<T, ManagedLock.ReadWrite>() {
-            public ManagedLock.ReadWrite apply(final T input) {
-                return locks.apply(stripeFunction.apply(input));
+        return new Function<T, ManagedLock.ReadWrite>() {
+            public ManagedLock.ReadWrite get(final T input) {
+                return locks.get(stripeFunction.get(input));
             };
         };
     }
@@ -281,7 +278,7 @@ public class ManagedLocks {
         }
     }
 
-    static class ManagedFactory<T, D> implements com.atlassian.util.concurrent.Function<T, ManagedLock> {
+    static class ManagedFactory<T, D> implements Function<T, ManagedLock> {
         static final <T, D> ManagedFactory<T, D> managedFactory(final Function<D, ManagedLock> lockResolver, final Function<T, D> stripeFunction) {
             return new ManagedFactory<T, D>(lockResolver, stripeFunction);
         }
@@ -294,8 +291,8 @@ public class ManagedLocks {
             this.stripeFunction = notNull("stripeFunction", stripeFunction);
         }
 
-        public ManagedLock apply(final T descriptor) {
-            return lockResolver.apply(stripeFunction.apply(descriptor));
+        public ManagedLock get(final T descriptor) {
+            return lockResolver.get(stripeFunction.get(descriptor));
         };
     }
 

@@ -40,7 +40,7 @@ public final class Functions {
             this.supplier = notNull("supplier", supplier);
         }
 
-        public R apply(final D input) {
+        public R get(final D input) {
             return supplier.get();
         }
     };
@@ -56,7 +56,7 @@ public final class Functions {
     }
 
     private static class ValueExtractor<T> implements Function<Supplier<? extends T>, T> {
-        public T apply(final Supplier<? extends T> supplier) {
+        public T get(final Supplier<? extends T> supplier) {
             return supplier.get();
         }
     }
@@ -72,7 +72,7 @@ public final class Functions {
     }
 
     private static class Identity<T> implements Function<T, T> {
-        public T apply(final T input) {
+        public T get(final T input) {
             return input;
         }
     }
@@ -89,7 +89,7 @@ public final class Functions {
     }
 
     static class ExceptionIgnorer<T> implements Function<Supplier<T>, Supplier<T>> {
-        public Supplier<T> apply(final Supplier<T> from) {
+        public Supplier<T> get(final Supplier<T> from) {
             return new IgnoreAndReturnNull<T>(from);
         }
     }
@@ -108,6 +108,30 @@ public final class Functions {
                 return null;
             }
         }
+    }
+
+    /**
+     * Map to a google-collections Function.
+     * 
+     * @param <T> input type
+     * @param <R> output type
+     * @param function the function to map
+     * @return the mapped function.
+     */
+    public static <T, R> com.google.common.base.Function<T, R> toGoogleFunction(final Function<T, R> function) {
+        return new ToGoogleAdapter<T, R>(function);
+    }
+
+    static class ToGoogleAdapter<T, R> implements com.google.common.base.Function<T, R> {
+        private final Function<T, R> delegate;
+
+        ToGoogleAdapter(final Function<T, R> delegate) {
+            this.delegate = delegate;
+        }
+
+        public R apply(final T from) {
+            return delegate.get(from);
+        };
     }
 
     // /CLOVER:OFF

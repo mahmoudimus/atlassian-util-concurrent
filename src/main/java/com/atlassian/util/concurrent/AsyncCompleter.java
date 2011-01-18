@@ -17,13 +17,16 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import static com.atlassian.util.concurrent.Functions.toGoogleFunction;
+import static com.google.common.base.Functions.identity;
+import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import net.jcip.annotations.ThreadSafe;
 
-import com.google.common.base.Predicates;
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.Callables;
 
@@ -83,7 +86,7 @@ public final class AsyncCompleter {
         // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor)));
         final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
-        return filter(transform(handled, Functions.<T> fromSupplier()), Predicates.notNull());
+        return filter(transform(handled, toGoogleFunction(Functions.<T> fromSupplier())), notNull());
     }
 
     /**
@@ -143,13 +146,13 @@ public final class AsyncCompleter {
         IGNORE_EXCEPTIONS {
             @Override
             public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return Functions.ignoreExceptions();
+                return toGoogleFunction(Functions.<T> ignoreExceptions());
             }
         },
         THROW {
             @Override
             public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return Functions.identity();
+                return identity();
             }
         };
         abstract <T> Function<Supplier<T>, Supplier<T>> handler();

@@ -1,12 +1,12 @@
 package com.atlassian.util.concurrent.atomic;
 
-import static com.atlassian.util.concurrent.Suppliers.memoize;
+import static com.google.common.base.Suppliers.ofInstance;
 import static org.junit.Assert.assertEquals;
 
-import com.atlassian.util.concurrent.Function;
-import com.atlassian.util.concurrent.Supplier;
-
 import org.junit.Test;
+
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 
 public class AtomicReferenceTest {
     @Test
@@ -14,7 +14,7 @@ public class AtomicReferenceTest {
         final String from = "from";
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>(from);
-        assertEquals(to, ref.getOrSetAndGetIf(from, memoize(to)));
+        assertEquals(to, ref.getOrSetAndGetIf(from, ofInstance(to)));
     }
 
     @Test
@@ -29,7 +29,7 @@ public class AtomicReferenceTest {
     public void getAndSetIfNull() {
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>();
-        assertEquals(to, Atomics.getAndSetIfNull(ref, memoize(to)));
+        assertEquals(to, Atomics.getAndSetIfNull(ref, ofInstance(to)));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class AtomicReferenceTest {
         final String from = "from";
         final String to = "to";
         final AtomicReference<String> ref = new AtomicReference<String>(old);
-        assertEquals(old, ref.getOrSetAndGetIf(from, memoize(to)));
+        assertEquals(old, ref.getOrSetAndGetIf(from, ofInstance(to)));
     }
 
     @Test
@@ -61,7 +61,7 @@ public class AtomicReferenceTest {
         final String from = "from";
         final String to = from;
         final AtomicReference<String> ref = new AtomicReference<String>(from);
-        assertEquals(to, ref.getOrSetAndGetIf(from, memoize(to)));
+        assertEquals(to, ref.getOrSetAndGetIf(from, ofInstance(to)));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class AtomicReferenceTest {
         final String to = from;
         final String different = "blah";
         final AtomicReference<String> ref = new AtomicReference<String>(different);
-        assertEquals(different, ref.getOrSetAndGetIf(from, memoize(to)));
+        assertEquals(different, ref.getOrSetAndGetIf(from, ofInstance(to)));
     }
 
     @Test

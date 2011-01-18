@@ -39,17 +39,20 @@ import net.jcip.annotations.ThreadSafe;
  * <p>
  * As this interface requires idempotence implementations should be reentrant
  * and thread-safe.
+ * <p>
+ * Generally though, prefer to use the {com.google.common.base.Function Google
+ * version} instead.
  * 
  * @param <D> the descriptor type.
  * @param <R> the resource type it resolves to.
  */
 @ThreadSafe
-public interface Function<D, R> extends com.google.common.base.Function<D, R> {
+public interface Function<D, R> {
     /**
      * Resolves an output <R> where an input <D> is given.
      * 
      * @param input an object of type D.
      * @return the output of type R.
      */
-    R apply(D input);
+    R get(D input);
 }

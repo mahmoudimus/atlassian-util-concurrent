@@ -18,7 +18,7 @@ package com.atlassian.util.concurrent.atomic;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
-import com.atlassian.util.concurrent.Function;
+import com.google.common.base.Function;
 
 import java.util.concurrent.atomic.AtomicReference;
 

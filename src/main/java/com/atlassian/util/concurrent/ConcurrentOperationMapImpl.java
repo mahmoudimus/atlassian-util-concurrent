@@ -32,7 +32,7 @@ public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<
 
     public ConcurrentOperationMapImpl() {
         this(new Function<Callable<R>, CallerRunsFuture<R>>() {
-            public CallerRunsFuture<R> apply(final Callable<R> input) {
+            public CallerRunsFuture<R> get(final Callable<R> input) {
                 return new CallerRunsFuture<R>(input);
             }
         });
@@ -45,7 +45,7 @@ public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<
     public R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
         CallerRunsFuture<R> future = map.get(key);
         while (future == null) {
-            map.putIfAbsent(key, futureFactory.apply(operation));
+            map.putIfAbsent(key, futureFactory.get(operation));
             future = map.get(key);
         }
         try {
