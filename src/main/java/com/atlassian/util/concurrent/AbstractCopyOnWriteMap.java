@@ -139,7 +139,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
         } finally {
             lock.unlock();
         }
-    };
+    }
 
     public V replace(final K key, final V value) {
         lock.lock();
@@ -156,7 +156,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
         } finally {
             lock.unlock();
         }
-    };
+    }
 
     public final V put(final K key, final V value) {
         lock.lock();
@@ -187,7 +187,7 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
         } finally {
             lock.unlock();
         }
-    };
+    }
 
     public final void putAll(final Map<? extends K, ? extends V> t) {
         lock.lock();
