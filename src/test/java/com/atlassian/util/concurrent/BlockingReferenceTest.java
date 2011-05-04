@@ -1,6 +1,7 @@
 package com.atlassian.util.concurrent;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -184,6 +185,16 @@ public class BlockingReferenceTest {
         } finally {
             executor.pool.shutdown();
         }
+    }
+
+    public void noTimeoutSRSWReferenceGet() throws Exception {
+        final BlockingReference<String> ref = BlockingReference.newSRSW("first");
+        assertEquals("first", ref.get(1, TimeUnit.NANOSECONDS));
+    }
+
+    public void noTimeoutSRSWReferenceTake() throws Exception {
+        final BlockingReference<String> ref = BlockingReference.newSRSW("first");
+        assertEquals("first", ref.take(1, TimeUnit.NANOSECONDS));
     }
 
     @Test(expected = TimeoutException.class)
