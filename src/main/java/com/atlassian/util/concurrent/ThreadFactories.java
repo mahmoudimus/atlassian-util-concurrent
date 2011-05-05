@@ -74,9 +74,12 @@ public class ThreadFactories {
         return new Default(name, type, priority);
     }
 
+    // /CLOVER:OFF
     private ThreadFactories() {
         throw new AssertionError("cannot instantiate!");
     }
+
+    // /CLOVER:ON
 
     static class Default implements ThreadFactory {
         final ThreadGroup group;
