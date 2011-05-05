@@ -16,11 +16,11 @@
 
 package com.atlassian.util.concurrent;
 
+import net.jcip.annotations.Immutable;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
-
-import net.jcip.annotations.Immutable;
 
 /**
  * Automatically calculates elapsed time from when it is created. Useful when
@@ -41,26 +41,6 @@ import net.jcip.annotations.Immutable;
 @Immutable
 public final class Timeout {
 
-    private static final TimeSupplier NANO_SUPPLIER = new TimeSupplier() {
-        public long currentTime() {
-            return System.nanoTime();
-        };
-
-        public TimeUnit precision() {
-            return TimeUnit.NANOSECONDS;
-        };
-    };
-
-    private static final TimeSupplier MILLIS_SUPPLIER = new TimeSupplier() {
-        public long currentTime() {
-            return System.currentTimeMillis();
-        };
-
-        public TimeUnit precision() {
-            return TimeUnit.MILLISECONDS;
-        };
-    };
-
     /**
      * Get a {@link Timeout} that uses nanosecond precision. The accuracy will
      * depend on the accuracy of {@link System#nanoTime()}.
@@ -70,7 +50,7 @@ public final class Timeout {
      * @return timeout with {@link TimeUnit#NANOSECONDS} precision.
      */
     public static Timeout getNanosTimeout(final long time, final TimeUnit unit) {
-        return new Timeout(time, unit, NANO_SUPPLIER);
+        return new Timeout(time, unit, TimeSuppliers.NANOS);
     }
 
     /**
@@ -82,18 +62,42 @@ public final class Timeout {
      * @return timeout with {@link TimeUnit#NANOSECONDS} precision.
      */
     public static Timeout getMillisTimeout(final long time, final TimeUnit unit) {
-        return new Timeout(time, unit, MILLIS_SUPPLIER);
+        return new Timeout(time, unit, TimeSuppliers.MILLIS);
     }
+
+    /**
+     * Factory for creating timeouts of the specified duration.
+     */
+    static Supplier<Timeout> timeoutFactory(final long time, final TimeUnit unit, final TimeSupplier supplier) {
+        return new Supplier<Timeout>() {
+            @Override
+            public Timeout get() {
+                return new Timeout(time, unit, supplier);
+            }
+        };
+    }
+
+    //
+    // members
+    //
 
     private final long created;
     private final long time;
     private final TimeSupplier supplier;
+
+    //
+    // ctros
+    //
 
     Timeout(final long time, final TimeUnit unit, final TimeSupplier supplier) {
         created = supplier.currentTime();
         this.supplier = supplier;
         this.time = this.supplier.precision().convert(time, unit);
     }
+
+    //
+    // methods
+    //
 
     public long getTime() {
         return (created + time) - supplier.currentTime();
@@ -141,6 +145,10 @@ public final class Timeout {
         throw new TimedOutException(getTime(), getUnit());
     }
 
+    //
+    // inners
+    //
+
     /**
      * Supply time and precision to a {@link Timeout}.
      */
@@ -148,5 +156,33 @@ public final class Timeout {
         long currentTime();
 
         TimeUnit precision();
+    }
+
+    /**
+     * Default {@link TimeSupplier} implementations.
+     */
+    enum TimeSuppliers implements TimeSupplier {
+        NANOS {
+            @Override
+            public long currentTime() {
+                return System.nanoTime();
+            };
+
+            @Override
+            public TimeUnit precision() {
+                return TimeUnit.NANOSECONDS;
+            };
+        },
+        MILLIS {
+            @Override
+            public long currentTime() {
+                return System.currentTimeMillis();
+            };
+
+            @Override
+            public TimeUnit precision() {
+                return TimeUnit.MILLISECONDS;
+            };
+        };
     }
 }

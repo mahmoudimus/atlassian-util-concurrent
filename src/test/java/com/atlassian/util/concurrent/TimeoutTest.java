@@ -9,7 +9,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
 
-import com.atlassian.util.concurrent.Timeout.TimeSupplier;
 
 public class TimeoutTest {
     @Test
@@ -79,24 +78,5 @@ public class TimeoutTest {
             }
         });
         assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
-    }
-
-    static class MockTimeSupplier implements TimeSupplier {
-        private int currentTimeCalled;
-        private final long time;
-        private final TimeUnit unit;
-
-        MockTimeSupplier(final long time, final TimeUnit unit) {
-            this.time = time;
-            this.unit = unit;
-        }
-
-        public long currentTime() {
-            return time + currentTimeCalled++;
-        }
-
-        public TimeUnit precision() {
-            return unit;
-        }
     }
 }
