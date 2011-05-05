@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings("deprecation")
 public class SuppliersTest {
     @Test
     public void memoize() {

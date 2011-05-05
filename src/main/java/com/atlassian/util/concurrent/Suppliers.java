@@ -16,14 +16,9 @@
 
 package com.atlassian.util.concurrent;
 
-
 /**
  * Useful {@link Supplier} implementations.
- * 
- * @deprecated Since 1.0. Use {@link com.google.common.base.Suppliers} instead,
- * see the methods for the alternatives provided.
  */
-@Deprecated
 public final class Suppliers {
     /**
      * A {@link Supplier} that always returns the supplied source.
@@ -31,10 +26,7 @@ public final class Suppliers {
      * @param <T> the type
      * @param source the object that is always returned.
      * @return a supplier that always returns the supplied argument
-     * @deprecated use
-     * {@link com.google.common.base.Suppliers#ofInstance(Object)} instead.
      */
-    @Deprecated
     public static <T> Supplier<T> memoize(final T source) {
         return new Supplier<T>() {
             public T get() {
@@ -52,12 +44,7 @@ public final class Suppliers {
      * @param input used as the argument when calling the function.
      * @param function asked to get the result.
      * @return the result
-     * @deprecated use
-     * {@link com.google.common.base.Suppliers#compose(Function, com.google.common.base.Supplier)}
-     * where the supplier is
-     * {@link com.google.common.base.Suppliers#ofInstance(Object)}
      */
-    @Deprecated
     public static <D, T> Supplier<T> fromFunction(final D input, final Function<D, T> function) {
         return new Supplier<T>() {
             public T get() {
@@ -81,6 +68,30 @@ public final class Suppliers {
         private final Supplier<T> delegate;
 
         ToGoogleAdapter(final Supplier<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public T get() {
+            return delegate.get();
+        }
+    }
+
+    /**
+     * Map from a google-collections Supplier.
+     * 
+     * @param <T> type
+     * @param function the function to map
+     * @return the mapped function.
+     */
+    public static <T> Supplier<T> fromGoogleSupplier(final com.google.common.base.Supplier<T> supplier) {
+        return new FromGoogleAdapter<T>(supplier);
+    }
+
+    static class FromGoogleAdapter<T> implements Supplier<T> {
+        private final com.google.common.base.Supplier<T> delegate;
+
+        FromGoogleAdapter(final com.google.common.base.Supplier<T> delegate) {
             this.delegate = delegate;
         }
 
