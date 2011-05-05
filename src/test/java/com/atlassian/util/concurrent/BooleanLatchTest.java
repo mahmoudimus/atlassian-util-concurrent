@@ -5,79 +5,89 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.junit.Test;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Test;
 
 public class BooleanLatchTest {
     @Test
     public void singleThreadIsReleased() throws Exception {
         final AtomicInteger call = new AtomicInteger();
         final BooleanLatch latch = new BooleanLatch();
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(5, new Callable<String>() {
+        final Exec<String> completionService = getCompletionService(factory(5, new Callable<String>() {
             public String call() throws Exception {
                 latch.await();
                 return String.valueOf(call.incrementAndGet());
             }
         }));
-        latch.release();
-        final Future<String> take = completionService.take();
-        assertNotNull(take.get());
-        assertEquals("1", take.get());
-        Thread.sleep(10);
-        // these threads were already waiting, SRSW will only notify ONE thread
-        // in this state - we are testing that the client who is using this
-        // incorrectly will see dodgy behaviour
-        final Future<String> poll = completionService.poll();
-        assertNull(poll);
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
+        try {
+            latch.release();
+            final Future<String> take = completionService.take();
+            assertNotNull(take.get());
+            assertEquals("1", take.get());
+            Thread.sleep(10);
+            // these threads were already waiting, SRSW will only notify ONE
+            // thread
+            // in this state - we are testing that the client who is using this
+            // incorrectly will see dodgy behaviour
+            final Future<String> poll = completionService.poll();
+            assertNull(poll);
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+        } finally {
+            completionService.shutdown();
+        }
     }
 
     @Test
     public void singleThreadIsReleasedWithTimeout() throws Exception {
         final AtomicInteger call = new AtomicInteger();
         final BooleanLatch latch = new BooleanLatch();
-        final ExecutorCompletionService<String> completionService = getCompletionService(factory(5, new Callable<String>() {
+        final Exec<String> completionService = getCompletionService(factory(5, new Callable<String>() {
             public String call() throws Exception {
                 latch.await(100, TimeUnit.SECONDS);
                 return String.valueOf(call.incrementAndGet());
             }
         }));
-        latch.release();
-        final Future<String> take = completionService.take();
-        assertNotNull(take.get());
-        assertEquals("1", take.get());
-        Thread.sleep(10);
-        // these threads were already waiting, SRSW will only notify ONE thread
-        // in this state - we are testing that the client who is using this
-        // incorrectly will see dodgy behaviour
-        final Future<String> poll = completionService.poll();
-        assertNull(poll);
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-        Thread.sleep(1);
-        assertNull(completionService.poll());
-
+        try {
+            latch.release();
+            final Future<String> take = completionService.take();
+            assertNotNull(take.get());
+            assertEquals("1", take.get());
+            Thread.sleep(10);
+            // these threads were already waiting, SRSW will only notify ONE
+            // thread
+            // in this state - we are testing that the client who is using this
+            // incorrectly will see dodgy behaviour
+            final Future<String> poll = completionService.poll();
+            assertNull(poll);
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+            Thread.sleep(1);
+            assertNull(completionService.poll());
+        } finally {
+            completionService.shutdown();
+        }
     }
 
     private CallableFactory factory(final int threads, final Callable<String> delegate) {
@@ -122,13 +132,36 @@ public class BooleanLatchTest {
         void await();
     }
 
-    private ExecutorCompletionService<String> getCompletionService(final CallableFactory factory) throws InterruptedException {
+    private Exec<String> getCompletionService(final CallableFactory factory) throws InterruptedException {
         final int threads = factory.threads();
-        final ExecutorCompletionService<String> completionService = new ExecutorCompletionService<String>(newFixedThreadPool(threads));
+        final ExecutorService pool = newFixedThreadPool(threads, ThreadFactories.namedThreadFactory(this.getClass().getCanonicalName()));
+        final ExecutorCompletionService<String> completionService = new ExecutorCompletionService<String>(pool);
         for (int i = 0; i < threads; i++) {
             completionService.submit(factory.get());
         }
         factory.await();
-        return completionService;
+        return new Exec<String>(pool, completionService);
+    }
+
+    static class Exec<T> {
+        final ExecutorService pool;
+        final ExecutorCompletionService<T> completion;
+
+        Exec(final ExecutorService executor, final ExecutorCompletionService<T> completion) {
+            this.pool = executor;
+            this.completion = completion;
+        }
+
+        public void shutdown() {
+            pool.shutdownNow();
+        }
+
+        public Future<T> poll() {
+            return completion.poll();
+        }
+
+        public Future<T> take() throws InterruptedException {
+            return completion.take();
+        }
     }
 }

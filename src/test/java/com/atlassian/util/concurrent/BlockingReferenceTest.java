@@ -44,7 +44,7 @@ public class BlockingReferenceTest {
     @Test
     public void setSRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW();
-        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
+        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
@@ -72,14 +72,14 @@ public class BlockingReferenceTest {
             Thread.sleep(1);
             assertNull(executor.completion.poll());
         } finally {
-            executor.pool.shutdown();
+            executor.pool.shutdownNow();
         }
     }
 
     @Test
     public void initialValueSRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueSRSWReferenceGet");
-        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
+        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
@@ -89,14 +89,14 @@ public class BlockingReferenceTest {
                 assertSame("initialValueSRSWReferenceGet", executor.completion.take().get());
             }
         } finally {
-            executor.pool.shutdown();
+            executor.pool.shutdownNow();
         }
     }
 
     @Test
     public void initialValueMRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueMRSWReferenceGet");
-        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
+        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
@@ -106,14 +106,14 @@ public class BlockingReferenceTest {
                 assertSame("initialValueMRSWReferenceGet", executor.completion.take().get());
             }
         } finally {
-            executor.pool.shutdown();
+            executor.pool.shutdownNow();
         }
     }
 
     @Test
     public void setMRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newMRSW();
-        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
+        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.get();
             }
@@ -126,7 +126,7 @@ public class BlockingReferenceTest {
             assertNull(executor.completion.poll());
             assertNotNull(ref.peek());
         } finally {
-            executor.pool.shutdown();
+            executor.pool.shutdownNow();
         }
     }
 
@@ -134,7 +134,7 @@ public class BlockingReferenceTest {
     public void setSRSWReferenceTake() throws Exception {
         final CountDownLatch running = new CountDownLatch(1);
         final BlockingReference<String> ref = BlockingReference.newSRSW();
-        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
+        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 running.await();
                 return ref.take();
@@ -156,14 +156,14 @@ public class BlockingReferenceTest {
             assertNull(executor.completion.poll());
             assertNull(ref.peek());
         } finally {
-            executor.pool.shutdown();
+            executor.pool.shutdownNow();
         }
     }
 
     @Test
     public void setMRSWReferenceTake() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newMRSW();
-        final Executor<String> executor = getCompletionService(factory(threads, new Callable<String>() {
+        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
             public String call() throws Exception {
                 return ref.take();
             }
@@ -183,7 +183,7 @@ public class BlockingReferenceTest {
             assertNull(executor.completion.poll());
             assertNull(ref.peek());
         } finally {
-            executor.pool.shutdown();
+            executor.pool.shutdownNow();
         }
     }
 
@@ -235,17 +235,6 @@ public class BlockingReferenceTest {
         ref.set("blah");
         assertSame("blah", ref.take(1, TimeUnit.NANOSECONDS));
         ref.take(1, TimeUnit.NANOSECONDS);
-    }
-
-    private Executor<String> getCompletionService(final CallableFactory factory) throws InterruptedException {
-        final int threads = factory.threads();
-        final ExecutorService pool = newFixedThreadPool(threads);
-        final ExecutorCompletionService<String> completionService = new ExecutorCompletionService<String>(pool);
-        for (int i = 0; i < threads; i++) {
-            completionService.submit(factory.get());
-        }
-        factory.await();
-        return new Executor<String>(pool, completionService);
     }
 
     interface CallableFactory extends Supplier<Callable<String>> {
@@ -316,11 +305,22 @@ public class BlockingReferenceTest {
         assertTrue(ref.isEmpty());
     }
 
-    static class Executor<T> {
+    private Exec<String> executor(final CallableFactory factory) throws InterruptedException {
+        final int threads = factory.threads();
+        final ExecutorService pool = newFixedThreadPool(threads, ThreadFactories.namedThreadFactory(this.getClass().getCanonicalName()));
+        final ExecutorCompletionService<String> completionService = new ExecutorCompletionService<String>(pool);
+        for (int i = 0; i < threads; i++) {
+            completionService.submit(factory.get());
+        }
+        factory.await();
+        return new Exec<String>(pool, completionService);
+    }
+
+    static class Exec<T> {
         final ExecutorService pool;
         final ExecutorCompletionService<T> completion;
 
-        Executor(final ExecutorService executor, final ExecutorCompletionService<T> completion) {
+        Exec(final ExecutorService executor, final ExecutorCompletionService<T> completion) {
             this.pool = executor;
             this.completion = completion;
         }
