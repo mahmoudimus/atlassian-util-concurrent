@@ -23,6 +23,7 @@ import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import net.jcip.annotations.ThreadSafe;
 
 import com.google.common.base.Function;
@@ -36,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Convenient encapsulation of {@link CompletionService} usage that allows a
@@ -59,7 +61,7 @@ public final class AsyncCompleter {
 
     AsyncCompleter(final Executor executor, final Exceptions policy) {
         this.executor = notNull("executor", executor);
-        this.policy = notNull("plicy", policy);
+        this.policy = notNull("policy", policy);
     }
 
     /**
@@ -76,7 +78,6 @@ public final class AsyncCompleter {
      * 
      * @param <T> the result type
      * @param callables the jobs to run
-     * @param executor the pool to run them on
      * @return an Iterable that returns the results in the order in which they
      * return, may return nulls.
      */
@@ -84,6 +85,33 @@ public final class AsyncCompleter {
         // we must copy the resulting Iterable<Supplier> so
         // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor)));
+        final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
+        return filter(transform(handled, new ValueExtractor<T>()), notNull());
+    }
+
+    /**
+     * Queue the {@link Callable jobs} on the contained {@link Executor} and
+     * return a lazily evaluated {@link Iterable} of the results in the order
+     * they return in (fastest first). Each job will be executed for a max of
+     * the specified timeout.
+     * <p>
+     * Note that if any of the jobs return null then nulls WILL BE included in
+     * the results. Similarly if an exception is thrown and exceptions are being
+     * ignored then there will be a NULL result returned. If you want to filter
+     * nulls this is trivial, but be aware that filtering of the results forces
+     * {@link Iterator#next()} to be called while calling
+     * {@link Iterator#hasNext()} (which may block).
+     *
+     * @param <T> the result type
+     * @param callables the jobs to run
+     * @param timeout the max time spent per job, in milliseconds
+     * @return an Iterable that returns the results in the order in which they
+     * return, may return nulls.
+     */
+    public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables, int timeout) {
+        // we must copy the resulting Iterable<Supplier> so
+        // each iteration doesn't resubmit the jobs
+        final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor, timeout)));
         final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
         return filter(transform(handled, new ValueExtractor<T>()), notNull());
     }
@@ -167,22 +195,44 @@ public final class AsyncCompleter {
      * @param <T> the result type.
      */
     private static class AsyncCompletionFunction<T> implements Function<Callable<T>, Supplier<T>> {
+        private final Integer timeoutValue;
         private final CompletionService<T> completionService;
         // the result gets memoized, so we only need one
         private final Supplier<T> nextCompleteItem = new Supplier<T>() {
             public T get() {
                 try {
-                    return completionService.take().get();
+                    if (timeoutValue == null) {
+                        //block until the result is ready
+                        return completionService.take().get();
+                    } else {
+                        //limit the future with a timeout
+                        Timeout timeout = Timeout.getNanosTimeout(timeoutValue, MILLISECONDS);
+                        Future<T> future = completionService.poll(timeoutValue, MILLISECONDS);
+
+                        if (timeout.isExpired()) {
+                            timeout.throwTimeoutException();
+                        }
+
+                        return future.get();
+                    }
                 } catch (final ExecutionException e) {
                     throw new RuntimeException(e);
                 } catch (final InterruptedException e) {
                     throw new RuntimeInterruptedException(e);
+                } catch (final TimedOutException e) {
+                    throw new RuntimeTimeoutException(e);
                 }
             }
         };
 
         AsyncCompletionFunction(final Executor executor) {
             this.completionService = new ExecutorCompletionService<T>(executor);
+            this.timeoutValue = null;
+        }
+
+        AsyncCompletionFunction(final Executor executor, final int timeoutValue) {
+            this.completionService = new ExecutorCompletionService<T>(executor);
+            this.timeoutValue = timeoutValue;
         }
 
         public Supplier<T> apply(final Callable<T> task) {
