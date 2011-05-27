@@ -145,6 +145,10 @@ public final class Timeout {
         throw new TimedOutException(getTime(), getUnit());
     }
 
+    public RuntimeTimeoutException getTimeoutException() {
+        return new RuntimeTimeoutException(getTime(), getUnit());
+    }
+
     //
     // inners
     //
