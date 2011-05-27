@@ -5,8 +5,7 @@ import static com.atlassian.util.concurrent.Assertions.notNull;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Convenience class for re-throwing {@link ExecutionException}. Sets the
- * {@link Thread#interrupted()} flag to true.
+ * Convenience class for re-throwing {@link ExecutionException}.
  */
 public class RuntimeExecutionException extends RuntimeException {
     public RuntimeExecutionException(final ExecutionException cause) {
