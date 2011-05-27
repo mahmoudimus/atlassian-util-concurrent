@@ -19,8 +19,7 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
 /**
- * Convenience class for re-throwing {@link InterruptedException}. Sets the
- * {@link Thread#interrupted()} flag to true.
+ * Convenience class for re-throwing {@link InterruptedException}.
  */
 public class RuntimeInterruptedException extends RuntimeException {
 
