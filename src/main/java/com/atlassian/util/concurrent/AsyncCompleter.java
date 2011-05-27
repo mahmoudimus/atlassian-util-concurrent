@@ -114,7 +114,7 @@ public final class AsyncCompleter {
         // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor, accessor)));
         final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
-        return filter(transform(handled, new ValueExtractor<T>()), notNull());
+        return filter(transform(handled, Functions.<T> fromSupplier()), notNull());
     }
 
     /**
@@ -174,7 +174,7 @@ public final class AsyncCompleter {
         IGNORE_EXCEPTIONS {
             @Override
             public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return new ExceptionIgnorer<T>();
+                return Functions.<T> ignoreExceptions();
             }
         },
         THROW {
@@ -236,7 +236,7 @@ public final class AsyncCompleter {
             } catch (final InterruptedException e) {
                 throw new RuntimeInterruptedException(e);
             } catch (final ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeExecutionException(e);
             }
         }
     }
@@ -249,36 +249,7 @@ public final class AsyncCompleter {
             } catch (final InterruptedException e) {
                 throw new RuntimeInterruptedException(e);
             } catch (final ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private static final class ValueExtractor<T> implements Function<Supplier<T>, T> {
-        @Override
-        public T apply(final Supplier<T> input) {
-            return input.get();
-        }
-    }
-
-    static class ExceptionIgnorer<T> implements Function<Supplier<T>, Supplier<T>> {
-        public Supplier<T> apply(final Supplier<T> from) {
-            return new ReturnNull<T>(from);
-        }
-
-        static class ReturnNull<T> implements Supplier<T> {
-            private final Supplier<T> delegate;
-
-            ReturnNull(final Supplier<T> delegate) {
-                this.delegate = notNull("delegate", delegate);
-            }
-
-            public T get() {
-                try {
-                    return delegate.get();
-                } catch (final RuntimeException ignore) {
-                    return null;
-                }
+                throw new RuntimeExecutionException(e);
             }
         }
     }

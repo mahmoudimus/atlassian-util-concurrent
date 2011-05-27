@@ -53,8 +53,9 @@ public class SettableFuture<T> implements Future<T> {
      * 
      * @param value the value to be set.
      */
-    public void set(final T value) {
+    public SettableFuture<T> set(final T value) {
         setAndCheckValue(new ReferenceValue<T>(value));
+        return this;
     }
 
     /**
@@ -69,8 +70,9 @@ public class SettableFuture<T> implements Future<T> {
      * 
      * @param value the value to be set.
      */
-    public void setException(final Throwable throwable) {
+    public SettableFuture<T> setException(final Throwable throwable) {
         setAndCheckValue(new ThrowableValue<T>(throwable));
+        return this;
     }
 
     public T get() throws InterruptedException, ExecutionException {

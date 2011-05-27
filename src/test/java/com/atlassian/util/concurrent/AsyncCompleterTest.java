@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -120,39 +121,29 @@ public class AsyncCompleterTest {
         assertFalse(iterator.hasNext());
     }
 
-    // @Test
-    // public void testCallableCompletedBeforeTimeout() {
-    // final AsyncCompleter completion = new AsyncCompleter.Builder(new
-    // Executor() {
-    // public void execute(final Runnable command) {
-    // final ScheduledExecutorService executorService =
-    // Executors.newScheduledThreadPool(2);
-    // executorService.submit(command);
-    // executorService.shutdown();
-    // }
-    // }).build();
-    // final ImmutableList<Callable<Integer>> input =
-    // ImmutableList.of(sleeper(1, 100));
-    // final Integer value = completion.invokeAll(input, 500).iterator().next();
-    // assertEquals(1, value.intValue());
-    // }
-    //
-    // @Test(expected = RuntimeTimeoutException.class)
-    // public void testCallableTimedOutBeforeCompleting() {
-    // final AsyncCompleter completion = new AsyncCompleter.Builder(new
-    // Executor() {
-    // public void execute(final Runnable command) {
-    // final ScheduledExecutorService executorService =
-    // Executors.newScheduledThreadPool(2);
-    // executorService.submit(command);
-    // executorService.shutdown();
-    // }
-    // }).build();
-    // final ImmutableList<Callable<Integer>> input =
-    // ImmutableList.of(sleeper(1, 500));
-    // // should reach timeout before completing
-    // completion.invokeAll(input, 100).iterator().next();
-    // }
+    @Test
+    public void testCallableCompletedBeforeTimeout() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
+            public void execute(final Runnable command) {
+                command.run();
+            }
+        }).build();
+        final ImmutableList<Callable<Integer>> input = ImmutableList.of(sleeper(1, 2));
+        final Integer value = completion.invokeAll(input, 1, TimeUnit.NANOSECONDS).iterator().next();
+        assertEquals(1, value.intValue());
+    }
+
+    @Test(expected = RuntimeTimeoutException.class)
+    public void testCallableTimedOutBeforeCompleting() {
+        final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
+            public void execute(final Runnable command) {
+                new Thread(command).start();
+            }
+        }).build();
+        final ImmutableList<Callable<Integer>> input = ImmutableList.of(sleeper(1, 10));
+        // should reach timeout before completing
+        completion.invokeAll(input, 1, TimeUnit.NANOSECONDS).iterator().next();
+    }
 
     <T> Callable<T> callable(final T input) {
         return new Callable<T>() {

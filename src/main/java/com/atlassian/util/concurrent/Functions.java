@@ -49,12 +49,12 @@ public final class Functions {
      * @param <T> the type returned, note the Supplier can be covariant.
      * @return a function that extracts the value from a supplier
      */
-    static <T> Function<Supplier<? extends T>, T> fromSupplier() {
+    static <T> com.google.common.base.Function<com.google.common.base.Supplier<? extends T>, T> fromSupplier() {
         return new ValueExtractor<T>();
     }
 
-    private static class ValueExtractor<T> implements Function<Supplier<? extends T>, T> {
-        public T get(final Supplier<? extends T> supplier) {
+    private static class ValueExtractor<T> implements com.google.common.base.Function<com.google.common.base.Supplier<? extends T>, T> {
+        public T apply(final com.google.common.base.Supplier<? extends T> supplier) {
             return supplier.get();
         }
     }
@@ -82,20 +82,21 @@ public final class Functions {
      * @param <T> the result type
      * @return a Function that transforms an exception into a null
      */
-    static <T> Function<Supplier<T>, Supplier<T>> ignoreExceptions() {
+    static <T> com.google.common.base.Function<com.google.common.base.Supplier<T>, com.google.common.base.Supplier<T>> ignoreExceptions() {
         return new ExceptionIgnorer<T>();
     }
 
-    static class ExceptionIgnorer<T> implements Function<Supplier<T>, Supplier<T>> {
-        public Supplier<T> get(final Supplier<T> from) {
+    static class ExceptionIgnorer<T> implements
+        com.google.common.base.Function<com.google.common.base.Supplier<T>, com.google.common.base.Supplier<T>> {
+        public com.google.common.base.Supplier<T> apply(final com.google.common.base.Supplier<T> from) {
             return new IgnoreAndReturnNull<T>(from);
         }
     }
 
-    static class IgnoreAndReturnNull<T> implements Supplier<T> {
-        private final Supplier<T> delegate;
+    static class IgnoreAndReturnNull<T> implements com.google.common.base.Supplier<T> {
+        private final com.google.common.base.Supplier<T> delegate;
 
-        IgnoreAndReturnNull(final Supplier<T> delegate) {
+        IgnoreAndReturnNull(final com.google.common.base.Supplier<T> delegate) {
             this.delegate = notNull("delegate", delegate);
         }
 
