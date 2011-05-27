@@ -79,7 +79,7 @@ public class AsyncCompleterAccessorTest {
     }
 
     @Test(expected = RuntimeInterruptedException.class)
-    public void blockingHandlesIterrupt() {
+    public void blockingHandlesInterrupt() {
         final BlockingAccessor<String> a = new BlockingAccessor<String>();
         a.apply(new MockCompletionService() {
             @Override
