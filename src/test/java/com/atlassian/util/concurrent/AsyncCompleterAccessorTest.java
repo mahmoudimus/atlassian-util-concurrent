@@ -39,6 +39,7 @@ public class AsyncCompleterAccessorTest {
         }));
     }
 
+    @Test
     public void usesTimeout() {
         final TimeoutAccessor<String> a = new TimeoutAccessor<String>(new Timeout(5, NANOSECONDS, new MockTimeSupplier(1, NANOSECONDS)));
         final MockCompletionService completionService = new MockCompletionService() {
@@ -56,7 +57,7 @@ public class AsyncCompleterAccessorTest {
     }
 
     @Test(expected = RuntimeInterruptedException.class)
-    public void handlesIterrupt() {
+    public void handlesInterrupt() {
         final TimeoutAccessor<String> a = new TimeoutAccessor<String>(new Timeout(5, NANOSECONDS, new MockTimeSupplier(1, NANOSECONDS)));
         a.apply(new MockCompletionService() {
             @Override
