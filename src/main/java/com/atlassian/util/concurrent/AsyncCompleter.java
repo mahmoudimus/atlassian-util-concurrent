@@ -92,7 +92,7 @@ public final class AsyncCompleter {
      * 
      * @param <T> the result type
      * @param callables the jobs to run
-     * @param time the max time spent per job, in milliseconds
+     * @param time the max time spent per job specified by:
      * @param unit the TimeUnit time is specified in
      * @return an Iterable that returns the results in the order in which they
      * return, may return nulls.
