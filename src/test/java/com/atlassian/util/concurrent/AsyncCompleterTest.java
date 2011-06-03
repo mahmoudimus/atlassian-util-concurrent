@@ -3,7 +3,7 @@ package com.atlassian.util.concurrent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import com.atlassian.util.concurrent.AsyncCompleter.Exceptions;
+import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import org.junit.Test;
 
@@ -101,7 +101,7 @@ public class AsyncCompleterTest {
             public void execute(final Runnable command) {
                 jobs.add(command);
             }
-        }).handleExceptions(Exceptions.THROW).limitParallelExecutionTo(1);
+        }).handleExceptions(Policies.THROW).limitParallelExecutionTo(1);
         final Iterable<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2), callable(3)));
 
         final Iterator<Integer> iterator = queued.iterator();

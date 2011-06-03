@@ -2,24 +2,25 @@ package com.atlassian.util.concurrent;
 
 import static org.junit.Assert.assertNull;
 
-import com.atlassian.util.concurrent.AsyncCompleter.Exceptions;
+import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import org.junit.Test;
 
 import com.google.common.base.Supplier;
 
-public class AsyncCompleterExceptionHandlersTest {
+public class ExceptionPolicyTest
+{
     @Test(expected = TestException.class)
     public void exceptionsThrow() {
-        exception(Exceptions.THROW);
+        exception(Policies.THROW);
     }
 
     @Test
     public void exceptionsIgnored() {
-        assertNull(exception(Exceptions.IGNORE_EXCEPTIONS));
+        assertNull(exception(Policies.IGNORE_EXCEPTIONS));
     }
 
-    private Object exception(final Exceptions handler) {
+    private Object exception(final Policies handler) {
         final Supplier<Object> wrapped = handler.handler().apply(new Supplier<Object>() {
             public Object get() {
                 throw new TestException();

@@ -16,20 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
-import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
-import static com.google.common.base.Functions.identity;
-import static com.google.common.base.Predicates.notNull;
-import static com.google.common.base.Suppliers.memoize;
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.transform;
-import net.jcip.annotations.ThreadSafe;
-
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-import com.google.common.util.concurrent.Callables;
-
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -39,6 +25,22 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
+
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.Callables;
+
+import net.jcip.annotations.ThreadSafe;
+
+import static com.atlassian.util.concurrent.Assertions.notNull;
+import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Suppliers.memoize;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.transform;
 
 /**
  * Convenient encapsulation of {@link CompletionService} usage that allows a
@@ -58,9 +60,9 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 public final class AsyncCompleter {
     private final Executor executor;
-    private final Exceptions policy;
+    private final ExceptionPolicy policy;
 
-    AsyncCompleter(final Executor executor, final Exceptions policy) {
+    AsyncCompleter(final Executor executor, final ExceptionPolicy policy) {
         this.executor = notNull("executor", executor);
         this.policy = notNull("policy", policy);
     }
@@ -122,7 +124,7 @@ public final class AsyncCompleter {
      */
     public static class Builder {
         Executor executor;
-        Exceptions policy = Exceptions.THROW;
+        ExceptionPolicy policy = Policies.THROW;
 
         /**
          * Create a Builder with the supplied Executor
@@ -138,10 +140,10 @@ public final class AsyncCompleter {
          * nulls in the resulting iterable!
          */
         public Builder ignoreExceptions() {
-            return handleExceptions(Exceptions.IGNORE_EXCEPTIONS);
+            return handleExceptions(Policies.IGNORE_EXCEPTIONS);
         }
 
-        public Builder handleExceptions(final Exceptions policy) {
+        public Builder handleExceptions(final ExceptionPolicy policy) {
             this.policy = policy;
             return this;
         }
@@ -165,25 +167,6 @@ public final class AsyncCompleter {
         public AsyncCompleter build() {
             return new AsyncCompleter(executor, policy);
         }
-    }
-
-    /**
-     * Exception handling policies
-     */
-    public enum Exceptions {
-        IGNORE_EXCEPTIONS {
-            @Override
-            public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return Functions.<T> ignoreExceptions();
-            }
-        },
-        THROW {
-            @Override
-            public <T> Function<Supplier<T>, Supplier<T>> handler() {
-                return identity();
-            }
-        };
-        abstract <T> Function<Supplier<T>, Supplier<T>> handler();
     }
 
     /**
