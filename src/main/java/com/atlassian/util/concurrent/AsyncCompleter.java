@@ -92,7 +92,7 @@ public final class AsyncCompleter {
 
     /**
      * Version of {@link #invokeAll(Iterable)} that supports a timeout. Any jobs
-     * that are not complete by the timeout are discarded.
+     * that are not complete by the timeout are interrupted and discarded.
      * 
      * @param <T> the result type
      * @param callables the jobs to run
