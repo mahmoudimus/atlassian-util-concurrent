@@ -84,7 +84,7 @@ public final class AsyncCompleter {
      * @param <T> the result type
      * @param callables the jobs to run
      * @return an Iterable that returns the results in the order in which they
-     * return, may return nulls.
+     * return, excluding any null values.
      */
     public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables) {
         return invokeAllTasks(callables, new BlockingAccessor<T>());
@@ -99,7 +99,7 @@ public final class AsyncCompleter {
      * @param time the max time spent per job specified by:
      * @param unit the TimeUnit time is specified in
      * @return an Iterable that returns the results in the order in which they
-     * return, may return nulls.
+     * return, excluding any null values.
      * 
      * @see #invokeAll(Iterable)
      * @since 2.1
