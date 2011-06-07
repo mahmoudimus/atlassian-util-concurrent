@@ -626,9 +626,5 @@ abstract class AbstractCopyOnWriteMap<K, V, M extends Map<K, V>> implements Conc
         public Collection<V> values() {
             return values;
         }
-
-        Object readResolve() {
-            return new Mutable();
-        }
     }
 }
