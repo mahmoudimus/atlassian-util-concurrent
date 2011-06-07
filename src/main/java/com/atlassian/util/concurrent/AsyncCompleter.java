@@ -16,24 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import java.util.Iterator;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
-
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-import com.google.common.util.concurrent.Callables;
-
-import net.jcip.annotations.ThreadSafe;
-
 import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.google.common.base.Predicates.notNull;
@@ -41,6 +23,26 @@ import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
+
+import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
+
+import net.jcip.annotations.ThreadSafe;
+
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.Callables;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Convenient encapsulation of {@link CompletionService} usage that allows a
@@ -111,7 +113,7 @@ public final class AsyncCompleter {
      * function that is responsible for getting things from the
      * CompletionService.
      */
-    <T> Iterable<T> invokeAllTasks(final Iterable<? extends Callable<T>> callables, final Function<CompletionService<T>, T> accessor) {
+    <T> Iterable<T> invokeAllTasks(final Iterable<? extends Callable<T>> callables, final Accessor<T> accessor) {
         // we must copy the resulting Iterable<Supplier> so
         // each iteration doesn't resubmit the jobs
         final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(executor, accessor)));
@@ -180,7 +182,7 @@ public final class AsyncCompleter {
      */
     private static class AsyncCompletionFunction<T> implements Function<Callable<T>, Supplier<T>> {
         private final CompletionService<T> completionService;
-        private final Function<CompletionService<T>, T> accessor;
+        private final Accessor<T> accessor;
 
         // the result gets memoized, so we only need one
         private final Supplier<T> nextCompleteItem = new Supplier<T>() {
@@ -189,20 +191,31 @@ public final class AsyncCompleter {
             }
         };
 
-        AsyncCompletionFunction(final Executor executor, final Function<CompletionService<T>, T> accessor) {
+        AsyncCompletionFunction(final Executor executor, final Accessor<T> accessor) {
             this.completionService = new ExecutorCompletionService<T>(executor);
             this.accessor = accessor;
         }
 
         public Supplier<T> apply(final Callable<T> task) {
-            completionService.submit(task);
+            accessor.register(completionService.submit(task));
             // never call get twice as it gets a new element from the queue
             return memoize(nextCompleteItem);
         }
     }
 
-    static final class TimeoutAccessor<T> implements Function<CompletionService<T>, T> {
+    /**
+     * Responsible for
+     * 
+     * @param <T>
+     */
+    interface Accessor<T> extends Function<CompletionService<T>, T> {
+        /** Register a Future, may be interesting later */
+        void register(Future<T> f);
+    }
+
+    static final class TimeoutAccessor<T> implements Accessor<T> {
         private final Timeout timeout;
+        private final Collection<Future<T>> futures = new ConcurrentLinkedQueue<Future<T>>();
 
         TimeoutAccessor(final Timeout timeout) {
             this.timeout = timeout;
@@ -213,8 +226,10 @@ public final class AsyncCompleter {
             try {
                 final Future<T> future = completionService.poll(timeout.getTime(), timeout.getUnit());
                 if (future == null) {
+                    cancelRemaining();
                     throw timeout.getTimeoutException();
                 }
+                futures.remove(future);
                 return future.get();
             } catch (final InterruptedException e) {
                 throw new RuntimeInterruptedException(e);
@@ -222,9 +237,21 @@ public final class AsyncCompleter {
                 throw new RuntimeExecutionException(e);
             }
         }
+
+        @Override
+        public void register(final Future<T> f) {
+            futures.add(f);
+        }
+
+        private void cancelRemaining() {
+            for (final Future<T> f : futures) {
+                f.cancel(true);
+            }
+            futures.clear();
+        }
     }
 
-    static final class BlockingAccessor<T> implements Function<CompletionService<T>, T> {
+    static final class BlockingAccessor<T> implements Accessor<T> {
         @Override
         public T apply(final CompletionService<T> completionService) {
             try {
@@ -235,5 +262,8 @@ public final class AsyncCompleter {
                 throw new RuntimeExecutionException(e);
             }
         }
+
+        @Override
+        public void register(final Future<T> f) {}
     }
 }
