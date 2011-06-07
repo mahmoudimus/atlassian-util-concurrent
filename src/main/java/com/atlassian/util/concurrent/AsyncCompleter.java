@@ -204,9 +204,8 @@ public final class AsyncCompleter {
     }
 
     /**
-     * Responsible for
-     * 
-     * @param <T>
+     * Responsible for accessing the next complete item and maintaining the
+     * registered futures in case of timeouts.
      */
     interface Accessor<T> extends Function<CompletionService<T>, T> {
         /** Register a Future, may be interesting later */
