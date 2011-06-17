@@ -54,12 +54,12 @@ public final class Timeout {
     }
 
     /**
-     * Get a {@link Timeout} that uses nanosecond precision. The accuracy will
-     * depend on the accuracy of {@link System#nanoTime()}.
+     * Get a {@link Timeout} that uses millisecond precision. The accuracy will
+     * depend on the accuracy of {@link System#currentTimeMillis()}.
      * 
      * @param time the maximum time to wait for the lock
      * @param unit the time unit of the <tt>time</tt> argument.
-     * @return timeout with {@link TimeUnit#NANOSECONDS} precision.
+     * @return timeout with {@link TimeUnit#MILLISECONDS} precision.
      */
     public static Timeout getMillisTimeout(final long time, final TimeUnit unit) {
         return new Timeout(time, unit, TimeSuppliers.MILLIS);
@@ -86,7 +86,7 @@ public final class Timeout {
     private final TimeSupplier supplier;
 
     //
-    // ctros
+    // ctors
     //
 
     Timeout(final long time, final TimeUnit unit, final TimeSupplier supplier) {
