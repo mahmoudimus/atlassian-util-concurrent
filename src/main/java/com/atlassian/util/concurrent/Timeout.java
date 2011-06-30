@@ -20,7 +20,6 @@ import net.jcip.annotations.Immutable;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Condition;
 
 /**
  * Automatically calculates elapsed time from when it is created. Useful when
@@ -147,16 +146,6 @@ public final class Timeout {
             throwTimeoutException();
         }
     }
-
-    // TODO unused, retire?
-    // /CLOVER:OFF
-    void await(final Condition condition) throws TimeoutException, InterruptedException {
-        if (!condition.await(getTime(), getUnit())) {
-            throwTimeoutException();
-        }
-    }
-
-    // /CLOVER:ON
 
     /**
      * Always throws a {@link TimeoutException}.
