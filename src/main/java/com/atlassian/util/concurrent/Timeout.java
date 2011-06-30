@@ -82,7 +82,7 @@ public final class Timeout {
     //
 
     private final long created;
-    private final long time;
+    private final long timeoutPeriod;
     private final TimeSupplier supplier;
 
     //
@@ -92,7 +92,7 @@ public final class Timeout {
     Timeout(final long time, final TimeUnit unit, final TimeSupplier supplier) {
         created = supplier.currentTime();
         this.supplier = supplier;
-        this.time = this.supplier.precision().convert(time, unit);
+        timeoutPeriod = this.supplier.precision().convert(time, unit);
     }
 
     //
@@ -100,7 +100,7 @@ public final class Timeout {
     //
 
     public long getTime() {
-        return (created + time) - supplier.currentTime();
+        return (created + timeoutPeriod) - supplier.currentTime();
     }
 
     public TimeUnit getUnit() {
@@ -114,6 +114,13 @@ public final class Timeout {
      */
     public boolean isExpired() {
         return getTime() <= 0;
+    }
+
+    /**
+     * The original timeout period expressed in {@link #getUnit() units}
+     */
+    public long getTimeoutPeriod() {
+        return timeoutPeriod;
     }
 
     //
@@ -142,11 +149,11 @@ public final class Timeout {
      * @throws TimedOutException, always.
      */
     public void throwTimeoutException() throws TimedOutException {
-        throw new TimedOutException(getTime(), getUnit());
+        throw new TimedOutException(timeoutPeriod, getUnit());
     }
 
     public RuntimeTimeoutException getTimeoutException() {
-        return new RuntimeTimeoutException(getTime(), getUnit());
+        return new RuntimeTimeoutException(timeoutPeriod, getUnit());
     }
 
     //

@@ -4,11 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class TimeoutTest {
     @Test
@@ -63,6 +62,18 @@ public class TimeoutTest {
         final Timeout timeout = Timeout.getMillisTimeout(2, TimeUnit.MILLISECONDS);
         assertFalse(timeout.isExpired());
         assertEquals(TimeUnit.MILLISECONDS, timeout.getUnit());
+    }
+
+    @Test
+    public void timeoutPeriodMillis() {
+        final Timeout timeout = Timeout.getMillisTimeout(2, TimeUnit.MILLISECONDS);
+        assertEquals(2, timeout.getTimeoutPeriod());
+    }
+
+    @Test
+    public void timeoutPeriodNanos() {
+        final Timeout timeout = Timeout.getNanosTimeout(2, TimeUnit.MILLISECONDS);
+        assertEquals(2000000, timeout.getTimeoutPeriod());
     }
 
     @Test(expected = TimedOutException.class)
