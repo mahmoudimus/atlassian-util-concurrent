@@ -66,9 +66,22 @@ public final class Timeout {
     }
 
     /**
-     * Factory for creating timeouts of the specified duration.
+     * Factory for creating timeouts of the specified duration. Each
+     * {@link Timeout} will start when the factory is called.
+     * <p>
+     * Generally, use the {@link #getMillisTimeout(long, TimeUnit)} or
+     * {@link #getNanosTimeout(long, TimeUnit)} factory methods directly. Only
+     * use this if a custom {@link TimeSupplier} is required – for instance for
+     * testing, you can use this to mock out the actual passage of time.
+     * 
+     * @param time how long the timeouts should be for
+     * @param unit in what units time is expressed in
+     * @param supplier the thing that tells the timeout what the current time
+     * is.
+     * 
+     * @since 2.2
      */
-    static Supplier<Timeout> timeoutFactory(final long time, final TimeUnit unit, final TimeSupplier supplier) {
+    public static Supplier<Timeout> timeoutFactory(final long time, final TimeUnit unit, final TimeSupplier supplier) {
         return new Supplier<Timeout>() {
             @Override
             public Timeout get() {
@@ -118,6 +131,8 @@ public final class Timeout {
 
     /**
      * The original timeout period expressed in {@link #getUnit() units}
+     * 
+     * @since 2.2
      */
     public long getTimeoutPeriod() {
         return timeoutPeriod;
@@ -162,10 +177,18 @@ public final class Timeout {
 
     /**
      * Supply time and precision to a {@link Timeout}.
+     * 
+     * @since 2.2
      */
-    interface TimeSupplier {
+    public interface TimeSupplier {
+        /**
+         * The time now.
+         */
         long currentTime();
 
+        /**
+         * The precision that the time is expressed in.
+         */
         TimeUnit precision();
     }
 
