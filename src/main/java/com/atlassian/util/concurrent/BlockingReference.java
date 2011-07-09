@@ -178,8 +178,8 @@ public class BlockingReference<V> {
      * @throws InterruptedException if the current thread is interrupted while
      * waiting
      */
-    public @NotNull
-    V take() throws InterruptedException {
+    @NotNull
+    public V take() throws InterruptedException {
         V result = null;
         while (result == null) {
             latch.await();
@@ -210,8 +210,8 @@ public class BlockingReference<V> {
      * @throws TimeoutException if the timeout is reached without another thread
      * having called {@link #set(Object)}.
      */
-    public @NotNull
-    V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
+    @NotNull
+    public V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
         final Timeout timeout = Timeout.getNanosTimeout(time, unit);
         V result = null;
         while (result == null) {
@@ -238,8 +238,8 @@ public class BlockingReference<V> {
      * @throws InterruptedException if the current thread is interrupted while
      * waiting
      */
-    public @NotNull
-    V get() throws InterruptedException {
+    @NotNull
+    public V get() throws InterruptedException {
         V result = ref.get();
         while (result == null) {
             latch.await();
@@ -267,8 +267,8 @@ public class BlockingReference<V> {
      * @throws InterruptedException if the current thread is interrupted while
      * waiting
      */
-    public @NotNull
-    V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
+    @NotNull
+    public V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
         final Timeout timeout = Timeout.getNanosTimeout(time, unit);
         V result = ref.get();
         while (result == null) {
@@ -308,8 +308,8 @@ public class BlockingReference<V> {
      * 
      * @return the current reference or null if there is none.
      */
-    public @Nullable
-    V peek() {
+    @Nullable
+    public V peek() {
         return ref.get();
     }
 
