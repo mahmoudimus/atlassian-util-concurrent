@@ -1,5 +1,16 @@
 package com.atlassian.util.concurrent;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
+
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -9,18 +20,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.atlassian.util.concurrent.AsyncCompleter.MakeExecutorCompletionService;
-import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class AsyncCompleterTest {
     @Test
@@ -132,7 +131,7 @@ public class AsyncCompleterTest {
     public void invocationRegistersWithAccessor() throws Exception {
         final AsyncCompleter completion = new AsyncCompleter.Builder(new CallerExecutor()).build();
         final AtomicReference<Future<String>> ref = new AtomicReference<Future<String>>();
-        completion.invokeAllTasks(ImmutableList.of(callable("blah!")), new MakeExecutorCompletionService<String>(), new AsyncCompleter.Accessor<String>() {
+        completion.invokeAllTasks(ImmutableList.of(callable("blah!")), new AsyncCompleter.Accessor<String>() {
             @Override
             public String apply(final CompletionService<String> input) {
                 try {

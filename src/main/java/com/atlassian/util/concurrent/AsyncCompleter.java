@@ -16,6 +16,22 @@
 
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Assertions.notNull;
+import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Suppliers.memoize;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.transform;
+
+import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
+
+import net.jcip.annotations.ThreadSafe;
+
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.Callables;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
@@ -27,22 +43,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
-import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
-
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-import com.google.common.util.concurrent.Callables;
-
-import net.jcip.annotations.ThreadSafe;
-
-import static com.atlassian.util.concurrent.Assertions.notNull;
-import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
-import static com.google.common.base.Predicates.notNull;
-import static com.google.common.base.Suppliers.memoize;
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.transform;
 
 /**
  * Convenient encapsulation of {@link CompletionService} usage that allows a
@@ -56,17 +56,19 @@ import static com.google.common.collect.Iterables.transform;
  * the result until it is ready to use it.
  * <p>
  * To create an instance of this class, please use the supplied {@link Builder}.
- *
+ * 
  * @since 1.0
  */
 @ThreadSafe
 public final class AsyncCompleter {
     private final Executor executor;
     private final ExceptionPolicy policy;
+    private final ExecutorCompletionServiceFactory completionServiceFactory;
 
-    AsyncCompleter(final Executor executor, final ExceptionPolicy policy) {
+    AsyncCompleter(final Executor executor, final ExceptionPolicy policy, final ExecutorCompletionServiceFactory completionServiceFactory) {
         this.executor = notNull("executor", executor);
         this.policy = notNull("policy", policy);
+        this.completionServiceFactory = notNull("completionServiceFactory", completionServiceFactory);
     }
 
     /**
@@ -80,43 +82,32 @@ public final class AsyncCompleter {
      * nulls this is trivial, but be aware that filtering of the results forces
      * {@link Iterator#next()} to be called while calling
      * {@link Iterator#hasNext()} (which may block).
-     *
+     * 
      * @param <T> the result type
      * @param callables the jobs to run
      * @return an Iterable that returns the results in the order in which they
      * return, excluding any null values.
      */
     public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables) {
-        return invokeAllTasks(callables, new MakeExecutorCompletionService<T>(), new BlockingAccessor<T>());
-    }
-
-    public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables,
-            final Function<Executor, CompletionService<T>> makeCompletionService) {
-        return invokeAllTasks(callables, makeCompletionService, new BlockingAccessor<T>());
+        return invokeAllTasks(callables, new BlockingAccessor<T>());
     }
 
     /**
      * Version of {@link #invokeAll(Iterable)} that supports a timeout. Any jobs
      * that are not complete by the timeout are interrupted and discarded.
-     *
+     * 
      * @param <T> the result type
      * @param callables the jobs to run
      * @param time the max time spent per job specified by:
      * @param unit the TimeUnit time is specified in
      * @return an Iterable that returns the results in the order in which they
      * return, excluding any null values.
-     *
+     * 
      * @see #invokeAll(Iterable)
      * @since 2.1
      */
     public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables, final long time, final TimeUnit unit) {
-        return invokeAllTasks(callables, new MakeExecutorCompletionService<T>(), new TimeoutAccessor<T>(getNanosTimeout(time, unit)));
-    }
-
-    public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables,
-            final Function<Executor, CompletionService<T>> makeCompletionService,
-            final long time, final TimeUnit unit) {
-        return invokeAllTasks(callables, makeCompletionService, new TimeoutAccessor<T>(getNanosTimeout(time, unit)));
+        return invokeAllTasks(callables, new TimeoutAccessor<T>(getNanosTimeout(time, unit)));
     }
 
     /**
@@ -124,24 +115,13 @@ public final class AsyncCompleter {
      * function that is responsible for getting things from the
      * CompletionService.
      */
-    <T> Iterable<T> invokeAllTasks(final Iterable<? extends Callable<T>> callables,
-            final Function<Executor, CompletionService<T>> makeCompletionService,
-            final Accessor<T> accessor) {
+    <T> Iterable<T> invokeAllTasks(final Iterable<? extends Callable<T>> callables, final Accessor<T> accessor) {
+        final CompletionService<T> apply = completionServiceFactory.<T> create().apply(executor);
         // we must copy the resulting Iterable<Supplier> so
         // each iteration doesn't resubmit the jobs
-        final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(
-                transform(callables, new AsyncCompletionFunction<T>(makeCompletionService.apply(executor), accessor)));
+        final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(apply, accessor)));
         final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
         return filter(transform(handled, Functions.<T> fromSupplier()), notNull());
-    }
-
-    static final class MakeExecutorCompletionService<T> implements Function<Executor, CompletionService<T>>
-    {
-        @Override
-        public CompletionService<T> apply(Executor e)
-        {
-            return new ExecutorCompletionService<T>(e);
-        }
     }
 
     /**
@@ -150,10 +130,11 @@ public final class AsyncCompleter {
     public static class Builder {
         Executor executor;
         ExceptionPolicy policy = Policies.THROW;
+        ExecutorCompletionServiceFactory completionServiceFactory = new DefaultExecutorCompletionServiceFactory();
 
         /**
          * Create a Builder with the supplied Executor
-         *
+         * 
          * @param executor
          */
         public Builder(@NotNull final Executor executor) {
@@ -173,6 +154,11 @@ public final class AsyncCompleter {
             return this;
         }
 
+        public Builder completionServiceFactory(final ExecutorCompletionServiceFactory completionServiceFactory) {
+            this.completionServiceFactory = notNull("completionServiceFactory", completionServiceFactory);
+            return this;
+        }
+
         /**
          * Create a {@link AsyncCompleter} that limits the number of jobs
          * executed to the underlying executor to a hard limit.
@@ -180,18 +166,26 @@ public final class AsyncCompleter {
          * Note: this only makes sense if the underlying executor does not have
          * a limit on the number of threads it will create, or the limit is much
          * higher than this limit.
-         *
+         * 
          * @param limit the number of parallel jobs to execute at any one time
          * @see LimitedExecutor for more discussion of how this limit is
          * relevant
          */
         public AsyncCompleter limitParallelExecutionTo(final int limit) {
-            return new AsyncCompleter(new LimitedExecutor(executor, limit), policy);
+            return new AsyncCompleter(new LimitedExecutor(executor, limit), policy, completionServiceFactory);
         }
 
         public AsyncCompleter build() {
-            return new AsyncCompleter(executor, policy);
+            return new AsyncCompleter(executor, policy, completionServiceFactory);
         }
+    }
+
+    /**
+     * Extension point if a custom CompletionService is required, for instance
+     * to implement a custom concellation policy.
+     */
+    public interface ExecutorCompletionServiceFactory {
+        <T> Function<Executor, CompletionService<T>> create();
     }
 
     /**
@@ -200,7 +194,7 @@ public final class AsyncCompleter {
      * be shared as each has its own {@link CompletionService} instance (and
      * therefore its own queue) so anything subsequently submitted to this
      * Function may end up as the result of the supplier.
-     *
+     * 
      * @param <T> the result type.
      */
     private static class AsyncCompletionFunction<T> implements Function<Callable<T>, Supplier<T>> {
@@ -287,5 +281,17 @@ public final class AsyncCompleter {
 
         @Override
         public void register(final Future<T> f) {}
+    }
+
+    static final class DefaultExecutorCompletionServiceFactory implements ExecutorCompletionServiceFactory {
+        public <T> Function<Executor, CompletionService<T>> create() {
+            return new ExecutorCompletionServiceFunction<T>();
+        }
+    }
+
+    static final class ExecutorCompletionServiceFunction<T> implements Function<Executor, CompletionService<T>> {
+        public CompletionService<T> apply(final Executor executor) {
+            return new ExecutorCompletionService<T>(executor);
+        }
     }
 }
