@@ -165,16 +165,4 @@ public class AsyncCompleterTest {
             }
         };
     }
-
-    static class NaiveExecutor implements Executor {
-        public void execute(final Runnable command) {
-            new Thread(command).start();
-        }
-    }
-
-    static class CallerExecutor implements Executor {
-        public void execute(final Runnable command) {
-            command.run();
-        }
-    }
 }
