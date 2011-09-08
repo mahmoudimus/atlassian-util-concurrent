@@ -16,6 +16,9 @@
 
 package com.atlassian.util.concurrent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.atlassian.util.concurrent.Assertions.isTrue;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
@@ -27,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * implementations produce named threads to give good stack-traces.
  */
 public class ThreadFactories {
+    private static final Logger log = LoggerFactory.getLogger(ThreadFactories.class);
+    private static final Thread.UncaughtExceptionHandler UNCAUGHT_EXCEPTION_LOGGER = new UncaughtExceptionLogger();
     public enum Type {
         DAEMON(true), USER(false);
 
@@ -102,10 +107,19 @@ public class ThreadFactories {
         }
 
         public Thread newThread(final Runnable r) {
-            final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+            String name = namePrefix + threadNumber.getAndIncrement();
+            log.debug("Creating thread {}", name);
+            final Thread t = new Thread(group, r, name, 0);
             t.setDaemon(type.isDaemon);
             t.setPriority(priority);
+            t.setUncaughtExceptionHandler(UNCAUGHT_EXCEPTION_LOGGER);
             return t;
+        }
+    }
+
+    static class UncaughtExceptionLogger implements Thread.UncaughtExceptionHandler {
+        public void uncaughtException(Thread t, Throwable e) {
+            log.error("Uncaught exception", e);
         }
     }
 }
