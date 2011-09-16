@@ -16,12 +16,10 @@
 
 package com.atlassian.util.concurrent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static com.atlassian.util.concurrent.Assertions.isTrue;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,8 +28,44 @@ import java.util.concurrent.atomic.AtomicInteger;
  * implementations produce named threads to give good stack-traces.
  */
 public class ThreadFactories {
-    private static final Logger log = LoggerFactory.getLogger(ThreadFactories.class);
-    private static final Thread.UncaughtExceptionHandler UNCAUGHT_EXCEPTION_LOGGER = new UncaughtExceptionLogger();
+    /**
+     * Simple builder for {@link ThreadFactory} instances
+     */
+    public static class Builder {
+        String name;
+        Type type = Type.USER;
+        int priority = Thread.NORM_PRIORITY;
+        Thread.UncaughtExceptionHandler exceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+
+        Builder(final String name) {
+            this.name = name;
+        }
+
+        public Builder name(final String name) {
+            this.name = notNull("name", name);
+            return this;
+        }
+
+        public Builder type(final Type type) {
+            this.type = notNull("type", type);
+            return this;
+        }
+
+        public Builder priority(final int priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        public Builder uncaughtExceptionHandler(final Thread.UncaughtExceptionHandler exceptionHandler) {
+            this.exceptionHandler = notNull("exceptionHandler", exceptionHandler);
+            return this;
+        }
+
+        public ThreadFactory build() {
+            return new Default(name, type, priority, exceptionHandler);
+        }
+    }
+
     public enum Type {
         DAEMON(true), USER(false);
 
@@ -43,6 +77,17 @@ public class ThreadFactories {
     }
 
     /**
+     * Get a {@link Builder} with the required name prefix.
+     * 
+     * @param name threads will be named with this prefix
+     * @return a {@link Builder} that can specify the parameters for type,
+     * priority etc.
+     */
+    public static Builder named(final String name) {
+        return new Builder(name);
+    }
+
+    /**
      * Get a {@link ThreadFactory} with the required name prefix. The produced
      * threads are user threads and have normal priority.
      * 
@@ -50,7 +95,7 @@ public class ThreadFactories {
      * @return a configured {@link ThreadFactory}
      */
     public static ThreadFactory namedThreadFactory(@NotNull final String name) {
-        return new Default(name, Type.USER, Thread.NORM_PRIORITY);
+        return named(name).build();
     }
 
     /**
@@ -62,7 +107,7 @@ public class ThreadFactories {
      * @return a configured {@link ThreadFactory}
      */
     public static ThreadFactory namedThreadFactory(@NotNull final String name, @NotNull final Type type) {
-        return new Default(name, type, Thread.NORM_PRIORITY);
+        return named(name).type(type).build();
     }
 
     /**
@@ -76,7 +121,7 @@ public class ThreadFactories {
      * @return a configured {@link ThreadFactory}
      */
     public static ThreadFactory namedThreadFactory(@NotNull final String name, @NotNull final Type type, final int priority) {
-        return new Default(name, type, priority);
+        return named(name).type(type).priority(priority).build();
     }
 
     // /CLOVER:OFF
@@ -92,34 +137,27 @@ public class ThreadFactories {
         final String namePrefix;
         final Type type;
         final int priority;
+        final UncaughtExceptionHandler exceptionHandler;
 
-        Default(final String name, final Type type, final int priority) {
-            notNull("name", name);
-            notNull("type", type);
+        Default(final String name, final Type type, final int priority, final UncaughtExceptionHandler exceptionHandler) {
+            namePrefix = notNull("name", name) + ":thread-";
+            this.type = notNull("type", type);
             isTrue("priority too low", priority >= Thread.MIN_PRIORITY);
             isTrue("priority too high", priority <= Thread.MAX_PRIORITY);
+            this.priority = priority;
             final SecurityManager securityManager = System.getSecurityManager();
             final ThreadGroup parent = (securityManager != null) ? securityManager.getThreadGroup() : Thread.currentThread().getThreadGroup();
             group = new ThreadGroup(parent, name);
-            namePrefix = name + ":thread-";
-            this.type = type;
-            this.priority = priority;
+            this.exceptionHandler = exceptionHandler;
         }
 
         public Thread newThread(final Runnable r) {
-            String name = namePrefix + threadNumber.getAndIncrement();
-            log.debug("Creating thread {}", name);
+            final String name = namePrefix + threadNumber.getAndIncrement();
             final Thread t = new Thread(group, r, name, 0);
             t.setDaemon(type.isDaemon);
             t.setPriority(priority);
-            t.setUncaughtExceptionHandler(UNCAUGHT_EXCEPTION_LOGGER);
+            t.setUncaughtExceptionHandler(exceptionHandler);
             return t;
-        }
-    }
-
-    static class UncaughtExceptionLogger implements Thread.UncaughtExceptionHandler {
-        public void uncaughtException(Thread t, Throwable e) {
-            log.error("Uncaught exception", e);
         }
     }
 }

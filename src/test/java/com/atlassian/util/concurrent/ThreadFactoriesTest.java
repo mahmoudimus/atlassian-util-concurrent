@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 public class ThreadFactoriesTest {
 
@@ -65,9 +66,30 @@ public class ThreadFactoriesTest {
         assertNotNull(namedThreadFactory(this.getClass().getName(), ThreadFactories.Type.USER));
     }
 
-    @Test()
+    @Test
     public void notNullNameTypePriority() {
         assertNotNull(namedThreadFactory(this.getClass().getName(), ThreadFactories.Type.USER, Thread.NORM_PRIORITY));
+    }
+
+    @Test
+    public void uncaughtExceptionHandler() throws Exception {
+        final BlockingReference<Throwable> ref = BlockingReference.newSRSW();
+        ThreadFactories.named(this.getClass().getName()).type(ThreadFactories.Type.USER).uncaughtExceptionHandler(
+            new Thread.UncaughtExceptionHandler() {
+
+                @Override
+                public void uncaughtException(final Thread t, final Throwable e) {
+                    ref.set(e);
+                }
+            }).build().newThread(new Runnable() {
+            @Override
+            public void run() {
+                throw new IllegalArgumentException("the one!");
+            }
+        }).start();
+        final Throwable throwable = ref.get(2, TimeUnit.SECONDS);
+        assertNotNull(throwable);
+        assertEquals("the one!", throwable.getMessage());
     }
 
     @Test(expected = IllegalArgumentException.class)
