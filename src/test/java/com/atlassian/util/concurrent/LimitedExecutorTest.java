@@ -18,8 +18,8 @@ public class LimitedExecutorTest {
         class Adder implements Runnable {
             @Override
             public void run() {
-                ready.release();
                 count.incrementAndGet();
+                ready.release();
                 try {
                     release.await();
                 } catch (final InterruptedException e) {}
