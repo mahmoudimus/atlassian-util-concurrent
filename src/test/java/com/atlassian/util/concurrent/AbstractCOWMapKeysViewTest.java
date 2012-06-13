@@ -133,6 +133,7 @@ public class AbstractCOWMapKeysViewTest {
     static final Map<String, String> emptyMap = Collections.<String, String> emptyMap();
 
     static class MutableView extends AbstractCopyOnWriteMap<String, String, Map<String, String>> {
+        private static final long serialVersionUID = 8917313652796867115L;
 
         MutableView() {
             super(emptyMap, View.Type.LIVE);
@@ -142,6 +143,5 @@ public class AbstractCOWMapKeysViewTest {
         <N extends java.util.Map<? extends String, ? extends String>> java.util.Map<String, String> copy(final N map) {
             return new HashMap<String, String>(map);
         }
-    };
-
+    }
 }

@@ -30,5 +30,7 @@ public class ExceptionPolicyTest
         return result;
     }
 
-    public class TestException extends RuntimeException {}
+    public class TestException extends RuntimeException {
+        private static final long serialVersionUID = -2371420516340597047L;
+    }
 }

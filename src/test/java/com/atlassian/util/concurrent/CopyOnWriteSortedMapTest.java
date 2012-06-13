@@ -71,16 +71,14 @@ public class CopyOnWriteSortedMapTest {
         assertEquals(3, map.size());
     }
 
-    @SuppressWarnings("unchecked")
     @Test(expected = IllegalArgumentException.class)
     public void mapNullConstructor() {
-        CopyOnWriteSortedMap.newTreeMap((Map) null);
+        CopyOnWriteSortedMap.newTreeMap((Map<?, ?>) null);
     }
 
-    @SuppressWarnings("unchecked")
     @Test(expected = IllegalArgumentException.class)
     public void comparatorNullConstructor() {
-        CopyOnWriteSortedMap.newTreeMap((Comparator) null);
+        CopyOnWriteSortedMap.newTreeMap((Comparator<String>) null);
     }
 
     @Test(expected = IllegalArgumentException.class)

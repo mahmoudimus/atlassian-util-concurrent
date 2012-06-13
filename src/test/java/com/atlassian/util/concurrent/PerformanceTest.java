@@ -52,8 +52,7 @@ public class PerformanceTest {
             public void run() {
                 try {
                     while (true) {
-                        int j = 0;
-                        j += q.take();
+                        q.take();
                     }
                 } catch (final InterruptedException e) {}
             }
