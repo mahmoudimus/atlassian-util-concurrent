@@ -79,7 +79,7 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.0.1</version>
+				<version>2.0.1</version><!--$NO-MVN-MAN-VER$-->
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
@@ -120,9 +120,9 @@
 			<optional>true</optional>
 		</dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>r07</version>
+            <groupId>com.googlecode.guava-osgi</groupId>
+            <artifactId>guava-osgi</artifactId>
+            <version>${guava.osgi.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -166,5 +166,6 @@
 	</distributionManagement>
 	<properties>
 		<jdkLevel>1.5</jdkLevel>
+        <guava.osgi.version>10.0.1</guava.osgi.version>
 	</properties>
 </project>
