@@ -1,10 +1,19 @@
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Promises.futureCallback;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.SettableFuture;
+import java.util.List;
+
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
@@ -12,12 +21,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.List;
-
-import static com.atlassian.util.concurrent.Promises.futureCallback;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import com.atlassian.util.concurrent.atomic.AtomicReference;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.SettableFuture;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PromisesTest {
@@ -38,11 +46,11 @@ public class PromisesTest {
     assertThat(promise.isCancelled(), is(false));
     assertThat(promise.claim(), is(instance));
 
-    promise.then(futureCallback(done, fail));
+    promise.on(futureCallback(done, fail));
     verify(done).apply(instance);
     verifyZeroInteractions(fail);
 
-    promise.then(futureCallback);
+    promise.on(futureCallback);
     verify(futureCallback).onSuccess(instance);
     verifyNoMoreInteractions(futureCallback);
   }
@@ -60,11 +68,11 @@ public class PromisesTest {
       assertSame(instance, e.getCause());
     }
 
-    promise.then(futureCallback(done, fail));
+    promise.on(futureCallback(done, fail));
     verifyZeroInteractions(done);
     verify(fail).apply(instance);
 
-    promise.then(futureCallback);
+    promise.on(futureCallback);
     verify(futureCallback).onFailure(instance);
     verifyNoMoreInteractions(futureCallback);
   }
@@ -76,8 +84,8 @@ public class PromisesTest {
     final Promise<Object> promise = Promises.forListenableFuture(future);
 
     // register call backs
-    promise.then(futureCallback(done, fail));
-    promise.then(futureCallback);
+    promise.on(futureCallback(done, fail));
+    promise.on(futureCallback);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -103,8 +111,8 @@ public class PromisesTest {
     final Promise<Object> promise = Promises.forListenableFuture(future);
 
     // register call backs
-    promise.then(futureCallback(done, fail));
-    promise.then(futureCallback);
+    promise.on(futureCallback(done, fail));
+    promise.on(futureCallback);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -157,7 +165,7 @@ public class PromisesTest {
 
     @SuppressWarnings("unchecked")
     final Effect<SomeObject> someObjectCallback = mock(Effect.class);
-    transformedPromise.then(futureCallback(someObjectCallback, fail));
+    transformedPromise.on(futureCallback(someObjectCallback, fail));
 
     assertThat(transformedPromise.claim().object, is(instance));
     verify(someObjectCallback).apply(argThat(new SomeObjectMatcher(instance)));
@@ -198,7 +206,7 @@ public class PromisesTest {
 
     @SuppressWarnings("unchecked")
     final Effect<SomeObject> someObjectCallback = mock(Effect.class);
-    transformedPromise.then(futureCallback(someObjectCallback, fail));
+    transformedPromise.on(futureCallback(someObjectCallback, fail));
 
     try {
       transformedPromise.claim();
@@ -212,118 +220,153 @@ public class PromisesTest {
   @Test
   public void whenPromiseSettingValue() {
 
-    final SettableFuture<Object> future1 = SettableFuture.create();
-    final SettableFuture<Object> future2 = SettableFuture.create();
+    final SettableFuture<Object> f1 = SettableFuture.create();
+    final SettableFuture<Object> f2 = SettableFuture.create();
 
-    final Promise<Object> promise1 = Promises.forListenableFuture(future1);
-    final Promise<Object> promise2 = Promises.forListenableFuture(future2);
+    final Promise<Object> p1 = Promises.forListenableFuture(f1);
+    final Promise<Object> p2 = Promises.forListenableFuture(f2);
 
     @SuppressWarnings("unchecked")
-    final Promise<List<Object>> whenPromise = Promises.when(promise1, promise2);
+    final Promise<List<Object>> seq = Promises.sequence(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
-    whenPromise.then(futureCallback(doneCallback, fail));
+    seq.on(futureCallback(doneCallback, fail));
 
-    assertThat(promise1.isDone(), is(false));
-    assertThat(promise1.isCancelled(), is(false));
+    assertThat(p1.isDone(), is(false));
+    assertThat(p1.isCancelled(), is(false));
 
-    assertThat(promise2.isDone(), is(false));
-    assertThat(promise2.isCancelled(), is(false));
+    assertThat(p2.isDone(), is(false));
+    assertThat(p2.isCancelled(), is(false));
 
-    assertThat(whenPromise.isDone(), is(false));
-    assertThat(whenPromise.isCancelled(), is(false));
+    assertThat(seq.isDone(), is(false));
+    assertThat(seq.isCancelled(), is(false));
 
     final Object instance1 = new Object();
-    future1.set(instance1);
+    f1.set(instance1);
 
-    assertThat(promise1.isDone(), is(true));
-    assertThat(promise1.isCancelled(), is(false));
+    assertThat(p1.isDone(), is(true));
+    assertThat(p1.isCancelled(), is(false));
 
-    assertThat(promise2.isDone(), is(false));
-    assertThat(promise2.isCancelled(), is(false));
+    assertThat(p2.isDone(), is(false));
+    assertThat(p2.isCancelled(), is(false));
 
-    assertThat(whenPromise.isDone(), is(false));
-    assertThat(whenPromise.isCancelled(), is(false));
+    assertThat(seq.isDone(), is(false));
+    assertThat(seq.isCancelled(), is(false));
 
     verifyZeroInteractions(doneCallback);
     verifyZeroInteractions(fail);
 
     final Object instance2 = new Object();
-    future2.set(instance2);
+    f2.set(instance2);
 
-    assertThat(promise1.isDone(), is(true));
-    assertThat(promise1.isCancelled(), is(false));
+    assertThat(p1.isDone(), is(true));
+    assertThat(p1.isCancelled(), is(false));
 
-    assertThat(promise2.isDone(), is(true));
-    assertThat(promise2.isCancelled(), is(false));
+    assertThat(p2.isDone(), is(true));
+    assertThat(p2.isCancelled(), is(false));
 
-    assertThat(whenPromise.isDone(), is(true));
-    assertThat(whenPromise.isCancelled(), is(false));
+    assertThat(seq.isDone(), is(true));
+    assertThat(seq.isCancelled(), is(false));
 
-    assertThat(whenPromise.claim(), contains(instance1, instance2));
+    assertThat(seq.claim(), contains(instance1, instance2));
     verify(doneCallback).apply(Lists.newArrayList(instance1, instance2));
     verifyZeroInteractions(fail);
   }
 
   @Test
-  public void whenPromiseSettingException() {
+  public void sequencePromiseSettingException() {
 
-    final SettableFuture<Object> future1 = SettableFuture.create();
-    final SettableFuture<Object> future2 = SettableFuture.create();
+    final SettableFuture<Object> f1 = SettableFuture.create();
+    final SettableFuture<Object> f2 = SettableFuture.create();
 
-    final Promise<Object> promise1 = Promises.forListenableFuture(future1);
-    final Promise<Object> promise2 = Promises.forListenableFuture(future2);
+    final Promise<Object> p1 = Promises.forListenableFuture(f1);
+    final Promise<Object> p2 = Promises.forListenableFuture(f2);
 
     @SuppressWarnings("unchecked")
-    final Promise<List<Object>> whenPromise = Promises.when(promise1, promise2);
+    final Promise<List<Object>> sequenced = Promises.sequence(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
-    whenPromise.then(futureCallback(doneCallback, fail));
+    sequenced.on(futureCallback(doneCallback, fail));
 
-    assertThat(promise1.isDone(), is(false));
-    assertThat(promise1.isCancelled(), is(false));
+    assertThat(p1.isDone(), is(false));
+    assertThat(p1.isCancelled(), is(false));
 
-    assertThat(promise2.isDone(), is(false));
-    assertThat(promise2.isCancelled(), is(false));
+    assertThat(p2.isDone(), is(false));
+    assertThat(p2.isCancelled(), is(false));
 
-    assertThat(whenPromise.isDone(), is(false));
-    assertThat(whenPromise.isCancelled(), is(false));
+    assertThat(sequenced.isDone(), is(false));
+    assertThat(sequenced.isCancelled(), is(false));
 
     final Throwable throwable = new Throwable();
-    future1.setException(throwable);
+    f1.setException(throwable);
 
-    assertThat(promise1.isDone(), is(true));
-    assertThat(promise1.isCancelled(), is(false));
+    assertThat(p1.isDone(), is(true));
+    assertThat(p1.isCancelled(), is(false));
 
-    assertThat(promise2.isDone(), is(false));
-    assertThat(promise2.isCancelled(), is(false));
+    assertThat(p2.isDone(), is(false));
+    assertThat(p2.isCancelled(), is(false));
 
-    assertThat(whenPromise.isDone(), is(true));
-    assertThat(whenPromise.isCancelled(), is(false));
+    assertThat(sequenced.isDone(), is(true));
+    assertThat(sequenced.isCancelled(), is(false));
 
     verifyZeroInteractions(doneCallback);
     verify(fail).apply(throwable);
 
     final Throwable instance2 = new Throwable();
-    future2.setException(instance2);
+    f2.setException(instance2);
 
-    assertThat(promise1.isDone(), is(true));
-    assertThat(promise1.isCancelled(), is(false));
+    assertThat(p1.isDone(), is(true));
+    assertThat(p1.isCancelled(), is(false));
 
-    assertThat(promise2.isDone(), is(true));
-    assertThat(promise2.isCancelled(), is(false));
+    assertThat(p2.isDone(), is(true));
+    assertThat(p2.isCancelled(), is(false));
 
-    assertThat(whenPromise.isDone(), is(true));
-    assertThat(whenPromise.isCancelled(), is(false));
+    assertThat(sequenced.isDone(), is(true));
+    assertThat(sequenced.isCancelled(), is(false));
 
     verifyZeroInteractions(doneCallback);
     verifyNoMoreInteractions(fail);
 
     try {
-      whenPromise.claim();
+      sequenced.claim();
     } catch (RuntimeException e) {
       assertSame(throwable, e.getCause());
     }
+  }
+
+  @Test
+  public void onSuccessAddsFutureCallback() {
+    final AtomicReference<String> ref = new AtomicReference<String>();
+    final SettableFuture<String> f = SettableFuture.<String> create();
+    Promise<String> p = Promises.forListenableFuture(f);
+    p.onSuccess(new Effect<String>() {
+      @Override
+      public void apply(String s) {
+        ref.getAndSet("called: " + s);
+      }
+    });
+
+    assertThat(ref.get(), is(nullValue()));
+    f.set("done!");
+    assertThat(ref.get(), is("called: done!"));
+  }
+
+  @Test
+  public void onFailureAddsFutureCallback() {
+    final AtomicReference<Throwable> ref = new AtomicReference<Throwable>();
+    final SettableFuture<String> f = SettableFuture.<String> create();
+    Promise<String> p = Promises.forListenableFuture(f);
+    p.onFailure(new Effect<Throwable>() {
+      @Override
+      public void apply(Throwable t) {
+        ref.getAndSet(t);
+      }
+    });
+
+    assertThat(ref.get(), is(nullValue()));
+    Throwable ex = new RuntimeException("boo yaa!");
+    f.setException(ex);
+    assertThat(ref.get(), is(ex));
   }
 
   private static class SomeObject {

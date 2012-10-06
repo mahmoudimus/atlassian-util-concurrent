@@ -1,3 +1,18 @@
+/**
+ * Copyright 2012 Atlassian Pty Ltd 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 package com.atlassian.util.concurrent;
 
 import static java.util.Arrays.asList;
@@ -5,10 +20,9 @@ import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import com.atlassian.util.concurrent.RuntimeInterruptedException;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.ForwardingListenableFuture;
+import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -17,7 +31,7 @@ import com.google.common.util.concurrent.SettableFuture;
 /**
  * Library of utility {@link Promise} functions
  * 
- * @since 1.2
+ * @since 2.4
  */
 @Beta
 public final class Promises {
@@ -30,8 +44,8 @@ public final class Promises {
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> when(Promise<? extends V>... promises) {
-    return when(asList(promises));
+  public static <V> Promise<List<V>> sequence(Promise<? extends V>... promises) {
+    return sequence(asList(promises));
   }
 
   /**
@@ -41,7 +55,7 @@ public final class Promises {
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> when(Iterable<? extends Promise<? extends V>> promises) {
+  public static <V> Promise<List<V>> sequence(Iterable<? extends Promise<? extends V>> promises) {
     return forListenableFuture(Futures.<V> allAsList(promises));
   }
 
@@ -85,7 +99,7 @@ public final class Promises {
    * @param delegate The future to be rejected on a fail event
    * @return The fail callback
    */
-  public static Effect<Throwable> reject(final SettableFuture<?> delegate) {
+  public static Effect<Throwable> fail(final SettableFuture<?> delegate) {
     return new Effect<Throwable>() {
       @Override
       public void apply(Throwable t) {
@@ -137,8 +151,7 @@ public final class Promises {
     return futureCallback(Effects.<V> noop(), effect);
   }
 
-  private static final class Of<V> extends ForwardingListenableFuture.SimpleForwardingListenableFuture<V> implements
-    Promise<V> {
+  private static final class Of<V> extends SimpleForwardingListenableFuture<V> implements Promise<V> {
     public Of(ListenableFuture<V> delegate) {
       super(delegate);
     }
@@ -150,7 +163,7 @@ public final class Promises {
       } catch (InterruptedException e) {
         throw new RuntimeInterruptedException(e);
       } catch (ExecutionException e) {
-        Throwable cause = e.getCause();
+        final Throwable cause = e.getCause();
         if (cause instanceof RuntimeException) {
           throw (RuntimeException) cause;
         }
@@ -162,7 +175,19 @@ public final class Promises {
     }
 
     @Override
-    public Promise<V> then(FutureCallback<V> callback) {
+    public Promise<V> onSuccess(Effect<V> e) {
+      on(onSuccessDo(e));
+      return this;
+    }
+
+    @Override
+    public Promise<V> onFailure(Effect<Throwable> e) {
+      on(Promises.<V> onFailureDo(e));
+      return this;
+    }
+
+    @Override
+    public Promise<V> on(FutureCallback<V> callback) {
       Futures.addCallback(delegate(), callback);
       return this;
     }
@@ -173,18 +198,19 @@ public final class Promises {
     }
 
     @Override
-    public <T> Promise<T> flatMap(final Function<? super V, Promise<T>> function) {
+    public <T> Promise<T> flatMap(final Function<? super V, Promise<T>> f) {
       final SettableFuture<T> result = SettableFuture.create();
-      final Effect<Throwable> fail = reject(result);
-      then(futureCallback(new Effect<V>() {
+      final Effect<Throwable> failResult = fail(result);
+      onSuccess(new Effect<V>() {
         public void apply(V v) {
-          function.apply(v).then(futureCallback(new Effect<T>() {
+          Promise<T> next = f.apply(v);
+          next.onSuccess(new Effect<T>() {
             public void apply(T t) {
               result.set(t);
             }
-          }, fail));
+          }).onFailure(failResult);
         }
-      }, fail));
+      }).onFailure(failResult);
       return new Of<T>(result);
     }
   }
