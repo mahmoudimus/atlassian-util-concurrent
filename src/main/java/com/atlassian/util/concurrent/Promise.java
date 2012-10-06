@@ -1,3 +1,18 @@
+/**
+ * Copyright 2012 Atlassian Pty Ltd 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Future;
@@ -14,7 +29,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * new types of Promise via the {@link #map(Function)} and
  * {@link #flatMap(Function)} methods.
  * 
- * @since 1.2
+ * @since 2.4
  */
 @Beta
 public interface Promise<V> extends ListenableFuture<V> {
@@ -27,8 +42,26 @@ public interface Promise<V> extends ListenableFuture<V> {
   V claim();
 
   /**
-   * Registers a FutureCallback to handle both done (success) and fail
-   * (exception) cases. May not be executed in the same thread as the caller.
+   * Registers a callback to be called when the promised object is available.
+   * May not be executed in the same thread as the caller.
+   * 
+   * @param e The effect to perform with the result
+   * @return This object for chaining
+   */
+  Promise<V> onSuccess(Effect<V> e);
+
+  /**
+   * Registers a callback to be called when an exception is thrown. May not be
+   * executed in the same thread as the caller.
+   * 
+   * @param e The effect to perform with the throwable
+   * @return This object for chaining
+   */
+  Promise<V> onFailure(Effect<Throwable> e);
+
+  /**
+   * Registers a FutureCallback to handle both success and failure (exception)
+   * cases. May not be executed in the same thread as the caller.
    * <p>
    * See {@link Promises#futureCallback(Effect, Effect)}
    * {@link Promises#onSuccessDo(Effect)} and
@@ -38,7 +71,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<V> then(FutureCallback<V> callback);
+  Promise<V> on(FutureCallback<V> callback);
 
   /**
    * Transforms this promise from one type to another by way of a transformation
