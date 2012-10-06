@@ -74,25 +74,26 @@ public interface Promise<V> extends ListenableFuture<V> {
   Promise<V> on(FutureCallback<V> callback);
 
   /**
-   * Transforms this promise from one type to another by way of a transformation
-   * function.
+   * Transforms this {@link Promise} from one type to another by way of a
+   * transformation function.
    * <p>
-   * Note: This overload of {@code transform} is designed for cases in which the
-   * transformation is fast and lightweight, as the method does not accept an
-   * {@code Executor} to perform the the work in. For more details see the note
-   * on {@link Futures#transform(Future, Function)}.
+   * Note: This is designed for cases in which the transformation is fast and
+   * lightweight, as the method is performed on the same thread as the thing
+   * producing this promise. For more details see the note on
+   * {@link Futures#transform(Future, Function)}.
    * 
    * @param function The transformation function
    * @return A new promise resulting from the transformation
    */
-  public <T> Promise<T> map(Function<? super V, ? extends T> function);
+  <T> Promise<T> map(Function<? super V, ? extends T> function);
 
   /**
    * Transforms this promise from one type to another by way of a transformation
-   * function that returns a new Promise.
+   * function that returns a new Promise, leaving the strategy for that promise
+   * production up to the function.
    * 
    * @param function The transformation function
    * @return A new promise resulting from the transformation
    */
-  public <T> Promise<T> flatMap(Function<? super V, Promise<T>> function);
+  <T> Promise<T> flatMap(Function<? super V, Promise<T>> function);
 }
