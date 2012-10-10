@@ -25,8 +25,8 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:hg@bitbucket.org:atlassian/atlassian-util-concurrent.git</connection>
-		<developerConnection>scm:git:hg@bitbucket.org:atlassian/atlassian-util-concurrent.git</developerConnection>
+		<connection>scm:git:git@bitbucket.org:atlassian/atlassian-util-concurrent.git</connection>
+		<developerConnection>scm:git:git@bitbucket.org:atlassian/atlassian-util-concurrent.git</developerConnection>
 		<url>https://bitbucket.org/atlassian/atlassian-util-concurrent</url>
 	</scm>
 	<licenses>
