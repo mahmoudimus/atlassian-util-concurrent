@@ -227,7 +227,7 @@ public class PromisesTest {
     final Promise<Object> p2 = Promises.forListenableFuture(f2);
 
     @SuppressWarnings("unchecked")
-    final Promise<List<Object>> seq = Promises.sequence(p1, p2);
+    final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
     seq.on(futureCallback(doneCallback, fail));
@@ -283,7 +283,7 @@ public class PromisesTest {
     final Promise<Object> p2 = Promises.forListenableFuture(f2);
 
     @SuppressWarnings("unchecked")
-    final Promise<List<Object>> sequenced = Promises.sequence(p1, p2);
+    final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
     sequenced.on(futureCallback(doneCallback, fail));

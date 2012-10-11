@@ -44,18 +44,19 @@ public final class Promises {
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> sequence(Promise<? extends V>... promises) {
-    return sequence(asList(promises));
+  public static <V> Promise<List<V>> when(Promise<? extends V>... promises) {
+    return when(asList(promises));
   }
 
   /**
    * Returns a new {@link Promise} representing the status of a list of other
-   * promises.
+   * promises. More generally this is known as {code}sequence{code} as both List
+   * and Promise are traversable monads.
    * 
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> sequence(Iterable<? extends Promise<? extends V>> promises) {
+  public static <V> Promise<List<V>> when(Iterable<? extends Promise<? extends V>> promises) {
     return forListenableFuture(Futures.<V> allAsList(promises));
   }
 
