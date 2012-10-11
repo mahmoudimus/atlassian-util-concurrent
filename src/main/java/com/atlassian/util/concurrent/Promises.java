@@ -76,13 +76,13 @@ public final class Promises {
    * Creates a new, resolved promise for the specified concrete value.
    * <p>
    * Synonym for {@link #promise(Object)}.
-   *
+   * 
    * @param value The value for which a promise should be created
    * @return The new promise
    */
-   public static <A> Promise<A> toResolvedPromise(A value) {
-     return promise(value);
-   }
+  public static <A> Promise<A> toResolvedPromise(A value) {
+    return promise(value);
+  }
 
   /**
    * Creates a new, rejected promise from the given {@link Throwable} and result
@@ -100,7 +100,7 @@ public final class Promises {
    * Creates a new, rejected promise from the given Throwable and result type.
    * <p>
    * Synonym for {@link #rejected(Throwable, Class)}
-   *
+   * 
    * @param t The throwable
    * @param resultType The result type
    * @return The new promise
@@ -145,7 +145,7 @@ public final class Promises {
       }
     };
   }
-
+  
   /**
    * Create a {@link FutureCallback} by composing two Effects.
    * 
