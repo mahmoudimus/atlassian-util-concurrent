@@ -44,7 +44,7 @@ public final class Promises {
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> when(Promise<? extends V>... promises) {
+  public static <A> Promise<List<A>> when(Promise<? extends A>... promises) {
     return when(asList(promises));
   }
 
@@ -56,8 +56,8 @@ public final class Promises {
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> when(Iterable<? extends Promise<? extends V>> promises) {
-    return forListenableFuture(Futures.<V> allAsList(promises));
+  public static <A> Promise<List<A>> when(Iterable<? extends Promise<? extends A>> promises) {
+    return forListenableFuture(Futures.<A> allAsList(promises));
   }
 
   /**
@@ -66,9 +66,21 @@ public final class Promises {
    * @param value The value for which a promise should be created
    * @return The new promise
    */
-  public static <V> Promise<V> promise(V value) {
-    return new Of<V>(Futures.immediateFuture(value));
+  public static <A> Promise<A> promise(A value) {
+    return new Of<A>(Futures.immediateFuture(value));
   }
+
+  /**
+   * Creates a new, resolved promise for the specified concrete value.
+   * <p>
+   * Synonym for {@link #promise(Object)}.
+   *
+   * @param value The value for which a promise should be created
+   * @return The new promise
+   */
+   public static <A> Promise<A> toResolvedPromise(A value) {
+     return promise(value);
+   }
 
   /**
    * Creates a new, rejected promise from the given {@link Throwable} and result
@@ -78,29 +90,21 @@ public final class Promises {
    * @param resultType The result type
    * @return The new promise
    */
-  public static <V> Promise<V> rejected(Throwable throwable, Class<V> resultType) {
-    return new Of<V>(Futures.<V> immediateFailedFuture(throwable));
+  public static <A> Promise<A> rejected(Throwable throwable, Class<A> resultType) {
+    return new Of<A>(Futures.<A> immediateFailedFuture(throwable));
   }
 
   /**
-   * Creates a new, resolved promise for the specified concrete value.
-   *
-   * @param value The value for which a promise should be created
-   * @return The new promise
-   */
-   public static <V> Promise<V> toResolvedPromise(V value) {
-     return Deferred.<V>create().resolve(value).promise();
-   }
-
-  /**
    * Creates a new, rejected promise from the given Throwable and result type.
+   * <p>
+   * Synonym for {@link #rejected(Throwable, Class)}
    *
    * @param t The throwable
    * @param resultType The result type
    * @return The new promise
    */
-  public static <V> Promise<V> toRejectedPromise(Throwable t, Class<V> resultType) {
-    return Deferred.<V>create().reject(t).promise();
+  public static <A> Promise<A> toRejectedPromise(Throwable t, Class<A> resultType) {
+    return rejected(t, resultType);
   }
 
   /**
@@ -109,8 +113,8 @@ public final class Promises {
    * @param future The future delegate for the new promise
    * @return The new promise
    */
-  public static <V> Promise<V> forListenableFuture(ListenableFuture<V> future) {
-    return new Of<V>(future);
+  public static <A> Promise<A> forListenableFuture(ListenableFuture<A> future) {
+    return new Of<A>(future);
   }
 
   /**
@@ -154,10 +158,10 @@ public final class Promises {
    * @param failure To run if the Future fails
    * @return The composed futureCallback
    */
-  public static <V> FutureCallback<V> futureCallback(final Effect<V> success, final Effect<Throwable> failure) {
-    return new FutureCallback<V>() {
+  public static <A> FutureCallback<A> futureCallback(final Effect<A> success, final Effect<Throwable> failure) {
+    return new FutureCallback<A>() {
       @Override
-      public void onSuccess(V result) {
+      public void onSuccess(A result) {
         success.apply(result);
       }
 
@@ -175,7 +179,7 @@ public final class Promises {
    * @param effect To be passed the produced value if it happens
    * @return The FutureCallback with a no-op onFailure
    */
-  public static <V> FutureCallback<V> onSuccessDo(final Effect<V> effect) {
+  public static <A> FutureCallback<A> onSuccessDo(final Effect<A> effect) {
     return futureCallback(effect, Effects.<Throwable> noop());
   }
 
@@ -186,17 +190,17 @@ public final class Promises {
    * @param effect To be passed an exception if it happens
    * @return The FutureCallback with a no-op onSuccess
    */
-  public static <V> FutureCallback<V> onFailureDo(final Effect<Throwable> effect) {
-    return futureCallback(Effects.<V> noop(), effect);
+  public static <A> FutureCallback<A> onFailureDo(final Effect<Throwable> effect) {
+    return futureCallback(Effects.<A> noop(), effect);
   }
 
-  private static final class Of<V> extends SimpleForwardingListenableFuture<V> implements Promise<V> {
-    public Of(ListenableFuture<V> delegate) {
+  private static final class Of<A> extends SimpleForwardingListenableFuture<A> implements Promise<A> {
+    public Of(ListenableFuture<A> delegate) {
       super(delegate);
     }
 
     @Override
-    public V claim() {
+    public A claim() {
       try {
         return delegate().get();
       } catch (InterruptedException e) {
@@ -214,43 +218,43 @@ public final class Promises {
     }
 
     @Override
-    public Promise<V> done(Effect<V> e) {
+    public Promise<A> done(Effect<A> e) {
       on(onSuccessDo(e));
       return this;
     }
 
     @Override
-    public Promise<V> fail(Effect<Throwable> e) {
-      on(Promises.<V> onFailureDo(e));
+    public Promise<A> fail(Effect<Throwable> e) {
+      on(Promises.<A> onFailureDo(e));
       return this;
     }
 
     @Override
-    public Promise<V> on(FutureCallback<V> callback) {
+    public Promise<A> on(FutureCallback<A> callback) {
       Futures.addCallback(delegate(), callback);
       return this;
     }
 
     @Override
-    public <O> Promise<O> map(Function<? super V, ? extends O> function) {
+    public <B> Promise<B> map(Function<? super A, ? extends B> function) {
       return forListenableFuture(Futures.transform(this, function));
     }
 
     @Override
-    public <T> Promise<T> flatMap(final Function<? super V, Promise<T>> f) {
-      final SettableFuture<T> result = SettableFuture.create();
+    public <B> Promise<B> flatMap(final Function<? super A, Promise<B>> f) {
+      final SettableFuture<B> result = SettableFuture.create();
       final Effect<Throwable> failResult = reject(result);
-      done(new Effect<V>() {
-        public void apply(V v) {
-          Promise<T> next = f.apply(v);
-          next.done(new Effect<T>() {
-            public void apply(T t) {
+      done(new Effect<A>() {
+        public void apply(A v) {
+          Promise<B> next = f.apply(v);
+          next.done(new Effect<B>() {
+            public void apply(B t) {
               result.set(t);
             }
           }).fail(failResult);
         }
       }).fail(failResult);
-      return new Of<T>(result);
+      return new Of<B>(result);
     }
   }
 }
