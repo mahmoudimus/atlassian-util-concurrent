@@ -74,12 +74,33 @@ public final class Promises {
    * Creates a new, rejected promise from the given {@link Throwable} and result
    * type.
    * 
-   * @param instance The throwable
+   * @param throwable The throwable
    * @param resultType The result type
    * @return The new promise
    */
   public static <V> Promise<V> rejected(Throwable throwable, Class<V> resultType) {
     return new Of<V>(Futures.<V> immediateFailedFuture(throwable));
+  }
+
+  /**
+   * Creates a new, resolved promise for the specified concrete value.
+   *
+   * @param value The value for which a promise should be created
+   * @return The new promise
+   */
+   public static <V> Promise<V> toResolvedPromise(V value) {
+     return Deferred.<V>create().resolve(value).promise();
+   }
+
+  /**
+   * Creates a new, rejected promise from the given Throwable and result type.
+   *
+   * @param t The throwable
+   * @param resultType The result type
+   * @return The new promise
+   */
+  public static <V> Promise<V> toRejectedPromise(Throwable t, Class<V> resultType) {
+    return Deferred.<V>create().reject(t).promise();
   }
 
   /**
@@ -93,6 +114,23 @@ public final class Promises {
   }
 
   /**
+   * Creates a new {@link Effect} that forwards a promise's fail events to
+   * the specified deferred delegate's <code>reject</code> method -- that is, the new
+   * callback rejects the delegate deferred if invoked.
+   *
+   * @param delegate The deferred to be rejected on a fail event
+   * @return The fail callback
+   */
+  public static Effect<Throwable> reject(final Deferred<?> delegate) {
+    return new Effect<Throwable>() {
+      @Override
+      public void apply(Throwable t) {
+        delegate.reject(t);
+      }
+    };
+  }
+
+  /**
    * Creates a new {@link Effect} that forwards a promise's fail events to the
    * specified future delegate's {@link SettableFuture#setException(Throwable)}
    * method -- that is, the new callback rejects the delegate future if invoked.
@@ -100,7 +138,7 @@ public final class Promises {
    * @param delegate The future to be rejected on a fail event
    * @return The fail callback
    */
-  public static Effect<Throwable> failEffect(final SettableFuture<?> delegate) {
+  public static Effect<Throwable> reject(final SettableFuture<?> delegate) {
     return new Effect<Throwable>() {
       @Override
       public void apply(Throwable t) {
@@ -201,7 +239,7 @@ public final class Promises {
     @Override
     public <T> Promise<T> flatMap(final Function<? super V, Promise<T>> f) {
       final SettableFuture<T> result = SettableFuture.create();
-      final Effect<Throwable> failResult = failEffect(result);
+      final Effect<Throwable> failResult = reject(result);
       done(new Effect<V>() {
         public void apply(V v) {
           Promise<T> next = f.apply(v);
