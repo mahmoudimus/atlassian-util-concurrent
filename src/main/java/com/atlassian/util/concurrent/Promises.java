@@ -130,23 +130,6 @@ public final class Promises {
   }
 
   /**
-   * Creates a new {@link Effect} that forwards a promise's fail events to
-   * the specified deferred delegate's <code>reject</code> method -- that is, the new
-   * callback rejects the delegate deferred if invoked.
-   *
-   * @param delegate The deferred to be rejected on a fail event
-   * @return The fail callback
-   */
-  public static Effect<Throwable> reject(final Deferred<?> delegate) {
-    return new Effect<Throwable>() {
-      @Override
-      public void apply(Throwable t) {
-        delegate.reject(t);
-      }
-    };
-  }
-
-  /**
    * Creates a new {@link Effect} that forwards a promise's fail events to the
    * specified future delegate's {@link SettableFuture#setException(Throwable)}
    * method -- that is, the new callback rejects the delegate future if invoked.
