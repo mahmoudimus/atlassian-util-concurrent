@@ -63,10 +63,10 @@ public final class Promises {
   /**
    * Creates a new, resolved promise for the specified concrete value.
    * 
-   * @param instance The value for which a promise should be created
+   * @param value The value for which a promise should be created
    * @return The new promise
    */
-  public static <V> Promise<V> ofInstance(V value) {
+  public static <V> Promise<V> promise(V value) {
     return new Of<V>(Futures.immediateFuture(value));
   }
 

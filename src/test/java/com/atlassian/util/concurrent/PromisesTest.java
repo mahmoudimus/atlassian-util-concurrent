@@ -38,9 +38,9 @@ public class PromisesTest {
   private FutureCallback<Object> futureCallback;
 
   @Test
-  public void promiseOfInstance() {
+  public void promiseValue() {
     final Object instance = new Object();
-    final Promise<Object> promise = Promises.ofInstance(instance);
+    final Promise<Object> promise = Promises.promise(instance);
 
     assertThat(promise.isDone(), is(true));
     assertThat(promise.isCancelled(), is(false));
