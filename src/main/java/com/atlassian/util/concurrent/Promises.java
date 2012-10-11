@@ -19,12 +19,14 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.JdkFutureAdapters;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
@@ -115,6 +117,16 @@ public final class Promises {
    */
   public static <A> Promise<A> forListenableFuture(ListenableFuture<A> future) {
     return new Of<A>(future);
+  }
+
+  /**
+   * Creates a promise from the given future.
+   * 
+   * @param future The future delegate for the new promise
+   * @return The new promise
+   */
+  public static <A> Promise<A> forFuture(Future<A> future) {
+    return new Of<A>(JdkFutureAdapters.listenInPoolThread(future));
   }
 
   /**
