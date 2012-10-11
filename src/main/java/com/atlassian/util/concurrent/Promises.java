@@ -44,28 +44,29 @@ public final class Promises {
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> sequence(Promise<? extends V>... promises) {
-    return sequence(asList(promises));
+  public static <V> Promise<List<V>> when(Promise<? extends V>... promises) {
+    return when(asList(promises));
   }
 
   /**
    * Returns a new {@link Promise} representing the status of a list of other
-   * promises.
+   * promises. More generally this is known as {code}sequence{code} as both List
+   * and Promise are traversable monads.
    * 
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <V> Promise<List<V>> sequence(Iterable<? extends Promise<? extends V>> promises) {
+  public static <V> Promise<List<V>> when(Iterable<? extends Promise<? extends V>> promises) {
     return forListenableFuture(Futures.<V> allAsList(promises));
   }
 
   /**
    * Creates a new, resolved promise for the specified concrete value.
    * 
-   * @param instance The value for which a promise should be created
+   * @param value The value for which a promise should be created
    * @return The new promise
    */
-  public static <V> Promise<V> ofInstance(V value) {
+  public static <V> Promise<V> promise(V value) {
     return new Of<V>(Futures.immediateFuture(value));
   }
 
@@ -99,7 +100,7 @@ public final class Promises {
    * @param delegate The future to be rejected on a fail event
    * @return The fail callback
    */
-  public static Effect<Throwable> fail(final SettableFuture<?> delegate) {
+  public static Effect<Throwable> failEffect(final SettableFuture<?> delegate) {
     return new Effect<Throwable>() {
       @Override
       public void apply(Throwable t) {
@@ -175,13 +176,13 @@ public final class Promises {
     }
 
     @Override
-    public Promise<V> onSuccess(Effect<V> e) {
+    public Promise<V> done(Effect<V> e) {
       on(onSuccessDo(e));
       return this;
     }
 
     @Override
-    public Promise<V> onFailure(Effect<Throwable> e) {
+    public Promise<V> fail(Effect<Throwable> e) {
       on(Promises.<V> onFailureDo(e));
       return this;
     }
@@ -200,17 +201,17 @@ public final class Promises {
     @Override
     public <T> Promise<T> flatMap(final Function<? super V, Promise<T>> f) {
       final SettableFuture<T> result = SettableFuture.create();
-      final Effect<Throwable> failResult = fail(result);
-      onSuccess(new Effect<V>() {
+      final Effect<Throwable> failResult = failEffect(result);
+      done(new Effect<V>() {
         public void apply(V v) {
           Promise<T> next = f.apply(v);
-          next.onSuccess(new Effect<T>() {
+          next.done(new Effect<T>() {
             public void apply(T t) {
               result.set(t);
             }
-          }).onFailure(failResult);
+          }).fail(failResult);
         }
-      }).onFailure(failResult);
+      }).fail(failResult);
       return new Of<T>(result);
     }
   }

@@ -48,7 +48,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param e The effect to perform with the result
    * @return This object for chaining
    */
-  Promise<V> onSuccess(Effect<V> e);
+  Promise<V> done(Effect<V> e);
 
   /**
    * Registers a callback to be called when an exception is thrown. May not be
@@ -57,7 +57,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param e The effect to perform with the throwable
    * @return This object for chaining
    */
-  Promise<V> onFailure(Effect<Throwable> e);
+  Promise<V> fail(Effect<Throwable> e);
 
   /**
    * Registers a FutureCallback to handle both success and failure (exception)

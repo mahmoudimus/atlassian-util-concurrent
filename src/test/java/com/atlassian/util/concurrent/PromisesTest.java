@@ -38,9 +38,9 @@ public class PromisesTest {
   private FutureCallback<Object> futureCallback;
 
   @Test
-  public void promiseOfInstance() {
+  public void promiseValue() {
     final Object instance = new Object();
-    final Promise<Object> promise = Promises.ofInstance(instance);
+    final Promise<Object> promise = Promises.promise(instance);
 
     assertThat(promise.isDone(), is(true));
     assertThat(promise.isCancelled(), is(false));
@@ -227,7 +227,7 @@ public class PromisesTest {
     final Promise<Object> p2 = Promises.forListenableFuture(f2);
 
     @SuppressWarnings("unchecked")
-    final Promise<List<Object>> seq = Promises.sequence(p1, p2);
+    final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
     seq.on(futureCallback(doneCallback, fail));
@@ -283,7 +283,7 @@ public class PromisesTest {
     final Promise<Object> p2 = Promises.forListenableFuture(f2);
 
     @SuppressWarnings("unchecked")
-    final Promise<List<Object>> sequenced = Promises.sequence(p1, p2);
+    final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
     sequenced.on(futureCallback(doneCallback, fail));
@@ -335,11 +335,11 @@ public class PromisesTest {
   }
 
   @Test
-  public void onSuccessAddsFutureCallback() {
+  public void doneAddsFutureCallback() {
     final AtomicReference<String> ref = new AtomicReference<String>();
     final SettableFuture<String> f = SettableFuture.<String> create();
     Promise<String> p = Promises.forListenableFuture(f);
-    p.onSuccess(new Effect<String>() {
+    p.done(new Effect<String>() {
       @Override
       public void apply(String s) {
         ref.getAndSet("called: " + s);
@@ -352,11 +352,11 @@ public class PromisesTest {
   }
 
   @Test
-  public void onFailureAddsFutureCallback() {
+  public void failAddsFutureCallback() {
     final AtomicReference<Throwable> ref = new AtomicReference<Throwable>();
     final SettableFuture<String> f = SettableFuture.<String> create();
     Promise<String> p = Promises.forListenableFuture(f);
-    p.onFailure(new Effect<Throwable>() {
+    p.fail(new Effect<Throwable>() {
       @Override
       public void apply(Throwable t) {
         ref.getAndSet(t);
