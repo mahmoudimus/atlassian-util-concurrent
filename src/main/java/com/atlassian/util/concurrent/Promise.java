@@ -32,14 +32,14 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @since 2.4
  */
 @Beta
-public interface Promise<V> extends ListenableFuture<V> {
+public interface Promise<A> extends ListenableFuture<A> {
   /**
    * Blocks the thread waiting for a result. Exceptions are thrown as runtime
    * exceptions.
    * 
    * @return The promised object
    */
-  V claim();
+  A claim();
 
   /**
    * Registers a callback to be called when the promised object is available.
@@ -48,7 +48,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param e The effect to perform with the result
    * @return This object for chaining
    */
-  Promise<V> done(Effect<V> e);
+  Promise<A> done(Effect<A> e);
 
   /**
    * Registers a callback to be called when an exception is thrown. May not be
@@ -57,7 +57,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param e The effect to perform with the throwable
    * @return This object for chaining
    */
-  Promise<V> fail(Effect<Throwable> e);
+  Promise<A> fail(Effect<Throwable> e);
 
   /**
    * Registers a FutureCallback to handle both success and failure (exception)
@@ -71,7 +71,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<V> on(FutureCallback<V> callback);
+  Promise<A> on(FutureCallback<A> callback);
 
   /**
    * Transforms this {@link Promise} from one type to another by way of a
@@ -85,7 +85,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param function The transformation function
    * @return A new promise resulting from the transformation
    */
-  <T> Promise<T> map(Function<? super V, ? extends T> function);
+  <B> Promise<B> map(Function<? super A, ? extends B> function);
 
   /**
    * Transforms this promise from one type to another by way of a transformation
@@ -95,5 +95,5 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param function The transformation function
    * @return A new promise resulting from the transformation
    */
-  <T> Promise<T> flatMap(Function<? super V, Promise<T>> function);
+  <B> Promise<B> flatMap(Function<? super A, Promise<B>> function);
 }
