@@ -28,6 +28,42 @@ import com.google.common.util.concurrent.ListenableFuture;
  * claimed without needing to catch checked exceptions, and it may be mapped to
  * new types of Promise via the {@link #map(Function)} and
  * {@link #flatMap(Function)} methods.
+ * <p>
+ * For instance, if you have a <code>Promise&lt;A&gt;</code> and you want to do
+ * some operation on the value (an A) you can use {@link #map(Function)} to turn
+ * this into a Promise of some other type. Let's say you get back a
+ * <code>Person</code> and you really only need their surname:
+ * <p>
+ * 
+ * <pre>
+ * public Promise&lt;String&gt; fetchSurname(PersonId id) {
+ *   Promise&lt;Person&gt; promise asyncClient.fetchPerson(id);
+ *   return promise.map(new Function&ltPerson, String&gt;() {
+ *     public String apply(Person p) {
+ *       return p.surname();
+ *     }
+ *   };
+ * }
+ * </pre>
+ * <p>
+ * If you want to do some further asynchronous operation using the value, you
+ * can use {@link #flatMap(Function)} to turn this into a Promise of some other
+ * type. Let's say you get back a <code>Person</code> and you really only need
+ * to perform a further query to get their address:
+ * 
+ * <pre>
+ * public Promise&lt;Address&gt; fetchAddress(PersonId id) {
+ *   Promise&lt;Person&gt; promise asyncClient.fetchPerson(id);
+ *   return promise.flatMap(new Function&ltPerson, Promise&lt;Address&gt;&gt;() {
+ *     public Promise&lt;Address&gt; apply(Person p) {
+ *       return asyncClient.fetchAddress(p.addressId());
+ *     }
+ *   };
+ * }
+ * </pre>
+ * <p>
+ * Note that there are a number of handy utility functions for creating
+ * <code>Promise</code> objects on the {@link Promises} companion.
  * 
  * @since 2.4
  */
