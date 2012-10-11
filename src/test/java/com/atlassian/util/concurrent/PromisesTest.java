@@ -335,11 +335,11 @@ public class PromisesTest {
   }
 
   @Test
-  public void onSuccessAddsFutureCallback() {
+  public void doneAddsFutureCallback() {
     final AtomicReference<String> ref = new AtomicReference<String>();
     final SettableFuture<String> f = SettableFuture.<String> create();
     Promise<String> p = Promises.forListenableFuture(f);
-    p.onSuccess(new Effect<String>() {
+    p.done(new Effect<String>() {
       @Override
       public void apply(String s) {
         ref.getAndSet("called: " + s);
@@ -352,11 +352,11 @@ public class PromisesTest {
   }
 
   @Test
-  public void onFailureAddsFutureCallback() {
+  public void failAddsFutureCallback() {
     final AtomicReference<Throwable> ref = new AtomicReference<Throwable>();
     final SettableFuture<String> f = SettableFuture.<String> create();
     Promise<String> p = Promises.forListenableFuture(f);
-    p.onFailure(new Effect<Throwable>() {
+    p.fail(new Effect<Throwable>() {
       @Override
       public void apply(Throwable t) {
         ref.getAndSet(t);

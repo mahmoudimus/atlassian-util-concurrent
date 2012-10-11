@@ -99,7 +99,7 @@ public final class Promises {
    * @param delegate The future to be rejected on a fail event
    * @return The fail callback
    */
-  public static Effect<Throwable> fail(final SettableFuture<?> delegate) {
+  public static Effect<Throwable> failEffect(final SettableFuture<?> delegate) {
     return new Effect<Throwable>() {
       @Override
       public void apply(Throwable t) {
@@ -175,13 +175,13 @@ public final class Promises {
     }
 
     @Override
-    public Promise<V> onSuccess(Effect<V> e) {
+    public Promise<V> done(Effect<V> e) {
       on(onSuccessDo(e));
       return this;
     }
 
     @Override
-    public Promise<V> onFailure(Effect<Throwable> e) {
+    public Promise<V> fail(Effect<Throwable> e) {
       on(Promises.<V> onFailureDo(e));
       return this;
     }
@@ -200,17 +200,17 @@ public final class Promises {
     @Override
     public <T> Promise<T> flatMap(final Function<? super V, Promise<T>> f) {
       final SettableFuture<T> result = SettableFuture.create();
-      final Effect<Throwable> failResult = fail(result);
-      onSuccess(new Effect<V>() {
+      final Effect<Throwable> failResult = failEffect(result);
+      done(new Effect<V>() {
         public void apply(V v) {
           Promise<T> next = f.apply(v);
-          next.onSuccess(new Effect<T>() {
+          next.done(new Effect<T>() {
             public void apply(T t) {
               result.set(t);
             }
-          }).onFailure(failResult);
+          }).fail(failResult);
         }
-      }).onFailure(failResult);
+      }).fail(failResult);
       return new Of<T>(result);
     }
   }
