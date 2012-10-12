@@ -127,8 +127,12 @@ public interface Promise<A> extends ListenableFuture<A> {
    * Transforms this promise from one type to another by way of a transformation
    * function that returns a new Promise, leaving the strategy for that promise
    * production up to the function.
+   * <p>
+   * Note this is known as flatMap as it first maps to a
+   * <code>Promise&lt;Promise&lt;A&gt;&gt;</code> and then flattens that out
+   * into a single layer Promise.
    * 
-   * @param function The transformation function
+   * @param function The transformation function to a new Promise value
    * @return A new promise resulting from the transformation
    */
   <B> Promise<B> flatMap(Function<? super A, Promise<B>> function);
