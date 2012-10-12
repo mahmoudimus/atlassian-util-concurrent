@@ -71,7 +71,7 @@ public interface Promise<V> extends ListenableFuture<V> {
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<V> on(FutureCallback<V> callback);
+  Promise<V> then(FutureCallback<V> callback);
 
   /**
    * Transforms this {@link Promise} from one type to another by way of a

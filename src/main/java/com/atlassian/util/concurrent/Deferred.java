@@ -130,8 +130,8 @@ public final class Deferred<V> extends AbstractFuture<V> implements Promise<V> {
   }
 
   @Override
-  public Deferred<V> on(FutureCallback<V> callback) {
-    promise.on(callback);
+  public Deferred<V> then(FutureCallback<V> callback) {
+    promise.then(callback);
     return this;
   }
 

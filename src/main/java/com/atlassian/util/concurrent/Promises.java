@@ -215,18 +215,18 @@ public final class Promises {
 
     @Override
     public Promise<V> done(Effect<V> e) {
-      on(onSuccessDo(e));
+      then(onSuccessDo(e));
       return this;
     }
 
     @Override
     public Promise<V> fail(Effect<Throwable> e) {
-      on(Promises.<V> onFailureDo(e));
+      then(Promises.<V>onFailureDo(e));
       return this;
     }
 
     @Override
-    public Promise<V> on(FutureCallback<V> callback) {
+    public Promise<V> then(FutureCallback<V> callback) {
       Futures.addCallback(delegate(), callback);
       return this;
     }
