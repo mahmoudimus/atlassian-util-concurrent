@@ -46,11 +46,11 @@ public class PromisesTest {
     assertThat(promise.isCancelled(), is(false));
     assertThat(promise.claim(), is(instance));
 
-    promise.on(futureCallback(done, fail));
+    promise.then(futureCallback(done, fail));
     verify(done).apply(instance);
     verifyZeroInteractions(fail);
 
-    promise.on(futureCallback);
+    promise.then(futureCallback);
     verify(futureCallback).onSuccess(instance);
     verifyNoMoreInteractions(futureCallback);
   }
@@ -68,11 +68,11 @@ public class PromisesTest {
       assertSame(instance, e.getCause());
     }
 
-    promise.on(futureCallback(done, fail));
+    promise.then(futureCallback(done, fail));
     verifyZeroInteractions(done);
     verify(fail).apply(instance);
 
-    promise.on(futureCallback);
+    promise.then(futureCallback);
     verify(futureCallback).onFailure(instance);
     verifyNoMoreInteractions(futureCallback);
   }
@@ -84,8 +84,8 @@ public class PromisesTest {
     final Promise<Object> promise = Promises.forListenableFuture(future);
 
     // register call backs
-    promise.on(futureCallback(done, fail));
-    promise.on(futureCallback);
+    promise.then(futureCallback(done, fail));
+    promise.then(futureCallback);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -111,8 +111,8 @@ public class PromisesTest {
     final Promise<Object> promise = Promises.forListenableFuture(future);
 
     // register call backs
-    promise.on(futureCallback(done, fail));
-    promise.on(futureCallback);
+    promise.then(futureCallback(done, fail));
+    promise.then(futureCallback);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -165,7 +165,7 @@ public class PromisesTest {
 
     @SuppressWarnings("unchecked")
     final Effect<SomeObject> someObjectCallback = mock(Effect.class);
-    transformedPromise.on(futureCallback(someObjectCallback, fail));
+    transformedPromise.then(futureCallback(someObjectCallback, fail));
 
     assertThat(transformedPromise.claim().object, is(instance));
     verify(someObjectCallback).apply(argThat(new SomeObjectMatcher(instance)));
@@ -206,7 +206,7 @@ public class PromisesTest {
 
     @SuppressWarnings("unchecked")
     final Effect<SomeObject> someObjectCallback = mock(Effect.class);
-    transformedPromise.on(futureCallback(someObjectCallback, fail));
+    transformedPromise.then(futureCallback(someObjectCallback, fail));
 
     try {
       transformedPromise.claim();
@@ -230,7 +230,7 @@ public class PromisesTest {
     final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
-    seq.on(futureCallback(doneCallback, fail));
+    seq.then(futureCallback(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -286,7 +286,7 @@ public class PromisesTest {
     final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Effect<List<Object>> doneCallback = mock(Effect.class);
-    sequenced.on(futureCallback(doneCallback, fail));
+    sequenced.then(futureCallback(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
