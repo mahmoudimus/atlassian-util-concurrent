@@ -139,11 +139,11 @@ public interface Promise<A> extends ListenableFuture<A> {
 
     /**
      * Transform this promise from one type to another, also providing a
-     * strategy for dealing with the
+     * strategy for dealing with any exceptions encountered.
      * 
-     * @param toStringX
-     * @param stringFunction
-     * @return
+     * @param handleThrowable rehabilitate the exception into an object of type B
+     * @param function mapping function
+     * @return A new promise resulting from the catamorphic transformation
      */
     <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 }
