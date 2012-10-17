@@ -241,15 +241,38 @@ public final class Promises {
             final SettableFuture<B> result = SettableFuture.create();
             final Effect<Throwable> failResult = reject(result);
             done(new Effect<A>() {
+                @Override
                 public void apply(A v) {
                     Promise<B> next = f.apply(v);
                     next.done(new Effect<B>() {
+                        @Override
                         public void apply(B t) {
                             result.set(t);
                         }
                     }).fail(failResult);
                 }
             }).fail(failResult);
+            return new Of<B>(result);
+        }
+
+        @Override
+        public <B> Promise<B> fold(final Function<Throwable, ? extends B> ft, final Function<? super A, ? extends B> fa) {
+            final SettableFuture<B> result = SettableFuture.create();
+            final Effect<Throwable> error = new Effect<Throwable>() {
+                @Override
+                public void apply(Throwable t) {
+                    result.set(ft.apply(t));
+                }
+            };
+            done(new Effect<A>() {
+                public void apply(A a) {
+                    try {
+                        result.set(fa.apply(a));
+                    } catch (Throwable t) {
+                        result.set(ft.apply(t));
+                    }
+                }
+            }).fail(error);
             return new Of<B>(result);
         }
     }

@@ -136,4 +136,14 @@ public interface Promise<A> extends ListenableFuture<A> {
      * @return A new promise resulting from the transformation
      */
     <B> Promise<B> flatMap(Function<? super A, Promise<B>> function);
+
+    /**
+     * Transform this promise from one type to another, also providing a
+     * strategy for dealing with the
+     * 
+     * @param toStringX
+     * @param stringFunction
+     * @return
+     */
+    <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 }

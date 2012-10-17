@@ -1,5 +1,6 @@
 package com.atlassian.util.concurrent;
 
+import static com.google.common.base.Functions.toStringFunction;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -9,6 +10,13 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.SettableFuture;
 
 public class PromiseTest {
+    Function<Throwable, String> getThrowableMessage = new Function<Throwable, String>() {
+        @Override
+        public String apply(Throwable t) {
+            return t.getMessage();
+        }
+    };
+
     @Test
     public void flatMapPromise() {
         final SettableFuture<String> fOne = SettableFuture.<String> create();
@@ -30,5 +38,27 @@ public class PromiseTest {
         assertThat(pOne.isDone(), is(true));
         assertThat(pTwo.isDone(), is(true));
         assertThat(pTwo.claim(), is(42));
+    }
+
+    @Test
+    public void foldPromiseGood() {
+        Promise<Integer> promise = Promises.promise(3);
+        assertThat(promise.fold(getThrowableMessage, toStringFunction()).claim(), is("3"));
+    }
+
+    @Test
+    public void foldPromiseBad() {
+        Promise<Integer> promise = Promises.rejected(new RuntimeException("Oh my!"), Integer.class);
+        assertThat(promise.fold(getThrowableMessage, toStringFunction()).claim(), is("Oh my!"));
+    }
+
+    @Test
+    public void foldPromiseGoodWithError() {
+        Promise<Integer> promise = Promises.promise(4);
+        assertThat(promise.fold(getThrowableMessage, new Function<Integer, String>() {
+            public String apply(Integer i) {
+                throw new RuntimeException("I lied!");
+            }
+        }).claim(), is("I lied!"));
     }
 }
