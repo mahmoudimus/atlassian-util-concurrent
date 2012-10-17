@@ -61,4 +61,16 @@ public class PromiseTest {
             }
         }).claim(), is("I lied!"));
     }
+
+    @Test
+    public void recoverPromiseGood() {
+        Promise<String> promise = Promises.promise("sweet!");
+        assertThat(promise.recover(getThrowableMessage).claim(), is("sweet!"));
+    }
+
+    @Test
+    public void recoverPromiseBad() {
+        Promise<String> promise = Promises.rejected(new RuntimeException("Oh Noes!!!"), String.class);
+        assertThat(promise.recover(getThrowableMessage).claim(), is("Oh Noes!!!"));
+    }
 }

@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -256,6 +257,11 @@ public final class Promises {
         }
 
         @Override
+        public Promise<A> recover(Function<Throwable, ? extends A> handleThrowable) {
+            return this.<A> fold(handleThrowable, Functions.<A> identity());
+        }
+
+        @Override
         public <B> Promise<B> fold(final Function<Throwable, ? extends B> ft, final Function<? super A, ? extends B> fa) {
             final SettableFuture<B> result = SettableFuture.create();
             final Effect<Throwable> error = new Effect<Throwable>() {
@@ -269,7 +275,7 @@ public final class Promises {
                     try {
                         result.set(fa.apply(a));
                     } catch (Throwable t) {
-                        result.set(ft.apply(t));
+                        error.apply(t);
                     }
                 }
             }).fail(error);
