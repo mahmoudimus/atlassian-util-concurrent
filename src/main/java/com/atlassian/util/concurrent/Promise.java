@@ -140,8 +140,9 @@ public interface Promise<A> extends ListenableFuture<A> {
     /**
      * Recover from an exception using the supplied exception strategy
      * 
-     * @param handleThrowable rehabilitate the exception into an object of type B
-     * @return A new promise that will not throw an exception (unless handleThrowable itself threw). 
+     * @param handleThrowable rehabilitate the exception with a value of type B
+     * @return A new promise that will not throw an exception (unless
+     * handleThrowable itself threw).
      */
     Promise<A> recover(Function<Throwable, ? extends A> handleThrowable);
 
@@ -149,9 +150,11 @@ public interface Promise<A> extends ListenableFuture<A> {
      * Transform this promise from one type to another, also providing a
      * strategy for dealing with any exceptions encountered.
      * 
-     * @param handleThrowable rehabilitate the exception into an object of type B
+     * @param handleThrowable rehabilitate the exception with a value of type B
      * @param function mapping function
-     * @return A new promise resulting from the catamorphic transformation
+     * @return A new promise resulting from the catamorphic transformation. This
+     * promise will not throw an exception (unless handleThrowable itself
+     * threw).
      */
     <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 }
