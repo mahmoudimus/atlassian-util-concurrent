@@ -66,22 +66,15 @@ public class PromiseTest {
     public void foldPromiseBadWithError() {
         Promise<Integer> promise = Promises.promise(4);
         final FailEffect failEffect = new FailEffect();
-        promise.fold(
-                new Function<Throwable, String>()
-                {
-                    public String apply(Throwable input)
-                    {
-                        throw new RuntimeException(input);
-                    }
-                },
-                new Function<Integer, String>()
-                {
-                    public String apply(Integer i)
-                    {
-                        throw new RuntimeException("I lied!");
-                    }
-                }
-        ).fail(failEffect);
+        promise.fold(new Function<Throwable, String>() {
+            public String apply(Throwable input) {
+                throw new RuntimeException(input);
+            }
+        }, new Function<Integer, String>() {
+            public String apply(Integer i) {
+                throw new RuntimeException("I lied!");
+            }
+        }).fail(failEffect);
 
         assertThat(failEffect.throwable.getCause().getMessage(), is("I lied!"));
     }
