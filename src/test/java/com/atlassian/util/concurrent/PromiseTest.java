@@ -63,6 +63,30 @@ public class PromiseTest {
     }
 
     @Test
+    public void foldPromiseBadWithError() {
+        Promise<Integer> promise = Promises.promise(4);
+        final FailEffect failEffect = new FailEffect();
+        promise.fold(
+                new Function<Throwable, String>()
+                {
+                    public String apply(Throwable input)
+                    {
+                        throw new RuntimeException(input);
+                    }
+                },
+                new Function<Integer, String>()
+                {
+                    public String apply(Integer i)
+                    {
+                        throw new RuntimeException("I lied!");
+                    }
+                }
+        ).fail(failEffect);
+
+        assertThat(failEffect.throwable.getCause().getMessage(), is("I lied!"));
+    }
+
+    @Test
     public void recoverPromiseGood() {
         Promise<String> promise = Promises.promise("sweet!");
         assertThat(promise.recover(getThrowableMessage).claim(), is("sweet!"));
@@ -72,5 +96,13 @@ public class PromiseTest {
     public void recoverPromiseBad() {
         Promise<String> promise = Promises.rejected(new RuntimeException("Oh Noes!!!"), String.class);
         assertThat(promise.recover(getThrowableMessage).claim(), is("Oh Noes!!!"));
+    }
+
+    private static class FailEffect implements Effect<Throwable> {
+        Throwable throwable;
+
+        public void apply(Throwable throwable) {
+            this.throwable = throwable;
+        }
     }
 }

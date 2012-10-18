@@ -258,7 +258,7 @@ public final class Promises {
 
         @Override
         public Promise<A> recover(Function<Throwable, ? extends A> handleThrowable) {
-            return this.<A> fold(handleThrowable, Functions.<A> identity());
+            return this.fold(handleThrowable, Functions.<A> identity());
         }
 
         @Override
@@ -267,7 +267,11 @@ public final class Promises {
             final Effect<Throwable> error = new Effect<Throwable>() {
                 @Override
                 public void apply(Throwable t) {
-                    result.set(ft.apply(t));
+                    try {
+                        result.set(ft.apply(t));
+                    } catch (Throwable inner) {
+                        result.setException(inner);
+                    }
                 }
             };
             done(new Effect<A>() {
