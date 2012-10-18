@@ -1,47 +1,45 @@
 package com.atlassian.util.concurrent;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ForwardingPromiseTest
-{
-    @Mock
-    private Promise<Object> promise;
+import org.junit.Test;
 
-    private ForwardingPromise<Object> forwardingPromise;
+import com.google.common.util.concurrent.FutureCallback;
 
-    @Before
-    public void setUp() {
-        forwardingPromise = new ForwardingPromise<Object>()
-        {
-            @Override
-            protected Promise<Object> delegate()
-            {
-                return promise;
-            }
+public class ForwardingPromiseTest {
+    private final Promise<Object> promise = Promises.promise(new Object());
+
+    private final ForwardingPromise<Object> forwardingPromise = new ForwardingPromise<Object>() {
+        @Override
+        protected Promise<Object> delegate() {
+            return promise;
+        }
+    };
+
+    <A> Effect<A> doNothing(Class<A> c) {
+        return new Effect<A>() {
+            public void apply(A a) {};
         };
     }
 
     @Test
     public void testDoneReturnsThis() {
-        assertSame(forwardingPromise, forwardingPromise.done(mock(Effect.class)));
+        assertSame(forwardingPromise, forwardingPromise.done(doNothing(Object.class)));
     }
 
     @Test
     public void testFailReturnsThis() {
-        assertSame(forwardingPromise, forwardingPromise.fail(mock(Effect.class)));
+        assertSame(forwardingPromise, forwardingPromise.fail(doNothing(Throwable.class)));
     }
 
     @Test
     public void testThenReturnsThis() {
-        assertSame(forwardingPromise, forwardingPromise.then(mock(FutureCallback.class)));
+        assertSame(forwardingPromise, forwardingPromise.then(new FutureCallback<Object>() {
+            @Override
+            public void onSuccess(Object result) {}
+
+            @Override
+            public void onFailure(Throwable t) {}
+        }));
     }
 }
