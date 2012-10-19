@@ -7,7 +7,7 @@ import com.google.common.util.concurrent.FutureCallback;
 
 /**
  * A promise which forwards all its method calls to another promise. Subclasses should override one or more methods to
- * modify the behavior of the backing cache as desired per the
+ * modify the behavior of the backing Promise as desired per the
  * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
  *
  * @since 2.4
