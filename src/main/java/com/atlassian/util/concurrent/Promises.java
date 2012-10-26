@@ -244,13 +244,18 @@ public final class Promises {
             done(new Effect<A>() {
                 @Override
                 public void apply(A v) {
-                    Promise<B> next = f.apply(v);
-                    next.done(new Effect<B>() {
-                        @Override
-                        public void apply(B t) {
-                            result.set(t);
-                        }
-                    }).fail(failResult);
+                    try {
+                        Promise<B> next = f.apply(v);
+                        next.done(new Effect<B>() {
+                            @Override
+                            public void apply(B t) {
+                                result.set(t);
+                            }
+                        }).fail(failResult);
+                    }
+                    catch (Throwable t) {
+                        result.setException(t);
+                    }
                 }
             }).fail(failResult);
             return new Of<B>(result);

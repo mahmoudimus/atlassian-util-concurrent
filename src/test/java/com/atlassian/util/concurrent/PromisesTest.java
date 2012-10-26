@@ -217,6 +217,22 @@ public class PromisesTest {
         verify(fail).apply(instance);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void flatMapFunctionThrowsException() {
+        final SettableFuture<Object> future = SettableFuture.create();
+
+        final Promise<Object> originalPromise = Promises.forListenableFuture(future);
+        final Promise<SomeObject> transformedPromise = originalPromise.flatMap(new Function<Object, Promise<SomeObject>>() {
+            @Override
+            public Promise<SomeObject> apply(Object input) {
+                throw new IllegalStateException();
+            }
+        });
+
+        future.set(new SomeObject("hi"));
+        transformedPromise.claim();
+    }
+
     @Test
     public void whenPromiseSettingValue() {
 
