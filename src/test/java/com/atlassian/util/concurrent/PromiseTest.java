@@ -80,6 +80,25 @@ public class PromiseTest {
     }
 
     @Test
+    public void failCanTransformException() {
+        final SettableFuture<String> future = SettableFuture.<String> create();
+        final Promise<String> promise = Promises.forListenableFuture(future).map(new Function<String, String>() {
+            @Override
+            public String apply(String input) {
+                return "Ok";
+            }
+        }).recover(new Function<Throwable, String>() {
+            @Override
+            public String apply(Throwable input) {
+                return input.getMessage();
+            }
+        });
+        future.setException(new RuntimeException("Some message"));
+        assertThat(promise.claim(), is("Some message"));
+        assertThat(promise.claim(), is("Some message"));
+    }
+
+    @Test
     public void recoverPromiseGood() {
         Promise<String> promise = Promises.promise("sweet!");
         assertThat(promise.recover(getThrowableMessage).claim(), is("sweet!"));
