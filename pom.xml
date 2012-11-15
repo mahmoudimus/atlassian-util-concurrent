@@ -4,7 +4,7 @@
     <parent>
         <artifactId>atlassian-public-pom</artifactId>
         <groupId>com.atlassian.pom</groupId>
-        <version>23</version>
+        <version>35</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.atlassian.util.concurrent</groupId>
@@ -39,36 +39,6 @@
     </licenses>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>retrotranslator-maven-plugin</artifactId>
-                <version>1.0-alpha-3</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>translate-project</goal>
-                        </goals>
-                        <configuration>
-                            <classifier>jdk14</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-one-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <configuration>
-                            <remoteRepositoryId>atlassian-m1-repository</remoteRepositoryId>
-                            <remoteRepositoryUrl>dav:https://maven.atlassian.com/maven1</remoteRepositoryUrl>
-                        </configuration>
-                        <goals>
-                            <goal>deploy-maven-one-repository</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
