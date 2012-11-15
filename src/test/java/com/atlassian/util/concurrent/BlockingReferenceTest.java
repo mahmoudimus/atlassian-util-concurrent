@@ -42,41 +42,6 @@ public class BlockingReferenceTest {
     }
 
     @Test
-    public void setSRSWReferenceGet() throws Exception {
-        final BlockingReference<String> ref = BlockingReference.newSRSW();
-        final Exec<String> executor = executor(factory(threads, new Callable<String>() {
-            public String call() throws Exception {
-                return ref.get();
-            }
-        }));
-        try {
-            ref.set("testSRSWReferenceSetGet");
-            final Future<String> take = executor.completion.take();
-            assertNotNull(take.get());
-            assertSame("testSRSWReferenceSetGet", take.get());
-            Thread.sleep(10);
-            // these threads were already waiting,
-            // SRSW will only notify ONE thread
-            // in this state - we are testing that the client who is using this
-            // incorrectly will see dodgy behaviour
-            Thread.sleep(1);
-            assertNull(executor.completion.poll());
-            Thread.sleep(1);
-            assertNull(executor.completion.poll());
-            Thread.sleep(1);
-            assertNull(executor.completion.poll());
-            Thread.sleep(1);
-            assertNull(executor.completion.poll());
-            Thread.sleep(1);
-            assertNull(executor.completion.poll());
-            Thread.sleep(1);
-            assertNull(executor.completion.poll());
-        } finally {
-            executor.pool.shutdownNow();
-        }
-    }
-
-    @Test
     public void initialValueSRSWReferenceGet() throws Exception {
         final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueSRSWReferenceGet");
         final Exec<String> executor = executor(factory(threads, new Callable<String>() {
