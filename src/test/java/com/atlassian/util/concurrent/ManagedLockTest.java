@@ -1,9 +1,9 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.ManagedLocks.manage;
-import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
