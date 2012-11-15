@@ -21,7 +21,7 @@ package com.atlassian.util.concurrent;
  * @since 2.4
  */
 public class Effects {
-  private Effects (){}
+  private Effects() {}
 
   private static Effect<Object> NOOP = new Effect<Object>() {
     public void apply(Object a) {};

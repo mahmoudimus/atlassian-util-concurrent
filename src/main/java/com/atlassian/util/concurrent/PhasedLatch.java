@@ -30,114 +30,111 @@ import net.jcip.annotations.ThreadSafe;
  * that phase to be advanced via a call to {@link #release() release} the
  * current phase.
  */
-@ThreadSafe
-public class PhasedLatch implements ReusableLatch {
-    private static final PhaseComparator comparator = new PhaseComparator();
+@ThreadSafe public class PhasedLatch implements ReusableLatch {
+  private static final PhaseComparator comparator = new PhaseComparator();
 
-    private final Sync sync = new Sync();
+  private final Sync sync = new Sync();
 
-    /**
-     * Release the current phase.
-     */
-    public void release() {
-        sync.releaseShared(1);
+  /**
+   * Release the current phase.
+   */
+  public void release() {
+    sync.releaseShared(1);
+  }
+
+  /**
+   * Await the current phase.
+   * 
+   * @throws InterruptedException if interrupted
+   */
+  public void await() throws InterruptedException {
+    awaitPhase(getPhase());
+  }
+
+  /**
+   * Await the current phase for the specified period.
+   * 
+   * @param time the period of time
+   * @param unit of time to measure the period in
+   * @return true if the phase was passed, false otherwise
+   * @throws InterruptedException if interrupted
+   */
+  public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
+    return sync.tryAcquireSharedNanos(getPhase(), unit.toNanos(time));
+  }
+
+  /**
+   * Await the specified phase.
+   * 
+   * @param phase the phase to wait for
+   * @throws InterruptedException if interrupted
+   */
+  public void awaitPhase(final int phase) throws InterruptedException {
+    sync.acquireSharedInterruptibly(phase);
+  }
+
+  /**
+   * Await the specified phase for the specified period.
+   * 
+   * @param phase the phase to wait for
+   * @param period the period of time to wait for, as specified by:
+   * @param unit of time to measure the period in
+   * @return true if the phase was passed, false otherwise
+   * @throws InterruptedException if interrupted
+   */
+  public boolean awaitPhase(final int phase, final long period, final TimeUnit unit) throws InterruptedException {
+    return sync.tryAcquireSharedNanos(phase, unit.toNanos(period));
+  }
+
+  public int getPhase() {
+    return sync.getCurrentPhase();
+  }
+
+  /**
+   * This sync implements Phasing. The state represents the current phase as an
+   * integer that continually increases. The phase can wrap around past
+   * {@link Integer#MAX_VALUE}
+   */
+  private static class Sync extends AbstractQueuedSynchronizer {
+    private static final long serialVersionUID = -7753362916930221487L;
+
+    public int getCurrentPhase() {
+      return getState();
     }
 
-    /**
-     * Await the current phase.
-     * 
-     * @throws InterruptedException if interrupted
-     */
-    public void await() throws InterruptedException {
-        awaitPhase(getPhase());
+    @Override protected int tryAcquireShared(final int phase) {
+      return comparator.isPassed(getState(), phase) ? 1 : -1;
     }
 
-    /**
-     * Await the current phase for the specified period.
-     * 
-     * @param time the period of time
-     * @param unit of time to measure the period in
-     * @return true if the phase was passed, false otherwise
-     * @throws InterruptedException if interrupted
-     */
-    public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
-        return sync.tryAcquireSharedNanos(getPhase(), unit.toNanos(time));
-    }
-
-    /**
-     * Await the specified phase.
-     * 
-     * @param phase the phase to wait for
-     * @throws InterruptedException if interrupted
-     */
-    public void awaitPhase(final int phase) throws InterruptedException {
-        sync.acquireSharedInterruptibly(phase);
-    }
-
-    /**
-     * Await the specified phase for the specified period.
-     * 
-     * @param phase the phase to wait for
-     * @param period the period of time to wait for, as specified by:
-     * @param unit of time to measure the period in
-     * @return true if the phase was passed, false otherwise
-     * @throws InterruptedException if interrupted
-     */
-    public boolean awaitPhase(final int phase, final long period, final TimeUnit unit) throws InterruptedException {
-        return sync.tryAcquireSharedNanos(phase, unit.toNanos(period));
-    }
-
-    public int getPhase() {
-        return sync.getCurrentPhase();
-    }
-
-    /**
-     * This sync implements Phasing. The state represents the current phase as
-     * an integer that continually increases. The phase can wrap around past
-     * {@link Integer#MAX_VALUE}
-     */
-    private static class Sync extends AbstractQueuedSynchronizer {
-        private static final long serialVersionUID = -7753362916930221487L;
-
-        public int getCurrentPhase() {
-            return getState();
+    @Override protected boolean tryReleaseShared(final int ignore) {
+      while (true) {
+        final int state = getState();
+        // /CLOVER:OFF
+        // cannot test CAS
+        if (compareAndSetState(state, state + 1)) {
+          return true;
         }
-
-        @Override
-        protected int tryAcquireShared(final int phase) {
-            return comparator.isPassed(getState(), phase) ? 1 : -1;
-        }
-
-        @Override
-        protected boolean tryReleaseShared(final int ignore) {
-            while (true) {
-                final int state = getState();
-                // /CLOVER:OFF
-                // cannot test CAS
-                if (compareAndSetState(state, state + 1)) {
-                    return true;
-                }
-                // /CLOVER:ON
-            }
-        }
+        // /CLOVER:ON
+      }
     }
+  }
 
-    static class PhaseComparator implements Comparator<Integer>, Serializable {
-        private static final long serialVersionUID = -614957178717195674L;
+  static class PhaseComparator implements Comparator<Integer>, Serializable {
+    private static final long serialVersionUID = -614957178717195674L;
 
-        public int compare(final Integer current, final Integer waitingFor) {
-            return waitingFor - current;
-        };
+    public int compare(final Integer current, final Integer waitingFor) {
+      return waitingFor - current;
+    };
 
-        /**
-         * Has the current phase passed the waiting phase.
-         * 
-         * @param current
-         * @param waitingFor
-         * @return true if current is greater than waiting
-         */
-        boolean isPassed(final int current, final int waitingFor) {
-            return compare(current, waitingFor) < 0;
-        }
+    /**
+     * Has the current phase passed the waiting phase.
+     * 
+     * @param current
+     * @param waitingFor
+     * @return true if current is greater than waiting
+     */
+    boolean isPassed(final int current, final int waitingFor) {
+      return compare(current, waitingFor) < 0;
     }
+  }
 }

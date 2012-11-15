@@ -35,10 +35,10 @@ import net.jcip.annotations.ThreadSafe;
  * 
  * <pre>
  * final ResettableLazyReference&lt;MyObject&gt; ref = new ResettableLazyReference() {
- *     protected MyObject create() throws Exception {
- *         // Do expensive object construction here
- *         return new MyObject();
- *     }
+ *   protected MyObject create() throws Exception {
+ *     // Do expensive object construction here
+ *     return new MyObject();
+ *   }
  * };
  * </pre>
  * 
@@ -59,88 +59,85 @@ import net.jcip.annotations.ThreadSafe;
  * 
  * @param T the type of the contained element.
  */
-@ThreadSafe
-public abstract class ResettableLazyReference<T> implements Supplier<T> {
-    private volatile InternalReference referrent = new InternalReference();
+@ThreadSafe public abstract class ResettableLazyReference<T> implements Supplier<T> {
+  private volatile InternalReference referrent = new InternalReference();
 
-    /**
-     * The object factory method, guaranteed to be called once and only once.
-     * 
-     * @return the object that {@link #get()} and {@link #getInterruptibly()}
-     * will return.
-     * @throws Exception if anything goes wrong, rethrown as an
-     * InitializationException from {@link #get()} and
-     * {@link #getInterruptibly()}
-     */
-    protected abstract T create() throws Exception;
+  /**
+   * The object factory method, guaranteed to be called once and only once.
+   * 
+   * @return the object that {@link #get()} and {@link #getInterruptibly()} will
+   * return.
+   * @throws Exception if anything goes wrong, rethrown as an
+   * InitializationException from {@link #get()} and {@link #getInterruptibly()}
+   */
+  protected abstract T create() throws Exception;
 
-    /**
-     * Get the lazily loaded reference in a non-cancellable manner. If your
-     * <code>create()</code> method throws an Exception calls to
-     * <code>get()</code> will throw an InitializationException which wraps the
-     * previously thrown exception.
-     * 
-     * @return the object that {@link #create()} created.
-     * @throws InitializationException if the {@link #create()} method throws an
-     * exception. The {@link InitializationException#getCause()} will contain
-     * the exception thrown by the {@link #create()} method
-     */
-    public T get() {
-        return referrent.get();
+  /**
+   * Get the lazily loaded reference in a non-cancellable manner. If your
+   * <code>create()</code> method throws an Exception calls to
+   * <code>get()</code> will throw an InitializationException which wraps the
+   * previously thrown exception.
+   * 
+   * @return the object that {@link #create()} created.
+   * @throws InitializationException if the {@link #create()} method throws an
+   * exception. The {@link InitializationException#getCause()} will contain the
+   * exception thrown by the {@link #create()} method
+   */
+  public T get() {
+    return referrent.get();
+  }
+
+  /**
+   * Get the lazily loaded reference in a cancellable manner. If your
+   * <code>create()</code> method throws an Exception, calls to
+   * <code>get()</code> will throw a RuntimeException which wraps the previously
+   * thrown exception.
+   * 
+   * @return the object that {@link #create()} created.
+   * @throws InitializationException if the {@link #create()} method throws an
+   * exception. The {@link InitializationException#getCause()} will contain the
+   * exception thrown by the {@link #create()} method
+   * @throws InterruptedException If the calling thread is Interrupted while
+   * waiting for another thread to create the value (if the creating thread is
+   * interrupted while blocking on something, the {@link InterruptedException}
+   * will be thrown as the causal exception of the
+   * {@link InitializationException} to everybody calling this method).
+   */
+  public final T getInterruptibly() throws InterruptedException {
+    return referrent.getInterruptibly();
+  }
+
+  /**
+   * Reset the internal reference. Anyone currently in the process of getting
+   * the old reference will still receive that reference however.
+   */
+  public void reset() {
+    referrent = new InternalReference();
+  }
+
+  /**
+   * Has the {@link #create()} reference been initialized.
+   * 
+   * @return true if the task is complete and has not been reset.
+   */
+  public boolean isInitialized() {
+    return referrent.isInitialized();
+  }
+
+  /**
+   * Cancel the initializing operation if it has not already run. Will try and
+   * interrupt if it is currently running.
+   */
+  public void cancel() {
+    referrent.cancel();
+  }
+
+  /**
+   * The internal LazyReference that may get thrown away
+   */
+  class InternalReference extends LazyReference<T> {
+    @Override protected T create() throws Exception {
+      return ResettableLazyReference.this.create();
     }
-
-    /**
-     * Get the lazily loaded reference in a cancellable manner. If your
-     * <code>create()</code> method throws an Exception, calls to
-     * <code>get()</code> will throw a RuntimeException which wraps the
-     * previously thrown exception.
-     * 
-     * @return the object that {@link #create()} created.
-     * @throws InitializationException if the {@link #create()} method throws an
-     * exception. The {@link InitializationException#getCause()} will contain
-     * the exception thrown by the {@link #create()} method
-     * @throws InterruptedException If the calling thread is Interrupted while
-     * waiting for another thread to create the value (if the creating thread is
-     * interrupted while blocking on something, the {@link InterruptedException}
-     * will be thrown as the causal exception of the
-     * {@link InitializationException} to everybody calling this method).
-     */
-    public final T getInterruptibly() throws InterruptedException {
-        return referrent.getInterruptibly();
-    }
-
-    /**
-     * Reset the internal reference. Anyone currently in the process of getting
-     * the old reference will still receive that reference however.
-     */
-    public void reset() {
-        referrent = new InternalReference();
-    }
-
-    /**
-     * Has the {@link #create()} reference been initialized.
-     * 
-     * @return true if the task is complete and has not been reset.
-     */
-    public boolean isInitialized() {
-        return referrent.isInitialized();
-    }
-
-    /**
-     * Cancel the initializing operation if it has not already run. Will try and
-     * interrupt if it is currently running.
-     */
-    public void cancel() {
-        referrent.cancel();
-    }
-
-    /**
-     * The internal LazyReference that may get thrown away
-     */
-    class InternalReference extends LazyReference<T> {
-        @Override
-        protected T create() throws Exception {
-            return ResettableLazyReference.this.create();
-        }
-    }
+  }
 }

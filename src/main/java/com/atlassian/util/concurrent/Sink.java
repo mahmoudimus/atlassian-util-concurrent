@@ -20,10 +20,10 @@ package com.atlassian.util.concurrent;
  * Consume the object a {@link Supplier} produces.
  */
 public interface Sink<T> {
-    /**
-     * Consume the product.
-     * 
-     * @param element must not be null
-     */
-    void consume(T element);
+  /**
+   * Consume the product.
+   * 
+   * @param element must not be null
+   */
+  void consume(T element);
 }

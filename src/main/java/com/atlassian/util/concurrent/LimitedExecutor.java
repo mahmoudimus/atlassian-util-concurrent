@@ -44,60 +44,57 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 
  * @since 1.0
  */
-@ThreadSafe
-final class LimitedExecutor implements Executor {
-    private final Executor delegate;
-    private final BlockingQueue<Runnable> overflow = new LinkedBlockingQueue<Runnable>();
-    private final Semaphore semaphore;
+@ThreadSafe final class LimitedExecutor implements Executor {
+  private final Executor delegate;
+  private final BlockingQueue<Runnable> overflow = new LinkedBlockingQueue<Runnable>();
+  private final Semaphore semaphore;
 
-    LimitedExecutor(final Executor delegate, final int limit) {
-        this.delegate = delegate;
-        semaphore = new Semaphore(limit);
+  LimitedExecutor(final Executor delegate, final int limit) {
+    this.delegate = delegate;
+    semaphore = new Semaphore(limit);
+  }
+
+  @Override public void execute(final Runnable command) {
+    if (semaphore.tryAcquire()) {
+      try {
+        delegate.execute(new Runner(command));
+      } catch (final RejectedExecutionException rej) {
+        semaphore.release();
+        throw rej;
+      }
+    } else {
+      overflow.add(command);
+      while (semaphore.availablePermits() > 0) {
+        if (!resubmit()) {
+          return;
+        }
+      }
+    }
+  }
+
+  private boolean resubmit() {
+    final Runnable next = overflow.poll();
+    if (next != null) {
+      execute(next);
+      return true;
+    }
+    return false;
+  }
+
+  class Runner implements Runnable {
+    private final Runnable delegate;
+
+    Runner(final Runnable delegate) {
+      this.delegate = delegate;
     }
 
-    @Override
-    public void execute(final Runnable command) {
-        if (semaphore.tryAcquire()) {
-            try {
-                delegate.execute(new Runner(command));
-            } catch (final RejectedExecutionException rej) {
-                semaphore.release();
-                throw rej;
-            }
-        } else {
-            overflow.add(command);
-            while (semaphore.availablePermits() > 0) {
-                if (!resubmit()) {
-                    return;
-                }
-            }
-        }
+    @Override public void run() {
+      try {
+        delegate.run();
+      } finally {
+        semaphore.release();
+        resubmit();
+      }
     }
-
-    private boolean resubmit() {
-        final Runnable next = overflow.poll();
-        if (next != null) {
-            execute(next);
-            return true;
-        }
-        return false;
-    }
-
-    class Runner implements Runnable {
-        private final Runnable delegate;
-
-        Runner(final Runnable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void run() {
-            try {
-                delegate.run();
-            } finally {
-                semaphore.release();
-                resubmit();
-            }
-        }
-    }
+  }
 }

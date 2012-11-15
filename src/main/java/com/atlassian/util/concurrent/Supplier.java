@@ -32,13 +32,13 @@ import java.util.NoSuchElementException;
  * @param <T> the type of object supplied.
  */
 public interface Supplier<T> {
-    /**
-     * Produce an object. Retrieve an instance of the appropriate type. The
-     * returned object may or may not be a new instance, depending on the
-     * implementation.
-     * 
-     * @return the product, may be null if there are no objects available.
-     * @throws NoSuchElementException if the supply has been exhausted.
-     */
-    T get();
+  /**
+   * Produce an object. Retrieve an instance of the appropriate type. The
+   * returned object may or may not be a new instance, depending on the
+   * implementation.
+   * 
+   * @return the product, may be null if there are no objects available.
+   * @throws NoSuchElementException if the supply has been exhausted.
+   */
+  T get();
 }

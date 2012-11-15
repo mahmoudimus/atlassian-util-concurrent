@@ -27,55 +27,55 @@ import java.util.concurrent.locks.ReadWriteLock;
  * @since 0.0.7
  */
 public interface ManagedLock {
+  /**
+   * Execute the supplied {@link Callable} under a lock determined by the
+   * descriptor.
+   * 
+   * @param <R> the result type
+   * @param callable the operation to perform under lock
+   * @return whatever the supplied {@link Callable} returns
+   * @throws Exception if the supplied {@link Callable} throws an exception
+   */
+  <R> R withLock(final @NotNull Callable<R> callable) throws Exception;
+
+  /**
+   * Execute the supplied {@link Supplier} under a lock determined by the
+   * descriptor.
+   * <p>
+   * Unlike {@link #withLock(Callable)} this version returns a result and does
+   * not declare a checked exception.
+   * 
+   * @param <R> the result type
+   * @param supplier the operation to perform under lock
+   * @return whatever the supplied {@link Callable} returns
+   */
+  <R> R withLock(final @NotNull Supplier<R> supplier);
+
+  /**
+   * Execute the supplied {@link Runnable} under a lock determined by the
+   * descriptor.
+   * 
+   * @param runnable the operation to perform under lock
+   */
+  void withLock(final @NotNull Runnable runnable);
+
+  /**
+   * Maintains two managed locks that internally use the same
+   * {@link ReadWriteLock read/write locks}
+   */
+  interface ReadWrite {
     /**
-     * Execute the supplied {@link Callable} under a lock determined by the
-     * descriptor.
+     * For performing operations that require read locks
      * 
-     * @param <R> the result type
-     * @param callable the operation to perform under lock
-     * @return whatever the supplied {@link Callable} returns
-     * @throws Exception if the supplied {@link Callable} throws an exception
+     * @return a lock manager that uses read locks
      */
-    <R> R withLock(final @NotNull Callable<R> callable) throws Exception;
+    ManagedLock read();
 
     /**
-     * Execute the supplied {@link Supplier} under a lock determined by the
-     * descriptor.
-     * <p>
-     * Unlike {@link #withLock(Callable)} this version returns a result and does
-     * not declare a checked exception.
+     * For performing operations that require write locks
      * 
-     * @param <R> the result type
-     * @param supplier the operation to perform under lock
-     * @return whatever the supplied {@link Callable} returns
+     * @return a lock manager that uses write locks
      */
-    <R> R withLock(final @NotNull Supplier<R> supplier);
-
-    /**
-     * Execute the supplied {@link Runnable} under a lock determined by the
-     * descriptor.
-     * 
-     * @param runnable the operation to perform under lock
-     */
-    void withLock(final @NotNull Runnable runnable);
-
-    /**
-     * Maintains two managed locks that internally use the same
-     * {@link ReadWriteLock read/write locks}
-     */
-    interface ReadWrite {
-        /**
-         * For performing operations that require read locks
-         * 
-         * @return a lock manager that uses read locks
-         */
-        ManagedLock read();
-
-        /**
-         * For performing operations that require write locks
-         * 
-         * @return a lock manager that uses write locks
-         */
-        ManagedLock write();
-    }
+    ManagedLock write();
+  }
 }

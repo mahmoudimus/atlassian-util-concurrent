@@ -39,27 +39,27 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 0.0.12
  */
 public abstract class AtomicReferenceUpdater<T> implements Function<T, T> {
-    private final AtomicReference<T> reference;
+  private final AtomicReference<T> reference;
 
-    public AtomicReferenceUpdater(final AtomicReference<T> reference) {
-        this.reference = notNull("reference", reference);
-    }
+  public AtomicReferenceUpdater(final AtomicReference<T> reference) {
+    this.reference = notNull("reference", reference);
+  }
 
-    /**
-     * Do the actual update. Calls the factory method with the old value to do
-     * the update logic, then sets the value to that if it hasn't changed in the
-     * meantime.
-     * 
-     * @return the new updated value.
-     */
-    public final T update() {
-        T oldValue, newValue;
-        do {
-            oldValue = reference.get();
-            newValue = apply(oldValue);
-            // test first to implement TTAS
-            // then compare and set
-        } while ((reference.get() != oldValue) || !reference.compareAndSet(oldValue, newValue));
-        return newValue;
-    }
+  /**
+   * Do the actual update. Calls the factory method with the old value to do the
+   * update logic, then sets the value to that if it hasn't changed in the
+   * meantime.
+   * 
+   * @return the new updated value.
+   */
+  public final T update() {
+    T oldValue, newValue;
+    do {
+      oldValue = reference.get();
+      newValue = apply(oldValue);
+      // test first to implement TTAS
+      // then compare and set
+    } while ((reference.get() != oldValue) || !reference.compareAndSet(oldValue, newValue));
+    return newValue;
+  }
 }

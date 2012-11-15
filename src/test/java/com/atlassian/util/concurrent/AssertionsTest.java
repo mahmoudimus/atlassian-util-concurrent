@@ -7,23 +7,19 @@ import org.junit.Test;
 
 public class AssertionsTest {
 
-    @Test(expected = IllegalArgumentException.class)
-    public void isNotNullThrowsIllegalArg() {
-        notNull("something", null);
-    }
+  @Test(expected = IllegalArgumentException.class) public void isNotNullThrowsIllegalArg() {
+    notNull("something", null);
+  }
 
-    @Test
-    public void isNotNull() {
-        notNull("something", "notNull");
-    }
+  @Test public void isNotNull() {
+    notNull("something", "notNull");
+  }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void isTrueThrowsIllegalArg() {
-        isTrue("something", false);
-    }
+  @Test(expected = IllegalArgumentException.class) public void isTrueThrowsIllegalArg() {
+    isTrue("something", false);
+  }
 
-    @Test
-    public void isTruePasses() {
-        isTrue("something", true);
-    }
+  @Test public void isTruePasses() {
+    isTrue("something", true);
+  }
 }

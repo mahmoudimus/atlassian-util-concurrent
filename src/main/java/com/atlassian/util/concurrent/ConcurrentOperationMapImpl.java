@@ -24,62 +24,60 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-@ThreadSafe
-public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
+@ThreadSafe public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 
-    private final ConcurrentMap<K, CallerRunsFuture<R>> map = new ConcurrentHashMap<K, CallerRunsFuture<R>>();
-    private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
+  private final ConcurrentMap<K, CallerRunsFuture<R>> map = new ConcurrentHashMap<K, CallerRunsFuture<R>>();
+  private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
 
-    public ConcurrentOperationMapImpl() {
-        this(new Function<Callable<R>, CallerRunsFuture<R>>() {
-            public CallerRunsFuture<R> get(final Callable<R> input) {
-                return new CallerRunsFuture<R>(input);
-            }
-        });
+  public ConcurrentOperationMapImpl() {
+    this(new Function<Callable<R>, CallerRunsFuture<R>>() {
+      public CallerRunsFuture<R> get(final Callable<R> input) {
+        return new CallerRunsFuture<R>(input);
+      }
+    });
+  }
+
+  ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {
+    this.futureFactory = Assertions.notNull("futureFactory", futureFactory);
+  }
+
+  public R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
+    CallerRunsFuture<R> future = map.get(key);
+    while (future == null) {
+      map.putIfAbsent(key, futureFactory.get(operation));
+      future = map.get(key);
+    }
+    try {
+      return future.get();
+    } finally {
+      map.remove(key, future);
+    }
+  }
+
+  static class CallerRunsFuture<T> extends FutureTask<T> {
+    CallerRunsFuture(final Callable<T> callable) {
+      super(callable);
     }
 
-    ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {
-        this.futureFactory = Assertions.notNull("futureFactory", futureFactory);
+    @Override public T get() throws ExecutionException {
+      run();
+      try {
+        return super.get();
+      } catch (final InterruptedException e) {
+        // /CLOVER:OFF
+        // how to test?
+        throw new RuntimeInterruptedException(e);
+        // /CLOVER:ON
+      } catch (final ExecutionException e) {
+        final Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException) {
+          throw (RuntimeException) cause;
+        } else if (cause instanceof Error) {
+          throw (Error) cause;
+        } else {
+          throw e;
+        }
+      }
     }
-
-    public R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
-        CallerRunsFuture<R> future = map.get(key);
-        while (future == null) {
-            map.putIfAbsent(key, futureFactory.get(operation));
-            future = map.get(key);
-        }
-        try {
-            return future.get();
-        } finally {
-            map.remove(key, future);
-        }
-    }
-
-    static class CallerRunsFuture<T> extends FutureTask<T> {
-        CallerRunsFuture(final Callable<T> callable) {
-            super(callable);
-        }
-
-        @Override
-        public T get() throws ExecutionException {
-            run();
-            try {
-                return super.get();
-            } catch (final InterruptedException e) {
-                // /CLOVER:OFF
-                // how to test?
-                throw new RuntimeInterruptedException(e);
-                // /CLOVER:ON
-            } catch (final ExecutionException e) {
-                final Throwable cause = e.getCause();
-                if (cause instanceof RuntimeException) {
-                    throw (RuntimeException) cause;
-                } else if (cause instanceof Error) {
-                    throw (Error) cause;
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
+  }
 }

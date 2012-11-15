@@ -29,112 +29,112 @@ import com.google.common.base.Supplier;
  */
 public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicReferenceArray<E> {
 
-    private static final long serialVersionUID = 6669693075971189L;
+  private static final long serialVersionUID = 6669693075971189L;
 
-    //
-    // ctors
-    //
+  //
+  // ctors
+  //
 
-    /**
-     * Creates a new AtomicReferenceArray of given length.
-     * 
-     * @param length the length of the array
-     */
-    public AtomicReferenceArray(final int length) {
-        super(length);
+  /**
+   * Creates a new AtomicReferenceArray of given length.
+   * 
+   * @param length the length of the array
+   */
+  public AtomicReferenceArray(final int length) {
+    super(length);
+  }
+
+  /**
+   * Creates a new AtomicReferenceArray with the same length as, and all
+   * elements copied from, the given array.
+   * 
+   * @param array the array to copy elements from
+   * @throws NullPointerException if array is null
+   */
+  public AtomicReferenceArray(final E[] initialValue) {
+    super(initialValue);
+  }
+
+  //
+  // methods
+  //
+
+  /**
+   * Check the current value and if it matches the old value argument, set it to
+   * the one created by the {@link Supplier new value supplier} and return that
+   * instead. If the old value argument does not match, ignore both and just
+   * return the current value.
+   * 
+   * @param <T> the object type.
+   * @param oldValue to check the current value against (reference equality
+   * check only).
+   * @param newValue a {@link Supplier} for a new value. May be called more than
+   * once.
+   * @return the current reference value if it doesn't match old value or a
+   * newly created value.
+   */
+  public final E getOrSetAndGetIf(final int index, final E oldValue, final Supplier<E> newValue) {
+    E result = get(index);
+    // loop until invariant is true in case some other thread resets
+    // reference to oldValue (although if they are doing that then we still
+    // cannot guarantee there will be no ABA problem as they could come
+    // back and set it after we return)
+    while (result == oldValue) {
+      final E update = newValue.get();
+      // abort if trying to set the same value, otherwise infinite loop
+      if (update == oldValue) {
+        return oldValue;
+      }
+      compareAndSet(index, oldValue, update);
+      result = get(index);
     }
+    return result;
+  }
 
-    /**
-     * Creates a new AtomicReferenceArray with the same length as, and all
-     * elements copied from, the given array.
-     * 
-     * @param array the array to copy elements from
-     * @throws NullPointerException if array is null
-     */
-    public AtomicReferenceArray(final E[] initialValue) {
-        super(initialValue);
-    }
-
-    //
-    // methods
-    //
-
-    /**
-     * Check the current value and if it matches the old value argument, set it
-     * to the one created by the {@link Supplier new value supplier} and return
-     * that instead. If the old value argument does not match, ignore both and
-     * just return the current value.
-     * 
-     * @param <T> the object type.
-     * @param oldValue to check the current value against (reference equality
-     * check only).
-     * @param newValue a {@link Supplier} for a new value. May be called more
-     * than once.
-     * @return the current reference value if it doesn't match old value or a
-     * newly created value.
-     */
-    public final E getOrSetAndGetIf(final int index, final E oldValue, final Supplier<E> newValue) {
-        E result = get(index);
-        // loop until invariant is true in case some other thread resets
-        // reference to oldValue (although if they are doing that then we still
-        // cannot guarantee there will be no ABA problem as they could come
-        // back and set it after we return)
-        while (result == oldValue) {
-            final E update = newValue.get();
-            // abort if trying to set the same value, otherwise infinite loop
-            if (update == oldValue) {
-                return oldValue;
-            }
-            compareAndSet(index, oldValue, update);
-            result = get(index);
-        }
+  /**
+   * Check the current value and if it matches the old value argument, set it to
+   * the new value and return that instead. If the old value argument does not
+   * match, ignore both and just return the current value.
+   * 
+   * @param <T> the object type.
+   * @param oldValue to check the current value against (reference equality
+   * check only)
+   * @param newValue the new value to set it to
+   * @return the current reference value if it doesn't match oldValue or a newly
+   * created value.
+   */
+  public final E getOrSetAndGetIf(final int index, final E oldValue, final E newValue) {
+    E result = get(index);
+    // loop until invariant is true in case some other thread resets
+    // reference to oldValue (although if they are doing that then we still
+    // cannot guarantee there will be no ABA problem as they could come
+    // back and set it after we return)
+    while (result == oldValue) {
+      // abort if trying to set the same value, otherwise infinite loop
+      if (result == newValue) {
         return result;
+      }
+      compareAndSet(index, oldValue, newValue);
+      result = get(index);
     }
+    return result;
+  }
 
-    /**
-     * Check the current value and if it matches the old value argument, set it
-     * to the new value and return that instead. If the old value argument does
-     * not match, ignore both and just return the current value.
-     * 
-     * @param <T> the object type.
-     * @param oldValue to check the current value against (reference equality
-     * check only)
-     * @param newValue the new value to set it to
-     * @return the current reference value if it doesn't match oldValue or a
-     * newly created value.
-     */
-    public final E getOrSetAndGetIf(final int index, final E oldValue, final E newValue) {
-        E result = get(index);
-        // loop until invariant is true in case some other thread resets
-        // reference to oldValue (although if they are doing that then we still
-        // cannot guarantee there will be no ABA problem as they could come
-        // back and set it after we return)
-        while (result == oldValue) {
-            // abort if trying to set the same value, otherwise infinite loop
-            if (result == newValue) {
-                return result;
-            }
-            compareAndSet(index, oldValue, newValue);
-            result = get(index);
-        }
-        return result;
-    }
-
-    /**
-     * Do the actual update. Calls the factory method with the old value to do
-     * the update logic, then sets the value to that if it hasn't changed in the
-     * meantime.
-     * 
-     * @return the new updated value.
-     */
-    public final E update(final int index, final Function<E, E> newValueFactory) {
-        E oldValue, newValue;
-        do {
-            oldValue = get(index);
-            newValue = newValueFactory.apply(oldValue);
-            // test first to implement TTAS optimisation
-            // then compare and set
-        } while ((get(index) != oldValue) || !compareAndSet(index, oldValue, newValue));
-        return newValue;
-    }
+  /**
+   * Do the actual update. Calls the factory method with the old value to do the
+   * update logic, then sets the value to that if it hasn't changed in the
+   * meantime.
+   * 
+   * @return the new updated value.
+   */
+  public final E update(final int index, final Function<E, E> newValueFactory) {
+    E oldValue, newValue;
+    do {
+      oldValue = get(index);
+      newValue = newValueFactory.apply(oldValue);
+      // test first to implement TTAS optimisation
+      // then compare and set
+    } while ((get(index) != oldValue) || !compareAndSet(index, oldValue, newValue));
+    return newValue;
+  }
 }

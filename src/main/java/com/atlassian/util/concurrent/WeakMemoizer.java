@@ -38,82 +38,80 @@ import java.util.concurrent.ConcurrentMap;
  * apply.
  * @param <V> the value
  */
-@ThreadSafe
-class WeakMemoizer<K, V> implements Function<K, V> {
-    static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
-        return new WeakMemoizer<K, V>(delegate);
-    }
+@ThreadSafe class WeakMemoizer<K, V> implements Function<K, V> {
+  static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
+    return new WeakMemoizer<K, V>(delegate);
+  }
 
-    private final ConcurrentMap<K, MappedReference<K, V>> map;
-    private final ReferenceQueue<V> queue = new ReferenceQueue<V>();
-    private final Function<K, V> delegate;
+  private final ConcurrentMap<K, MappedReference<K, V>> map;
+  private final ReferenceQueue<V> queue = new ReferenceQueue<V>();
+  private final Function<K, V> delegate;
 
-    /**
-     * Construct a new {@link WeakMemoizer} instance.
-     * 
-     * @param initialCapacity how large the internal map should be initially.
-     * @param delegate for creating the initial values.
-     * @throws IllegalArgumentException if the initial capacity of elements is
-     * negative.
-     */
-    WeakMemoizer(final @NotNull Function<K, V> delegate) {
-        this.map = new ConcurrentHashMap<K, MappedReference<K, V>>();
-        this.delegate = notNull("delegate", delegate);
-    }
+  /**
+   * Construct a new {@link WeakMemoizer} instance.
+   * 
+   * @param initialCapacity how large the internal map should be initially.
+   * @param delegate for creating the initial values.
+   * @throws IllegalArgumentException if the initial capacity of elements is
+   * negative.
+   */
+  WeakMemoizer(final @NotNull Function<K, V> delegate) {
+    this.map = new ConcurrentHashMap<K, MappedReference<K, V>>();
+    this.delegate = notNull("delegate", delegate);
+  }
 
-    /**
-     * Get a result for the supplied Descriptor.
-     * 
-     * @param descriptor must not be null
-     * @return descriptor lock
-     */
-    public V get(final K descriptor) {
-        expungeStaleEntries();
-        notNull("descriptor", descriptor);
-        while (true) {
-            final MappedReference<K, V> reference = map.get(descriptor);
-            if (reference != null) {
-                final V value = reference.get();
-                if (value != null) {
-                    return value;
-                }
-                map.remove(descriptor, reference);
-            }
-            map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
+  /**
+   * Get a result for the supplied Descriptor.
+   * 
+   * @param descriptor must not be null
+   * @return descriptor lock
+   */
+  public V get(final K descriptor) {
+    expungeStaleEntries();
+    notNull("descriptor", descriptor);
+    while (true) {
+      final MappedReference<K, V> reference = map.get(descriptor);
+      if (reference != null) {
+        final V value = reference.get();
+        if (value != null) {
+          return value;
         }
+        map.remove(descriptor, reference);
+      }
+      map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
+    }
+  }
+
+  // expunge entries whose value reference has been collected
+  @SuppressWarnings("unchecked") private void expungeStaleEntries() {
+    MappedReference<K, V> ref;
+    // /CLOVER:OFF
+    while ((ref = (MappedReference<K, V>) queue.poll()) != null) {
+      final K key = ref.getDescriptor();
+      if (key == null) {
+        // DO NOT REMOVE! In theory this should not be necessary as it
+        // should not be able to be null - but we have seen it happen!
+        continue;
+      }
+      map.remove(key, ref);
+    }
+    // /CLOVER:ON
+  }
+
+  /**
+   * A weak reference that maintains a reference to the key so that it can be
+   * removed from the map when the value is garbage collected.
+   */
+  static final class MappedReference<K, V> extends WeakReference<V> {
+    private final K key;
+
+    public MappedReference(final K key, final V value, final ReferenceQueue<? super V> q) {
+      super(notNull("value", value), q);
+      this.key = notNull("key", key);
     }
 
-    // expunge entries whose value reference has been collected
-    @SuppressWarnings("unchecked")
-    private void expungeStaleEntries() {
-        MappedReference<K, V> ref;
-        // /CLOVER:OFF
-        while ((ref = (MappedReference<K, V>) queue.poll()) != null) {
-            final K key = ref.getDescriptor();
-            if (key == null) {
-                // DO NOT REMOVE! In theory this should not be necessary as it
-                // should not be able to be null - but we have seen it happen!
-                continue;
-            }
-            map.remove(key, ref);
-        }
-        // /CLOVER:ON
+    final K getDescriptor() {
+      return key;
     }
-
-    /**
-     * A weak reference that maintains a reference to the key so that it can be
-     * removed from the map when the value is garbage collected.
-     */
-    static final class MappedReference<K, V> extends WeakReference<V> {
-        private final K key;
-
-        public MappedReference(final K key, final V value, final ReferenceQueue<? super V> q) {
-            super(notNull("value", value), q);
-            this.key = notNull("key", key);
-        }
-
-        final K getDescriptor() {
-            return key;
-        }
-    }
+  }
 }

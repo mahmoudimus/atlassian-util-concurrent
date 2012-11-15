@@ -41,10 +41,10 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * 
  * <pre>
  * final LazyReference&lt;MyObject&gt; ref = new LazyReference() {
- *     protected MyObject create() throws Exception {
- *         // Do expensive object construction here
- *         return new MyObject();
- *     }
+ *   protected MyObject create() throws Exception {
+ *     // Do expensive object construction here
+ *     return new MyObject();
+ *   }
  * };
  * </pre>
  * 
@@ -75,261 +75,256 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * 
  * @param T the type of the contained element.
  */
-@ThreadSafe
-public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T>, com.google.common.base.Supplier<T> {
+@ThreadSafe public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T>, com.google.common.base.Supplier<T> {
 
-    private final Sync sync = new Sync();
+  private final Sync sync = new Sync();
 
-    public LazyReference() {
-        super(null);
-    }
+  public LazyReference() {
+    super(null);
+  }
 
-    /**
-     * The object factory method, guaranteed to be called once and only once.
-     * 
-     * @return the object that {@link #get()} and {@link #getInterruptibly()}
-     * will return.
-     * @throws Exception if anything goes wrong, rethrown as an
-     * InitializationException from {@link #get()} and
-     * {@link #getInterruptibly()}
-     */
-    protected abstract T create() throws Exception;
+  /**
+   * The object factory method, guaranteed to be called once and only once.
+   * 
+   * @return the object that {@link #get()} and {@link #getInterruptibly()} will
+   * return.
+   * @throws Exception if anything goes wrong, rethrown as an
+   * InitializationException from {@link #get()} and {@link #getInterruptibly()}
+   */
+  protected abstract T create() throws Exception;
 
-    /**
-     * Get the lazily loaded reference in a non-cancellable manner. If your
-     * <code>create()</code> method throws an Exception calls to
-     * <code>get()</code> will throw an InitializationException which wraps the
-     * previously thrown exception.
-     * 
-     * @return the object that {@link #create()} created.
-     * @throws InitializationException if the {@link #create()} method throws an
-     * exception. The {@link InitializationException#getCause()} will contain
-     * the exception thrown by the {@link #create()} method
-     */
-    @Override
-    public final T get() {
-        boolean interrupted = false;
+  /**
+   * Get the lazily loaded reference in a non-cancellable manner. If your
+   * <code>create()</code> method throws an Exception calls to
+   * <code>get()</code> will throw an InitializationException which wraps the
+   * previously thrown exception.
+   * 
+   * @return the object that {@link #create()} created.
+   * @throws InitializationException if the {@link #create()} method throws an
+   * exception. The {@link InitializationException#getCause()} will contain the
+   * exception thrown by the {@link #create()} method
+   */
+  @Override public final T get() {
+    boolean interrupted = false;
+    try {
+      while (true) {
         try {
-            while (true) {
-                try {
-                    return getInterruptibly();
-                } catch (final InterruptedException ignore) {
-                    // ignore and try again
-                    interrupted = true;
-                }
-            }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
+          return getInterruptibly();
+        } catch (final InterruptedException ignore) {
+          // ignore and try again
+          interrupted = true;
         }
+      }
+    } finally {
+      if (interrupted) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  /**
+   * Get the lazily loaded reference in a cancellable manner. If your
+   * <code>create()</code> method throws an Exception, calls to
+   * <code>get()</code> will throw a RuntimeException which wraps the previously
+   * thrown exception.
+   * 
+   * @return the object that {@link #create()} created.
+   * @throws InitializationException if the {@link #create()} method throws an
+   * exception. The {@link InitializationException#getCause()} will contain the
+   * exception thrown by the {@link #create()} method
+   * @throws InterruptedException If the calling thread is Interrupted while
+   * waiting for another thread to create the value (if the creating thread is
+   * interrupted while blocking on something, the {@link InterruptedException}
+   * will be thrown as the causal exception of the
+   * {@link InitializationException} to everybody calling this method).
+   */
+  public final T getInterruptibly() throws InterruptedException {
+    if (!sync.isDone()) {
+      sync.run();
+    }
+
+    try {
+      return sync.get();
+    } catch (final ExecutionException e) {
+      throw new InitializationException(e);
+    }
+  }
+
+  /**
+   * Has the {@link #create()} reference been initialized.
+   * 
+   * @return true if the task is complete
+   */
+  public boolean isInitialized() {
+    return sync.isDone();
+  }
+
+  /**
+   * Cancel the initializing operation if it has not already run. Will try and
+   * interrupt if it is currently running.
+   */
+  public void cancel() {
+    sync.cancel(true);
+  }
+
+  /**
+   * If the factory {@link LazyReference#create()} method threw an exception,
+   * this wraps it.
+   */
+  public static class InitializationException extends RuntimeException {
+    private static final long serialVersionUID = 3638376010285456759L;
+
+    InitializationException(final ExecutionException e) {
+      super((e.getCause() != null) ? e.getCause() : e);
+    }
+  }
+
+  /**
+   * Synchronization control for LazyReference. Note that this must be a
+   * non-static inner class in order to invoke the protected <tt>create</tt>
+   * method. Taken from FutureTask AQS implementation and pruned to be as
+   * compact as possible.
+   * 
+   * Uses AQS sync state to represent run status.
+   */
+  private final class Sync extends AbstractQueuedSynchronizer {
+
+    /**
+     * only here to shut up the compiler warnings, the outer class is NOT
+     * serializable
+     */
+    private static final long serialVersionUID = -1645412544240373524L;
+
+    /** State value representing that task is running */
+    private static final int RUNNING = 1;
+    /** State value representing that task ran */
+    private static final int RAN = 2;
+    /** State value representing that task was cancelled */
+    private static final int CANCELLED = 4;
+
+    /** The result to return from get() */
+    private T result;
+    /** The exception to throw from get() */
+    private Throwable exception;
+
+    /**
+     * The thread running task. When nulled after set/cancel, this indicates
+     * that the results are accessible. Must be volatile, to ensure visibility
+     * upon completion.
+     */
+    private volatile Thread runner;
+
+    private boolean ranOrCancelled(final int state) {
+      return (state & (RAN | CANCELLED)) != 0;
     }
 
     /**
-     * Get the lazily loaded reference in a cancellable manner. If your
-     * <code>create()</code> method throws an Exception, calls to
-     * <code>get()</code> will throw a RuntimeException which wraps the
-     * previously thrown exception.
-     * 
-     * @return the object that {@link #create()} created.
-     * @throws InitializationException if the {@link #create()} method throws an
-     * exception. The {@link InitializationException#getCause()} will contain
-     * the exception thrown by the {@link #create()} method
-     * @throws InterruptedException If the calling thread is Interrupted while
-     * waiting for another thread to create the value (if the creating thread is
-     * interrupted while blocking on something, the {@link InterruptedException}
-     * will be thrown as the causal exception of the
-     * {@link InitializationException} to everybody calling this method).
+     * Implements AQS base acquire to succeed if ran or cancelled
      */
-    public final T getInterruptibly() throws InterruptedException {
-        if (!sync.isDone()) {
-            sync.run();
-        }
-
-        try {
-            return sync.get();
-        } catch (final ExecutionException e) {
-            throw new InitializationException(e);
-        }
+    @Override protected int tryAcquireShared(final int ignore) {
+      return isDone() ? 1 : -1;
     }
 
     /**
-     * Has the {@link #create()} reference been initialized.
-     * 
-     * @return true if the task is complete
+     * Implements AQS base release to always signal after setting final done
+     * status by nulling runner thread.
      */
-    public boolean isInitialized() {
-        return sync.isDone();
+    @Override protected boolean tryReleaseShared(final int ignore) {
+      runner = null;
+      return true;
     }
 
-    /**
-     * Cancel the initializing operation if it has not already run. Will try and
-     * interrupt if it is currently running.
-     */
-    public void cancel() {
-        sync.cancel(true);
+    boolean isDone() {
+      return ranOrCancelled(getState()) && (runner == null);
     }
 
-    /**
-     * If the factory {@link LazyReference#create()} method threw an exception,
-     * this wraps it.
-     */
-    public static class InitializationException extends RuntimeException {
-        private static final long serialVersionUID = 3638376010285456759L;
-
-        InitializationException(final ExecutionException e) {
-            super((e.getCause() != null) ? e.getCause() : e);
-        }
+    T get() throws InterruptedException, ExecutionException {
+      acquireSharedInterruptibly(0);
+      if (getState() == CANCELLED) {
+        throw new CancellationException();
+      }
+      if (exception != null) {
+        throw new ExecutionException(exception);
+      }
+      return result;
     }
 
-    /**
-     * Synchronization control for LazyReference. Note that this must be a
-     * non-static inner class in order to invoke the protected <tt>create</tt>
-     * method. Taken from FutureTask AQS implementation and pruned to be as
-     * compact as possible.
-     * 
-     * Uses AQS sync state to represent run status.
-     */
-    private final class Sync extends AbstractQueuedSynchronizer {
-
-        /**
-         * only here to shut up the compiler warnings, the outer class is NOT
-         * serializable
-         */
-        private static final long serialVersionUID = -1645412544240373524L;
-
-        /** State value representing that task is running */
-        private static final int RUNNING = 1;
-        /** State value representing that task ran */
-        private static final int RAN = 2;
-        /** State value representing that task was cancelled */
-        private static final int CANCELLED = 4;
-
-        /** The result to return from get() */
-        private T result;
-        /** The exception to throw from get() */
-        private Throwable exception;
-
-        /**
-         * The thread running task. When nulled after set/cancel, this indicates
-         * that the results are accessible. Must be volatile, to ensure
-         * visibility upon completion.
-         */
-        private volatile Thread runner;
-
-        private boolean ranOrCancelled(final int state) {
-            return (state & (RAN | CANCELLED)) != 0;
+    void set(final T v) {
+      for (;;) {
+        final int s = getState();
+        if (s == RAN) {
+          return;
         }
-
-        /**
-         * Implements AQS base acquire to succeed if ran or cancelled
-         */
-        @Override
-        protected int tryAcquireShared(final int ignore) {
-            return isDone() ? 1 : -1;
+        if (s == CANCELLED) {
+          // aggressively release to set runner to null,
+          // in case we are racing with a cancel request
+          // that will try to interrupt runner
+          releaseShared(0);
+          return;
         }
-
-        /**
-         * Implements AQS base release to always signal after setting final done
-         * status by nulling runner thread.
-         */
-        @Override
-        protected boolean tryReleaseShared(final int ignore) {
-            runner = null;
-            return true;
+        if (compareAndSetState(s, RAN)) {
+          result = v;
+          releaseShared(0);
+          return;
         }
-
-        boolean isDone() {
-            return ranOrCancelled(getState()) && (runner == null);
-        }
-
-        T get() throws InterruptedException, ExecutionException {
-            acquireSharedInterruptibly(0);
-            if (getState() == CANCELLED) {
-                throw new CancellationException();
-            }
-            if (exception != null) {
-                throw new ExecutionException(exception);
-            }
-            return result;
-        }
-
-        void set(final T v) {
-            for (;;) {
-                final int s = getState();
-                if (s == RAN) {
-                    return;
-                }
-                if (s == CANCELLED) {
-                    // aggressively release to set runner to null,
-                    // in case we are racing with a cancel request
-                    // that will try to interrupt runner
-                    releaseShared(0);
-                    return;
-                }
-                if (compareAndSetState(s, RAN)) {
-                    result = v;
-                    releaseShared(0);
-                    return;
-                }
-            }
-        }
-
-        void setException(final Throwable t) {
-            for (;;) {
-                final int s = getState();
-                if (s == RAN) {
-                    return;
-                }
-                if (s == CANCELLED) {
-                    // aggressively release to set runner to null,
-                    // in case we are racing with a cancel request
-                    // that will try to interrupt runner
-                    releaseShared(0);
-                    return;
-                }
-                if (compareAndSetState(s, RAN)) {
-                    exception = t;
-                    result = null;
-                    releaseShared(0);
-                    return;
-                }
-            }
-        }
-
-        void cancel(final boolean mayInterruptIfRunning) {
-            for (;;) {
-                final int s = getState();
-                if (ranOrCancelled(s)) {
-                    return;
-                }
-                if (compareAndSetState(s, CANCELLED)) {
-                    break;
-                }
-            }
-            if (mayInterruptIfRunning) {
-                final Thread r = runner;
-                if (r != null) {
-                    r.interrupt();
-                }
-            }
-            releaseShared(0);
-        }
-
-        void run() {
-            if (!compareAndSetState(0, RUNNING)) {
-                return;
-            }
-            try {
-                runner = Thread.currentThread();
-                if (getState() == RUNNING) {
-                    set(create());
-                } else {
-                    releaseShared(0); // cancel
-                }
-            } catch (final Throwable ex) {
-                setException(ex);
-            }
-        }
+      }
     }
+
+    void setException(final Throwable t) {
+      for (;;) {
+        final int s = getState();
+        if (s == RAN) {
+          return;
+        }
+        if (s == CANCELLED) {
+          // aggressively release to set runner to null,
+          // in case we are racing with a cancel request
+          // that will try to interrupt runner
+          releaseShared(0);
+          return;
+        }
+        if (compareAndSetState(s, RAN)) {
+          exception = t;
+          result = null;
+          releaseShared(0);
+          return;
+        }
+      }
+    }
+
+    void cancel(final boolean mayInterruptIfRunning) {
+      for (;;) {
+        final int s = getState();
+        if (ranOrCancelled(s)) {
+          return;
+        }
+        if (compareAndSetState(s, CANCELLED)) {
+          break;
+        }
+      }
+      if (mayInterruptIfRunning) {
+        final Thread r = runner;
+        if (r != null) {
+          r.interrupt();
+        }
+      }
+      releaseShared(0);
+    }
+
+    void run() {
+      if (!compareAndSetState(0, RUNNING)) {
+        return;
+      }
+      try {
+        runner = Thread.currentThread();
+        if (getState() == RUNNING) {
+          set(create());
+        } else {
+          releaseShared(0); // cancel
+        }
+      } catch (final Throwable ex) {
+        setException(ex);
+      }
+    }
+  }
 }

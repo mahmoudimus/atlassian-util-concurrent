@@ -7,39 +7,33 @@ import org.junit.Test;
 import com.google.common.util.concurrent.FutureCallback;
 
 public class ForwardingPromiseTest {
-    private final Promise<Object> promise = Promises.promise(new Object());
+  private final Promise<Object> promise = Promises.promise(new Object());
 
-    private final ForwardingPromise<Object> forwardingPromise = new ForwardingPromise<Object>() {
-        @Override
-        protected Promise<Object> delegate() {
-            return promise;
-        }
+  private final ForwardingPromise<Object> forwardingPromise = new ForwardingPromise<Object>() {
+    @Override protected Promise<Object> delegate() {
+      return promise;
+    }
+  };
+
+  <A> Effect<A> doNothing(Class<A> c) {
+    return new Effect<A>() {
+      public void apply(A a) {};
     };
+  }
 
-    <A> Effect<A> doNothing(Class<A> c) {
-        return new Effect<A>() {
-            public void apply(A a) {};
-        };
-    }
+  @Test public void testDoneReturnsThis() {
+    assertSame(forwardingPromise, forwardingPromise.done(doNothing(Object.class)));
+  }
 
-    @Test
-    public void testDoneReturnsThis() {
-        assertSame(forwardingPromise, forwardingPromise.done(doNothing(Object.class)));
-    }
+  @Test public void testFailReturnsThis() {
+    assertSame(forwardingPromise, forwardingPromise.fail(doNothing(Throwable.class)));
+  }
 
-    @Test
-    public void testFailReturnsThis() {
-        assertSame(forwardingPromise, forwardingPromise.fail(doNothing(Throwable.class)));
-    }
+  @Test public void testThenReturnsThis() {
+    assertSame(forwardingPromise, forwardingPromise.then(new FutureCallback<Object>() {
+      @Override public void onSuccess(Object result) {}
 
-    @Test
-    public void testThenReturnsThis() {
-        assertSame(forwardingPromise, forwardingPromise.then(new FutureCallback<Object>() {
-            @Override
-            public void onSuccess(Object result) {}
-
-            @Override
-            public void onFailure(Throwable t) {}
-        }));
-    }
+      @Override public void onFailure(Throwable t) {}
+    }));
+  }
 }

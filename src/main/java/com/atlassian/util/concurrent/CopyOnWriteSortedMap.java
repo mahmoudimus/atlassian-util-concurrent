@@ -77,224 +77,219 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
  * @param <V> the value type
  * @author Jed Wesley-Smith
  */
-@ThreadSafe
-public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, SortedMap<K, V>> implements SortedMap<K, V> {
-    private static final long serialVersionUID = 7375772978175545647L;
+@ThreadSafe public abstract class CopyOnWriteSortedMap<K, V> extends AbstractCopyOnWriteMap<K, V, SortedMap<K, V>> implements SortedMap<K, V> {
+  private static final long serialVersionUID = 7375772978175545647L;
+
+  /**
+   * Get a {@link Builder} for a {@link CopyOnWriteSortedMap} instance.
+   * 
+   * @param <K> key type
+   * @param <V> value type
+   * @return a fresh builder
+   */
+  public static <K, V> Builder<K, V> builder() {
+    return new Builder<K, V>();
+  }
+
+  /**
+   * Build a {@link CopyOnWriteSortedMap} and specify all the options.
+   * 
+   * @param <K> key type
+   * @param <V> value type
+   */
+  public static class Builder<K, V> {
+    private View.Type viewType = View.Type.STABLE;
+    private Comparator<? super K> comparator;
+    private final Map<K, V> initialValues = new HashMap<K, V>();
+
+    Builder() {}
 
     /**
-     * Get a {@link Builder} for a {@link CopyOnWriteSortedMap} instance.
-     * 
-     * @param <K> key type
-     * @param <V> value type
-     * @return a fresh builder
+     * Views are stable (fixed in time) and unmodifiable.
      */
-    public static <K, V> Builder<K, V> builder() {
-        return new Builder<K, V>();
-    }
-
-    /**
-     * Build a {@link CopyOnWriteSortedMap} and specify all the options.
-     * 
-     * @param <K> key type
-     * @param <V> value type
-     */
-    public static class Builder<K, V> {
-        private View.Type viewType = View.Type.STABLE;
-        private Comparator<? super K> comparator;
-        private final Map<K, V> initialValues = new HashMap<K, V>();
-
-        Builder() {}
-
-        /**
-         * Views are stable (fixed in time) and unmodifiable.
-         */
-        public Builder<K, V> stableViews() {
-            viewType = View.Type.STABLE;
-            return this;
-        }
-
-        /**
-         * Views are live (reflecting concurrent updates) and mutator methods
-         * are supported.
-         */
-        public Builder<K, V> liveViews() {
-            viewType = View.Type.STABLE;
-            return this;
-        }
-
-        /**
-         * Views are live (reflecting concurrent updates) and mutator methods
-         * are supported.
-         */
-        public Builder<K, V> addAll(final Map<? extends K, ? extends V> values) {
-            initialValues.putAll(values);
-            return this;
-        }
-
-        /**
-         * Use the specified comparator.
-         */
-        public Builder<K, V> ordering(final Comparator<? super K> comparator) {
-            this.comparator = comparator;
-            return this;
-        }
-
-        /**
-         * Use the keys natural ordering.
-         */
-        public Builder<K, V> orderingNatural() {
-            this.comparator = null;
-            return this;
-        }
-
-        public CopyOnWriteSortedMap<K, V> newTreeMap() {
-            return (comparator == null) ? new Tree<K, V>(initialValues, viewType) : comparedTreeMap(initialValues, viewType, comparator);
-        }
+    public Builder<K, V> stableViews() {
+      viewType = View.Type.STABLE;
+      return this;
     }
 
     /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
-     * instances are {@link TreeMap} and the sort uses the key's natural order.
-     * <p>
-     * This map has {@link View.Type.STABLE stable} views.
+     * Views are live (reflecting concurrent updates) and mutator methods are
+     * supported.
      */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
-        final Builder<K, V> builder = builder();
-        return builder.newTreeMap();
+    public Builder<K, V> liveViews() {
+      viewType = View.Type.STABLE;
+      return this;
     }
 
     /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
-     * instances are {@link TreeMap}, the sort uses the key's natural order and
-     * the initial values are supplied.
-     * <p>
-     * This map has {@link View.Type.STABLE stable} views.
-     * 
-     * @param map the map to use as the initial values.
+     * Views are live (reflecting concurrent updates) and mutator methods are
+     * supported.
      */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
-        final Builder<K, V> builder = builder();
-        notNull("map", map);
-        return builder.addAll(map).newTreeMap();
+    public Builder<K, V> addAll(final Map<? extends K, ? extends V> values) {
+      initialValues.putAll(values);
+      return this;
     }
 
     /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
-     * instances are {@link TreeMap}.
-     * <p>
-     * This map has {@link View.Type.STABLE stable} views.
-     * 
-     * @param comparator the Comparator to use for ordering the keys. Note,
-     * should be serializable if this map is to be serialized.
+     * Use the specified comparator.
      */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
-        final Builder<K, V> builder = builder();
-        notNull("comparator", comparator);
-        return builder.ordering(comparator).newTreeMap();
+    public Builder<K, V> ordering(final Comparator<? super K> comparator) {
+      this.comparator = comparator;
+      return this;
     }
 
     /**
-     * Create a new {@link CopyOnWriteSortedMap} where the underlying map
-     * instances are {@link TreeMap}, the sort uses the key's natural order and
-     * the initial values are supplied.
-     * <p>
-     * This map has {@link View.Type.STABLE stable} views.
-     * 
-     * @param map to use as the initial values.
-     * @param comparator for ordering.
+     * Use the keys natural ordering.
      */
-    public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map,
-        final @NotNull Comparator<? super K> comparator) {
-        final Builder<K, V> builder = builder();
-        notNull("comparator", comparator);
-        notNull("map", map);
-        return builder.ordering(comparator).addAll(map).newTreeMap();
+    public Builder<K, V> orderingNatural() {
+      this.comparator = null;
+      return this;
     }
 
-    //
-    // constructors
-    //
+    public CopyOnWriteSortedMap<K, V> newTreeMap() {
+      return (comparator == null) ? new Tree<K, V>(initialValues, viewType) : comparedTreeMap(initialValues, viewType, comparator);
+    }
+  }
 
-    /**
-     * Create a new empty {@link CopyOnWriteMap}.
-     */
-    protected CopyOnWriteSortedMap(final View.Type viewType) {
-        super(Collections.<K, V> emptyMap(), viewType);
+  /**
+   * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+   * instances are {@link TreeMap} and the sort uses the key's natural order.
+   * <p>
+   * This map has {@link View.Type.STABLE stable} views.
+   */
+  public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap() {
+    final Builder<K, V> builder = builder();
+    return builder.newTreeMap();
+  }
+
+  /**
+   * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+   * instances are {@link TreeMap}, the sort uses the key's natural order and
+   * the initial values are supplied.
+   * <p>
+   * This map has {@link View.Type.STABLE stable} views.
+   * 
+   * @param map the map to use as the initial values.
+   */
+  public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
+    final Builder<K, V> builder = builder();
+    notNull("map", map);
+    return builder.addAll(map).newTreeMap();
+  }
+
+  /**
+   * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+   * instances are {@link TreeMap}.
+   * <p>
+   * This map has {@link View.Type.STABLE stable} views.
+   * 
+   * @param comparator the Comparator to use for ordering the keys. Note, should
+   * be serializable if this map is to be serialized.
+   */
+  public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
+    final Builder<K, V> builder = builder();
+    notNull("comparator", comparator);
+    return builder.ordering(comparator).newTreeMap();
+  }
+
+  /**
+   * Create a new {@link CopyOnWriteSortedMap} where the underlying map
+   * instances are {@link TreeMap}, the sort uses the key's natural order and
+   * the initial values are supplied.
+   * <p>
+   * This map has {@link View.Type.STABLE stable} views.
+   * 
+   * @param map to use as the initial values.
+   * @param comparator for ordering.
+   */
+  public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map,
+    final @NotNull Comparator<? super K> comparator) {
+    final Builder<K, V> builder = builder();
+    notNull("comparator", comparator);
+    notNull("map", map);
+    return builder.ordering(comparator).addAll(map).newTreeMap();
+  }
+
+  //
+  // constructors
+  //
+
+  /**
+   * Create a new empty {@link CopyOnWriteMap}.
+   */
+  protected CopyOnWriteSortedMap(final View.Type viewType) {
+    super(Collections.<K, V> emptyMap(), viewType);
+  }
+
+  /**
+   * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
+   * initialize the values.
+   * 
+   * @param map the initial map to initialize with
+   */
+  protected CopyOnWriteSortedMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
+    super(map, viewType);
+  }
+
+  //
+  // methods
+  //
+
+  @Override @GuardedBy("internal-lock") protected abstract <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(N map);
+
+  public Comparator<? super K> comparator() {
+    return getDelegate().comparator();
+  }
+
+  public K firstKey() {
+    return getDelegate().firstKey();
+  }
+
+  public K lastKey() {
+    return getDelegate().lastKey();
+  }
+
+  public SortedMap<K, V> headMap(final K toKey) {
+    return Collections.unmodifiableSortedMap(getDelegate().headMap(toKey));
+  };
+
+  public SortedMap<K, V> tailMap(final K fromKey) {
+    return Collections.unmodifiableSortedMap(getDelegate().tailMap(fromKey));
+  };
+
+  public SortedMap<K, V> subMap(final K fromKey, final K toKey) {
+    return Collections.unmodifiableSortedMap(getDelegate().subMap(fromKey, toKey));
+  };
+
+  /**
+   * Naturally ordered TreeMap based.
+   * 
+   * @param <K>
+   * @param <V>
+   */
+  private static final class Tree<K, V> extends CopyOnWriteSortedMap<K, V> {
+    private static final long serialVersionUID = 8015823768891873357L;
+
+    Tree(final Map<? extends K, ? extends V> map, final Type viewType) {
+      super(map, viewType);
     }
 
-    /**
-     * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
-     * initialize the values.
-     * 
-     * @param map the initial map to initialize with
-     */
-    protected CopyOnWriteSortedMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
-        super(map, viewType);
+    @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+      return new TreeMap<K, V>(map);
     }
+  }
 
-    //
-    // methods
-    //
+  private static <K, V> CopyOnWriteSortedMap<K, V> comparedTreeMap(final Map<? extends K, ? extends V> map, final Type viewType,
+    final Comparator<? super K> comparator) {
+    notNull("comparator", comparator);
+    return new CopyOnWriteSortedMap<K, V>(map, viewType) {
+      private static final long serialVersionUID = -7243810284130497340L;
 
-    @Override
-    @GuardedBy("internal-lock")
-    protected abstract <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(N map);
-
-    public Comparator<? super K> comparator() {
-        return getDelegate().comparator();
-    }
-
-    public K firstKey() {
-        return getDelegate().firstKey();
-    }
-
-    public K lastKey() {
-        return getDelegate().lastKey();
-    }
-
-    public SortedMap<K, V> headMap(final K toKey) {
-        return Collections.unmodifiableSortedMap(getDelegate().headMap(toKey));
+      @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+        final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
+        treeMap.putAll(map);
+        return treeMap;
+      }
     };
-
-    public SortedMap<K, V> tailMap(final K fromKey) {
-        return Collections.unmodifiableSortedMap(getDelegate().tailMap(fromKey));
-    };
-
-    public SortedMap<K, V> subMap(final K fromKey, final K toKey) {
-        return Collections.unmodifiableSortedMap(getDelegate().subMap(fromKey, toKey));
-    };
-
-    /**
-     * Naturally ordered TreeMap based.
-     * 
-     * @param <K>
-     * @param <V>
-     */
-    private static final class Tree<K, V> extends CopyOnWriteSortedMap<K, V> {
-        private static final long serialVersionUID = 8015823768891873357L;
-
-        Tree(final Map<? extends K, ? extends V> map, final Type viewType) {
-            super(map, viewType);
-        }
-
-        @Override
-        public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-            return new TreeMap<K, V>(map);
-        }
-    }
-
-    private static <K, V> CopyOnWriteSortedMap<K, V> comparedTreeMap(final Map<? extends K, ? extends V> map, final Type viewType,
-        final Comparator<? super K> comparator) {
-        notNull("comparator", comparator);
-        return new CopyOnWriteSortedMap<K, V>(map, viewType) {
-            private static final long serialVersionUID = -7243810284130497340L;
-
-            @Override
-            public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
-                final TreeMap<K, V> treeMap = new TreeMap<K, V>(comparator);
-                treeMap.putAll(map);
-                return treeMap;
-            }
-        };
-    }
+  }
 }

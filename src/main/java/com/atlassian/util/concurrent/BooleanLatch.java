@@ -35,130 +35,126 @@ import net.jcip.annotations.ThreadSafe;
  * {@link Condition#signalAll()} is not supported and if there are multiple
  * waiters then the particular thread that is released is arbitrary.
  */
-@ThreadSafe
-public class BooleanLatch implements ReusableLatch {
-    /**
-     * Synchronization control For BooleanLatch. Uses AQS state to represent
-     * released state.
-     */
-    private static class Sync extends AbstractQueuedSynchronizer {
-        private static final long serialVersionUID = -3475411235403448115L;
+@ThreadSafe public class BooleanLatch implements ReusableLatch {
+  /**
+   * Synchronization control For BooleanLatch. Uses AQS state to represent
+   * released state.
+   */
+  private static class Sync extends AbstractQueuedSynchronizer {
+    private static final long serialVersionUID = -3475411235403448115L;
 
-        private static final int RELEASED = 0;
-        private static final int UNAVAILABLE = -1;
+    private static final int RELEASED = 0;
+    private static final int UNAVAILABLE = -1;
 
-        private Sync() {
-            setState(UNAVAILABLE);
-        }
-
-        @Override
-        protected boolean tryAcquire(final int ignore) {
-            if (!(getState() == RELEASED)) {
-                return false;
-            }
-            return compareAndSetState(RELEASED, UNAVAILABLE);
-        }
-
-        @Override
-        protected boolean tryRelease(final int ignore) {
-            final int state = getState();
-            if (state == UNAVAILABLE) {
-                setState(RELEASED);
-            }
-            return true;
-        }
+    private Sync() {
+      setState(UNAVAILABLE);
     }
 
-    private final Sync sync = new Sync();
-
-    /**
-     * {@inheritDoc}
-     * 
-     * Releases at most one waiting thread. If the current state is released
-     * then nothing happens.
-     */
-    public void release() {
-        sync.release(0);
+    @Override protected boolean tryAcquire(final int ignore) {
+      if (!(getState() == RELEASED)) {
+        return false;
+      }
+      return compareAndSetState(RELEASED, UNAVAILABLE);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * Causes the current thread to wait until the latch has been released,
-     * unless the thread is {@linkplain Thread#interrupt() interrupted}.
-     * <p>
-     * If the latch has already been released then this method returns
-     * immediately.
-     * <p>
-     * If the latch is not released then the current thread becomes disabled for
-     * thread scheduling purposes and lies dormant until one of two things
-     * happen:
-     * <ul>
-     * <li>The latch is released by another thread invoking the
-     * {@link #release()} method; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts} the
-     * current thread.
-     * </ul>
-     * <p>
-     * If the current thread:
-     * <ul>
-     * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
-     * 
-     * @throws InterruptedException if the current thread is interrupted while
-     * waiting
-     */
-    public void await() throws InterruptedException {
-        sync.acquireInterruptibly(0);
+    @Override protected boolean tryRelease(final int ignore) {
+      final int state = getState();
+      if (state == UNAVAILABLE) {
+        setState(RELEASED);
+      }
+      return true;
     }
+  }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * Causes the current thread to wait until the latch has been released,
-     * unless the thread is {@linkplain Thread#interrupt() interrupted}, or the
-     * specified waiting time elapses.
-     * <p>
-     * If the latch has already been released then this method returns
-     * immediately with return value true.
-     * <p>
-     * If the latch is unreleased then the current thread becomes disabled for
-     * thread scheduling purposes and lies dormant until one of three things
-     * happen:
-     * <ul>
-     * <li>The latch is released by another thread invoking the
-     * {@link #release()} method; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts} the
-     * current thread; or
-     * <li>The specified waiting time elapses.
-     * </ul>
-     * <p>
-     * If latch is released by another thread then the method returns with the
-     * value {@code true}.
-     * <p>
-     * If the current thread:
-     * <ul>
-     * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
-     * <p>
-     * If the specified waiting time elapses then the value {@code false} is
-     * returned. If the time is less than or equal to zero, the method will not
-     * wait at all.
-     * 
-     * @param timeout the maximum time to wait
-     * @param unit the time unit of the {@code timeout} argument
-     * @return {@code true} if the count reached zero and {@code false} if the
-     * waiting time elapsed before the count reached zero
-     * @throws InterruptedException if the current thread is interrupted while
-     * waiting
-     */
-    public boolean await(final long timeout, final TimeUnit unit) throws InterruptedException {
-        return sync.tryAcquireNanos(0, unit.toNanos(timeout));
-    }
+  private final Sync sync = new Sync();
+
+  /**
+   * {@inheritDoc}
+   * 
+   * Releases at most one waiting thread. If the current state is released then
+   * nothing happens.
+   */
+  public void release() {
+    sync.release(0);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * Causes the current thread to wait until the latch has been released, unless
+   * the thread is {@linkplain Thread#interrupt() interrupted}.
+   * <p>
+   * If the latch has already been released then this method returns
+   * immediately.
+   * <p>
+   * If the latch is not released then the current thread becomes disabled for
+   * thread scheduling purposes and lies dormant until one of two things happen:
+   * <ul>
+   * <li>The latch is released by another thread invoking the {@link #release()}
+   * method; or
+   * <li>Some other thread {@linkplain Thread#interrupt interrupts} the current
+   * thread.
+   * </ul>
+   * <p>
+   * If the current thread:
+   * <ul>
+   * <li>has its interrupted status set on entry to this method; or
+   * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
+   * </ul>
+   * then {@link InterruptedException} is thrown and the current thread's
+   * interrupted status is cleared.
+   * 
+   * @throws InterruptedException if the current thread is interrupted while
+   * waiting
+   */
+  public void await() throws InterruptedException {
+    sync.acquireInterruptibly(0);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * Causes the current thread to wait until the latch has been released, unless
+   * the thread is {@linkplain Thread#interrupt() interrupted}, or the specified
+   * waiting time elapses.
+   * <p>
+   * If the latch has already been released then this method returns immediately
+   * with return value true.
+   * <p>
+   * If the latch is unreleased then the current thread becomes disabled for
+   * thread scheduling purposes and lies dormant until one of three things
+   * happen:
+   * <ul>
+   * <li>The latch is released by another thread invoking the {@link #release()}
+   * method; or
+   * <li>Some other thread {@linkplain Thread#interrupt interrupts} the current
+   * thread; or
+   * <li>The specified waiting time elapses.
+   * </ul>
+   * <p>
+   * If latch is released by another thread then the method returns with the
+   * value {@code true}.
+   * <p>
+   * If the current thread:
+   * <ul>
+   * <li>has its interrupted status set on entry to this method; or
+   * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
+   * </ul>
+   * then {@link InterruptedException} is thrown and the current thread's
+   * interrupted status is cleared.
+   * <p>
+   * If the specified waiting time elapses then the value {@code false} is
+   * returned. If the time is less than or equal to zero, the method will not
+   * wait at all.
+   * 
+   * @param timeout the maximum time to wait
+   * @param unit the time unit of the {@code timeout} argument
+   * @return {@code true} if the count reached zero and {@code false} if the
+   * waiting time elapsed before the count reached zero
+   * @throws InterruptedException if the current thread is interrupted while
+   * waiting
+   */
+  public boolean await(final long timeout, final TimeUnit unit) throws InterruptedException {
+    return sync.tryAcquireNanos(0, unit.toNanos(timeout));
+  }
 }

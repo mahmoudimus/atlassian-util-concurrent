@@ -67,94 +67,92 @@ import com.google.common.util.concurrent.ListenableFuture;
  * 
  * @since 2.4
  */
-@Beta
-public interface Promise<A> extends ListenableFuture<A> {
-    /**
-     * Blocks the thread waiting for a result. Exceptions are thrown as runtime
-     * exceptions.
-     * 
-     * @return The promised object
-     */
-    A claim();
+@Beta public interface Promise<A> extends ListenableFuture<A> {
+  /**
+   * Blocks the thread waiting for a result. Exceptions are thrown as runtime
+   * exceptions.
+   * 
+   * @return The promised object
+   */
+  A claim();
 
-    /**
-     * Registers a callback to be called when the promised object is available.
-     * May not be executed in the same thread as the caller.
-     * 
-     * @param e The effect to perform with the result
-     * @return This object for chaining
-     */
-    Promise<A> done(Effect<A> e);
+  /**
+   * Registers a callback to be called when the promised object is available.
+   * May not be executed in the same thread as the caller.
+   * 
+   * @param e The effect to perform with the result
+   * @return This object for chaining
+   */
+  Promise<A> done(Effect<A> e);
 
-    /**
-     * Registers a callback to be called when an exception is thrown. May not be
-     * executed in the same thread as the caller.
-     * 
-     * @param e The effect to perform with the throwable
-     * @return This object for chaining
-     */
-    Promise<A> fail(Effect<Throwable> e);
+  /**
+   * Registers a callback to be called when an exception is thrown. May not be
+   * executed in the same thread as the caller.
+   * 
+   * @param e The effect to perform with the throwable
+   * @return This object for chaining
+   */
+  Promise<A> fail(Effect<Throwable> e);
 
-    /**
-     * Registers a FutureCallback to handle both success and failure (exception)
-     * cases. May not be executed in the same thread as the caller.
-     * <p>
-     * See {@link Promises#futureCallback(Effect, Effect)}
-     * {@link Promises#onSuccessDo(Effect)} and
-     * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
-     * {@link Effect} into a {@link FutureCallback}
-     * 
-     * @param callback The future callback
-     * @return This object for chaining
-     */
-    Promise<A> then(FutureCallback<A> callback);
+  /**
+   * Registers a FutureCallback to handle both success and failure (exception)
+   * cases. May not be executed in the same thread as the caller.
+   * <p>
+   * See {@link Promises#futureCallback(Effect, Effect)}
+   * {@link Promises#onSuccessDo(Effect)} and
+   * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
+   * {@link Effect} into a {@link FutureCallback}
+   * 
+   * @param callback The future callback
+   * @return This object for chaining
+   */
+  Promise<A> then(FutureCallback<A> callback);
 
-    /**
-     * Transforms this {@link Promise} from one type to another by way of a
-     * transformation function.
-     * <p>
-     * Note: This is designed for cases in which the transformation is fast and
-     * lightweight, as the method is performed on the same thread as the thing
-     * producing this promise. For more details see the note on
-     * {@link Futures#transform(Future, Function)}.
-     * 
-     * @param function The transformation function
-     * @return A new promise resulting from the transformation
-     */
-    <B> Promise<B> map(Function<? super A, ? extends B> function);
+  /**
+   * Transforms this {@link Promise} from one type to another by way of a
+   * transformation function.
+   * <p>
+   * Note: This is designed for cases in which the transformation is fast and
+   * lightweight, as the method is performed on the same thread as the thing
+   * producing this promise. For more details see the note on
+   * {@link Futures#transform(Future, Function)}.
+   * 
+   * @param function The transformation function
+   * @return A new promise resulting from the transformation
+   */
+  <B> Promise<B> map(Function<? super A, ? extends B> function);
 
-    /**
-     * Transforms this promise from one type to another by way of a
-     * transformation function that returns a new Promise, leaving the strategy
-     * for that promise production up to the function.
-     * <p>
-     * Note this is known as flatMap as it first maps to a
-     * <code>Promise&lt;Promise&lt;A&gt;&gt;</code> and then flattens that out
-     * into a single layer Promise.
-     * 
-     * @param function The transformation function to a new Promise value
-     * @return A new promise resulting from the transformation
-     */
-    <B> Promise<B> flatMap(Function<? super A, Promise<B>> function);
+  /**
+   * Transforms this promise from one type to another by way of a transformation
+   * function that returns a new Promise, leaving the strategy for that promise
+   * production up to the function.
+   * <p>
+   * Note this is known as flatMap as it first maps to a
+   * <code>Promise&lt;Promise&lt;A&gt;&gt;</code> and then flattens that out
+   * into a single layer Promise.
+   * 
+   * @param function The transformation function to a new Promise value
+   * @return A new promise resulting from the transformation
+   */
+  <B> Promise<B> flatMap(Function<? super A, Promise<B>> function);
 
-    /**
-     * Recover from an exception using the supplied exception strategy
-     * 
-     * @param handleThrowable rehabilitate the exception with a value of type B
-     * @return A new promise that will not throw an exception (unless
-     * handleThrowable itself threw).
-     */
-    Promise<A> recover(Function<Throwable, ? extends A> handleThrowable);
+  /**
+   * Recover from an exception using the supplied exception strategy
+   * 
+   * @param handleThrowable rehabilitate the exception with a value of type B
+   * @return A new promise that will not throw an exception (unless
+   * handleThrowable itself threw).
+   */
+  Promise<A> recover(Function<Throwable, ? extends A> handleThrowable);
 
-    /**
-     * Transform this promise from one type to another, also providing a
-     * strategy for dealing with any exceptions encountered.
-     * 
-     * @param handleThrowable rehabilitate the exception with a value of type B
-     * @param function mapping function
-     * @return A new promise resulting from the catamorphic transformation. This
-     * promise will not throw an exception (unless handleThrowable itself
-     * threw).
-     */
-    <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
+  /**
+   * Transform this promise from one type to another, also providing a strategy
+   * for dealing with any exceptions encountered.
+   * 
+   * @param handleThrowable rehabilitate the exception with a value of type B
+   * @param function mapping function
+   * @return A new promise resulting from the catamorphic transformation. This
+   * promise will not throw an exception (unless handleThrowable itself threw).
+   */
+  <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 }

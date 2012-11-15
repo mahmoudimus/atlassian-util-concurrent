@@ -39,19 +39,18 @@ import net.jcip.annotations.ThreadSafe;
  * particularly useful for situations where you need to get or create the
  * result, and you want to prevent concurrent creation of the result.
  */
-@ThreadSafe
-public interface ConcurrentOperationMap<K, R> {
-    /**
-     * The operation <R> will be keyed on the name <K>.
-     * 
-     * @param key the key, like any map key this should be an immutable object
-     * that correctly implements {@link Object#hashCode()} and
-     * {@link Object#equals(Object)}
-     * @param operation is the operation to execute whose result will be
-     * accessible to any concurrent callers with the same key.
-     * @return result of the operation
-     * @throws ExecutionException if the callable generated a checked exception,
-     * otherwise a runtime exception or error will be thrown
-     */
-    R runOperation(K key, Callable<R> operation) throws ExecutionException;
+@ThreadSafe public interface ConcurrentOperationMap<K, R> {
+  /**
+   * The operation <R> will be keyed on the name <K>.
+   * 
+   * @param key the key, like any map key this should be an immutable object
+   * that correctly implements {@link Object#hashCode()} and
+   * {@link Object#equals(Object)}
+   * @param operation is the operation to execute whose result will be
+   * accessible to any concurrent callers with the same key.
+   * @return result of the operation
+   * @throws ExecutionException if the callable generated a checked exception,
+   * otherwise a runtime exception or error will be thrown
+   */
+  R runOperation(K key, Callable<R> operation) throws ExecutionException;
 }

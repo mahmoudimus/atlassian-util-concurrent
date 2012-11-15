@@ -31,193 +31,185 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ConcurrentOperationMapImplTest {
 
-    @Test
-    public void runOperationsConcurrently() throws InterruptedException {
-        final AtomicInteger counter = new AtomicInteger(0);
-        final CountDownLatch runSignal = new CountDownLatch(2);
-        final CountDownLatch startSignal = new CountDownLatch(1);
-        final CountDownLatch doneSignal = new CountDownLatch(2);
+  @Test public void runOperationsConcurrently() throws InterruptedException {
+    final AtomicInteger counter = new AtomicInteger(0);
+    final CountDownLatch runSignal = new CountDownLatch(2);
+    final CountDownLatch startSignal = new CountDownLatch(1);
+    final CountDownLatch doneSignal = new CountDownLatch(2);
 
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>(
-            new Function<Callable<Integer>, ConcurrentOperationMapImpl.CallerRunsFuture<Integer>>() {
-                public ConcurrentOperationMapImpl.CallerRunsFuture<Integer> get(final Callable<Integer> input) {
-                    return new ConcurrentOperationMapImpl.CallerRunsFuture<Integer>(input) {
-                        @Override
-                        public Integer get() throws ExecutionException {
-                            runSignal.countDown();
-                            try {
-                                runSignal.await();
-                            } catch (final InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
-                            return super.get();
-                        }
-                    };
-                }
-            });
-
-        // Create two threads whose job will be to call runOperation with the
-        // same name object
-        new Thread(new SignallingWorker(startSignal, doneSignal) {
-            @Override
-            void doWork() {
-                try {
-                    assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
-                        public Integer call() {
-                            return counter.incrementAndGet();
-                        }
-                    }));
-                } catch (final ExecutionException e) {
-                    fail(e.toString());
-                }
+    final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>(
+      new Function<Callable<Integer>, ConcurrentOperationMapImpl.CallerRunsFuture<Integer>>() {
+        public ConcurrentOperationMapImpl.CallerRunsFuture<Integer> get(final Callable<Integer> input) {
+          return new ConcurrentOperationMapImpl.CallerRunsFuture<Integer>(input) {
+            @Override public Integer get() throws ExecutionException {
+              runSignal.countDown();
+              try {
+                runSignal.await();
+              } catch (final InterruptedException e) {
+                throw new RuntimeException(e);
+              }
+              return super.get();
             }
-        }).start();
-        new Thread(new SignallingWorker(startSignal, doneSignal) {
-            @Override
-            void doWork() {
-                try {
-                    assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
-                        public Integer call() {
-                            return counter.incrementAndGet();
-                        }
-                    }));
-                } catch (final ExecutionException e) {
-                    fail(e.toString());
-                }
-            }
-        }).start();
-
-        // Hang them off a latch so that we can ensure they are both going to
-        // run through the runOperation method
-        // together
-
-        startSignal.countDown();
-
-        // Ensure after running that only one of the callables from one of the
-        // thread was invoked and that the same
-        // result is found by both threads.
-
-        doneSignal.await();
-        assertEquals(1, counter.get());
-    }
-
-    @Test
-    public void exceptionsGetRemoved() throws Exception {
-        final AtomicInteger counter = new AtomicInteger();
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
-
-        // Create two threads whose job will be to call runOpertion with the
-        // same name object
-
-        class MyException extends RuntimeException {
-            private static final long serialVersionUID = 1472906008827102127L;
+          };
         }
+      });
 
-        final Callable<Integer> operation = new Callable<Integer>() {
+    // Create two threads whose job will be to call runOperation with the
+    // same name object
+    new Thread(new SignallingWorker(startSignal, doneSignal) {
+      @Override void doWork() {
+        try {
+          assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
             public Integer call() {
-                counter.incrementAndGet();
-                throw new MyException();
+              return counter.incrementAndGet();
             }
-        };
-        try {
-            concurrentOperationMap.runOperation("same-key", operation);
-            fail("MyException expected");
-        } catch (final MyException expected) {}
-        try {
-            concurrentOperationMap.runOperation("same-key", operation);
-            fail("MyException expected");
-        } catch (final MyException expected) {}
-        try {
-            concurrentOperationMap.runOperation("same-key", operation);
-            fail("MyException expected");
-        } catch (final MyException expected) {}
-
-        assertEquals(3, counter.get());
-    }
-
-    @Test
-    public void runtimeExceptionGetsReThrown() throws Exception {
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
-
-        // Create two threads whose job will be to call runOpertion with the
-        // same name object
-
-        class MyException extends RuntimeException {
-            private static final long serialVersionUID = -9171222011228163934L;
+          }));
+        } catch (final ExecutionException e) {
+          fail(e.toString());
         }
-
-        final Callable<Integer> operation = new Callable<Integer>() {
+      }
+    }).start();
+    new Thread(new SignallingWorker(startSignal, doneSignal) {
+      @Override void doWork() {
+        try {
+          assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
             public Integer call() {
-                throw new MyException();
+              return counter.incrementAndGet();
             }
-        };
-        try {
-            concurrentOperationMap.runOperation("same-key", operation);
-            fail("MyException expected");
-        } catch (final MyException expected) {}
-    }
-
-    @Test(expected = MyError.class)
-    public void errorGetsReThrown() throws Exception {
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
-
-        // Create two threads whose job will be to call runOpertion with the
-        // same name object
-
-        final Callable<Integer> operation = new Callable<Integer>() {
-            public Integer call() {
-                throw new MyError();
-            }
-        };
-        concurrentOperationMap.runOperation("same-key", operation);
-    }
-
-    @Test
-    public void checkedExceptionGetsWrapped() throws Exception {
-        final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
-
-        // Create two threads whose job will be to call runOpertion with the
-        // same name object
-
-        class MyException extends Exception {
-            private static final long serialVersionUID = 22367874459914044L;
+          }));
+        } catch (final ExecutionException e) {
+          fail(e.toString());
         }
+      }
+    }).start();
 
-        final Callable<Integer> operation = new Callable<Integer>() {
-            public Integer call() throws MyException {
-                throw new MyException();
-            }
-        };
-        try {
-            concurrentOperationMap.runOperation("same-key", operation);
-            fail("MyException expected");
-        } catch (final ExecutionException expected) {
-            assertEquals(MyException.class, expected.getCause().getClass());
-        }
+    // Hang them off a latch so that we can ensure they are both going to
+    // run through the runOperation method
+    // together
+
+    startSignal.countDown();
+
+    // Ensure after running that only one of the callables from one of the
+    // thread was invoked and that the same
+    // result is found by both threads.
+
+    doneSignal.await();
+    assertEquals(1, counter.get());
+  }
+
+  @Test public void exceptionsGetRemoved() throws Exception {
+    final AtomicInteger counter = new AtomicInteger();
+    final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
+
+    // Create two threads whose job will be to call runOpertion with the
+    // same name object
+
+    class MyException extends RuntimeException {
+      private static final long serialVersionUID = 1472906008827102127L;
     }
 
-    static class MyError extends Error {
-        private static final long serialVersionUID = -1416631799712180762L;
+    final Callable<Integer> operation = new Callable<Integer>() {
+      public Integer call() {
+        counter.incrementAndGet();
+        throw new MyException();
+      }
+    };
+    try {
+      concurrentOperationMap.runOperation("same-key", operation);
+      fail("MyException expected");
+    } catch (final MyException expected) {}
+    try {
+      concurrentOperationMap.runOperation("same-key", operation);
+      fail("MyException expected");
+    } catch (final MyException expected) {}
+    try {
+      concurrentOperationMap.runOperation("same-key", operation);
+      fail("MyException expected");
+    } catch (final MyException expected) {}
+
+    assertEquals(3, counter.get());
+  }
+
+  @Test public void runtimeExceptionGetsReThrown() throws Exception {
+    final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
+
+    // Create two threads whose job will be to call runOpertion with the
+    // same name object
+
+    class MyException extends RuntimeException {
+      private static final long serialVersionUID = -9171222011228163934L;
     }
 
-    abstract class SignallingWorker implements Runnable {
-        private final CountDownLatch startSignal;
-        private final CountDownLatch doneSignal;
+    final Callable<Integer> operation = new Callable<Integer>() {
+      public Integer call() {
+        throw new MyException();
+      }
+    };
+    try {
+      concurrentOperationMap.runOperation("same-key", operation);
+      fail("MyException expected");
+    } catch (final MyException expected) {}
+  }
 
-        SignallingWorker(final CountDownLatch startSignal, final CountDownLatch doneSignal) {
-            this.startSignal = startSignal;
-            this.doneSignal = doneSignal;
-        }
+  @Test(expected = MyError.class) public void errorGetsReThrown() throws Exception {
+    final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
 
-        public void run() {
-            try {
-                startSignal.await();
-                doWork();
-            } catch (final InterruptedException ex) {} finally {
-                doneSignal.countDown();
-            }
-        }
+    // Create two threads whose job will be to call runOpertion with the
+    // same name object
 
-        abstract void doWork();
+    final Callable<Integer> operation = new Callable<Integer>() {
+      public Integer call() {
+        throw new MyError();
+      }
+    };
+    concurrentOperationMap.runOperation("same-key", operation);
+  }
+
+  @Test public void checkedExceptionGetsWrapped() throws Exception {
+    final ConcurrentOperationMap<String, Integer> concurrentOperationMap = new ConcurrentOperationMapImpl<String, Integer>();
+
+    // Create two threads whose job will be to call runOpertion with the
+    // same name object
+
+    class MyException extends Exception {
+      private static final long serialVersionUID = 22367874459914044L;
     }
+
+    final Callable<Integer> operation = new Callable<Integer>() {
+      public Integer call() throws MyException {
+        throw new MyException();
+      }
+    };
+    try {
+      concurrentOperationMap.runOperation("same-key", operation);
+      fail("MyException expected");
+    } catch (final ExecutionException expected) {
+      assertEquals(MyException.class, expected.getCause().getClass());
+    }
+  }
+
+  static class MyError extends Error {
+    private static final long serialVersionUID = -1416631799712180762L;
+  }
+
+  abstract class SignallingWorker implements Runnable {
+    private final CountDownLatch startSignal;
+    private final CountDownLatch doneSignal;
+
+    SignallingWorker(final CountDownLatch startSignal, final CountDownLatch doneSignal) {
+      this.startSignal = startSignal;
+      this.doneSignal = doneSignal;
+    }
+
+    public void run() {
+      try {
+        startSignal.await();
+        doWork();
+      } catch (final InterruptedException ex) {} finally {
+        doneSignal.countDown();
+      }
+    }
+
+    abstract void doWork();
+  }
 }

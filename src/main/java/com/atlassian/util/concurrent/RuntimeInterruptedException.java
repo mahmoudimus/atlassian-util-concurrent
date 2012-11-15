@@ -23,18 +23,17 @@ import static com.atlassian.util.concurrent.Assertions.notNull;
  */
 public class RuntimeInterruptedException extends RuntimeException {
 
-    private static final long serialVersionUID = -5025209597479375477L;
+  private static final long serialVersionUID = -5025209597479375477L;
 
-    public RuntimeInterruptedException(final InterruptedException cause) {
-        super(notNull("cause", cause));
-    }
+  public RuntimeInterruptedException(final InterruptedException cause) {
+    super(notNull("cause", cause));
+  }
 
-    public RuntimeInterruptedException(final String message, final InterruptedException cause) {
-        super(message, notNull("cause", cause));
-    }
+  public RuntimeInterruptedException(final String message, final InterruptedException cause) {
+    super(message, notNull("cause", cause));
+  }
 
-    @Override
-    public InterruptedException getCause() {
-        return (InterruptedException) super.getCause();
-    }
+  @Override public InterruptedException getCause() {
+    return (InterruptedException) super.getCause();
+  }
 }

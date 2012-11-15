@@ -24,9 +24,9 @@ import java.util.concurrent.TimeoutException;
  * error message.
  */
 public class TimedOutException extends TimeoutException {
-    private static final long serialVersionUID = 2639693125779305458L;
+  private static final long serialVersionUID = 2639693125779305458L;
 
-    public TimedOutException(final long time, final TimeUnit unit) {
-        super("Timed out after: " + time + " " + unit);
-    }
+  public TimedOutException(final long time, final TimeUnit unit) {
+    super("Timed out after: " + time + " " + unit);
+  }
 }
