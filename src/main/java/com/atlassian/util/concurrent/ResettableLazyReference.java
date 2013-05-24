@@ -16,6 +16,8 @@
 
 package com.atlassian.util.concurrent;
 
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 import com.atlassian.util.concurrent.LazyReference.InitializationException;
 
 import net.jcip.annotations.ThreadSafe;
@@ -60,7 +62,10 @@ import net.jcip.annotations.ThreadSafe;
  * @param T the type of the contained element.
  */
 @ThreadSafe public abstract class ResettableLazyReference<T> implements Supplier<T> {
-  private volatile InternalReference referrent = new InternalReference();
+  @SuppressWarnings("rawtypes") private static final AtomicReferenceFieldUpdater<ResettableLazyReference, InternalReference> updater = AtomicReferenceFieldUpdater
+    .newUpdater(ResettableLazyReference.class, InternalReference.class, "referrent");
+
+  private volatile InternalReference<T> referrent = new InternalReference<T>(this);
 
   /**
    * The object factory method, guaranteed to be called once and only once.
@@ -110,13 +115,19 @@ import net.jcip.annotations.ThreadSafe;
   /**
    * Reset the internal reference. Anyone currently in the process of getting
    * the old reference will still receive that reference however.
+   * 
+   * @return A supplier of the old value (since 2.5, in earlier versions this
+   * was void). Calling the supplier may block and cause the initialization to
+   * occur.
    */
-  public void reset() {
-    referrent = new InternalReference();
+  public Supplier<T> reset() {
+    @SuppressWarnings("unchecked")
+    Supplier<T> result = updater.getAndSet(this, new InternalReference<T>(this));
+    return result;
   }
 
   /**
-   * Has the {@link #create()} reference been initialized.
+   *   Has the {@link #create()} reference been initialized.
    * 
    * @return true if the task is complete and has not been reset.
    */
@@ -135,9 +146,15 @@ import net.jcip.annotations.ThreadSafe;
   /**
    * The internal LazyReference that may get thrown away
    */
-  class InternalReference extends LazyReference<T> {
+  static class InternalReference<T> extends LazyReference<T> {
+    private final ResettableLazyReference<T> ref;
+
+    InternalReference(ResettableLazyReference<T> ref) {
+      this.ref = ref;
+    }
+
     @Override protected T create() throws Exception {
-      return ResettableLazyReference.this.create();
+      return ref.create();
     }
   }
 }

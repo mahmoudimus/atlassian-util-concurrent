@@ -1,15 +1,15 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.TestUtil.pause;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.Test;
 
 public class ResettableLazyReferenceTest {
 
@@ -91,7 +93,7 @@ public class ResettableLazyReferenceTest {
     futures = pool.invokeAll(tasks);
 
     // Ensure the create() method was invoked once
-    assertEquals(1, createCallCount.get());
+    assertThat(createCallCount.get(), is(1));
 
     /*
      * Ensure that all the references are the same, use the futures in case of
@@ -99,10 +101,10 @@ public class ResettableLazyReferenceTest {
      */
     final Object result = results[0];
     for (final Future<Object> future : futures) {
-      assertSame(result, future.get());
+      assertThat(future.get(), sameInstance(result));
     }
     for (int i = 0; i < results.length; i++) {
-      assertSame("got back different reference in '" + i + "' place", result, results[i]);
+      assertThat(results[i], sameInstance(result));
     }
     pool.shutdown();
   }
@@ -120,7 +122,7 @@ public class ResettableLazyReferenceTest {
       ref.get();
       fail("RuntimeException should have been thrown");
     } catch (final RuntimeException yay) {
-      assertNotNull(yay.getCause());
+      assertThat(yay.getCause(), notNullValue());
       assertTrue(myException == yay.getCause());
     }
   }
@@ -160,7 +162,7 @@ public class ResettableLazyReferenceTest {
     assertTrue(ref.isInitialized());
 
     final int obj = ref.get();
-    assertEquals(10, obj);
+    assertThat(obj, is(10));
   }
 
   @Test(expected = InterruptedException.class) public void getInterruptiblyThrowsInterrupted() throws Exception {
@@ -234,8 +236,8 @@ public class ResettableLazyReferenceTest {
       client2.interrupt();
     }
 
-    assertNull(result1.get());
-    assertNotNull(result2.get().exception);
+    assertThat(result1.get(), nullValue());
+    assertThat(result2.get().exception, notNullValue());
     assertEquals(InterruptedException.class, result2.get().exception.getClass());
     pause();
     assertFalse(ref.isInitialized());
@@ -246,13 +248,13 @@ public class ResettableLazyReferenceTest {
 
     {
       final int result = ref.get();
-      assertEquals(10, result);
+      assertThat(result, is(10));
     }
-    assertNotNull(result1.get());
-    assertNotNull(result1.get().result);
+    assertThat(result1.get(), notNullValue());
+    assertThat(result1.get().result, notNullValue());
     {
       final int result = result1.get().result;
-      assertEquals(10, result);
+      assertThat(result, is(10));
     }
   }
 
@@ -271,7 +273,7 @@ public class ResettableLazyReferenceTest {
   @Test public void getNotInterruptible() throws Exception {
     final ResettableLazyReference<String> ref = new ResettableLazyReference<String>() {
       @Override protected String create() throws Exception {
-        return "test!";// exchange.get();
+        return "test!";
       }
     };
     Thread.currentThread().interrupt();
@@ -279,18 +281,39 @@ public class ResettableLazyReferenceTest {
     assertTrue(Thread.interrupted());
   }
 
+  @Test public void resetReturnsPreviousValue() throws Exception {
+    final ResettableLazyReference<Integer> ref = new ResettableLazyReference<Integer>() {
+      int count = 0;
+      @Override protected Integer create() throws Exception {
+        return count++;// exchange.get();
+      }
+    };
+    assertThat(ref.get(), is(0));
+    assertThat(ref.reset().get(), is(0));
+    assertThat(ref.get(), is(1));
+    assertThat(ref.reset().get(), is(1));
+    assertThat(ref.get(), is(2));
+    assertThat(ref.reset().get(), is(2));
+    assertThat(ref.get(), is(3));
+    assertThat(ref.reset().get(), is(3));
+    assertThat(ref.get(), is(4));
+    assertThat(ref.reset().get(), is(4));
+    assertThat(ref.get(), is(5));
+    assertThat(ref.reset().get(), is(5));
+  }
+
   @Test public void initExConstructorWithBlankExecExCause() throws Exception {
     @SuppressWarnings("serial")
     final ExecutionException e = new ExecutionException("") {};
     final Exception ex = new LazyReference.InitializationException(e);
-    assertSame(e, ex.getCause());
+    assertThat(ex.getCause(), sameInstance((Throwable) e));
   }
 
   @Test public void initExConstructorWithRealExecExCause() throws Exception {
-    final NoSuchMethodError er = new NoSuchMethodError();
+    final Throwable er = new NoSuchMethodError();
     final ExecutionException e = new ExecutionException("", er);
     final Exception ex = new LazyReference.InitializationException(e);
-    assertSame(er, ex.getCause());
+    assertThat(ex.getCause(), sameInstance(er));
   }
 
   @Test public void resettable() throws Exception {
@@ -301,15 +324,16 @@ public class ResettableLazyReferenceTest {
         return ++createCallCount;
       }
     };
-    assertEquals(Integer.valueOf(1), count.get());
-    assertEquals(Integer.valueOf(1), count.get());
-    assertEquals(Integer.valueOf(1), count.get());
-    count.reset();
-    assertEquals(Integer.valueOf(2), count.get());
-    assertEquals(Integer.valueOf(2), count.get());
-    count.reset();
-    assertEquals(Integer.valueOf(3), count.get());
-    assertEquals(Integer.valueOf(3), count.get());
-    assertEquals(Integer.valueOf(3), count.get());
+    assertThat(count.get(), is(1));
+    assertThat(count.get(), is(1));
+    assertThat(count.get(), is(1));
+    assertThat(count.reset().get(), is(1));
+    assertThat(count.get(), is(2));
+    assertThat(count.get(), is(2));
+    assertThat(count.reset().get(), is(2));
+    assertThat(count.get(), is(3));
+    assertThat(count.get(), is(3));
+    assertThat(count.get(), is(3));
+    assertThat(count.reset().get(), is(3));
   }
 }
