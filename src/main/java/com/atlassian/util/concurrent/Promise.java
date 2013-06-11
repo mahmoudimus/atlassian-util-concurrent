@@ -83,7 +83,7 @@ import com.google.common.util.concurrent.ListenableFuture;
    * @param e The effect to perform with the result
    * @return This object for chaining
    */
-  Promise<A> done(Effect<A> e);
+  Promise<A> done(Effect<? super A> e);
 
   /**
    * Registers a callback to be called when an exception is thrown. May not be

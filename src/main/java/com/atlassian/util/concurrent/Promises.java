@@ -152,7 +152,7 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param failure To run if the Future fails
    * @return The composed futureCallback
    */
-  public static <A> FutureCallback<A> futureCallback(final Effect<A> success, final Effect<Throwable> failure) {
+  public static <A> FutureCallback<A> futureCallback(final Effect<? super A> success, final Effect<Throwable> failure) {
     return new FutureCallback<A>() {
       @Override public void onSuccess(A result) {
         success.apply(result);
@@ -171,7 +171,7 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param effect To be passed the produced value if it happens
    * @return The FutureCallback with a no-op onFailure
    */
-  public static <A> FutureCallback<A> onSuccessDo(final Effect<A> effect) {
+  public static <A> FutureCallback<A> onSuccessDo(final Effect<? super A> effect) {
     return futureCallback(effect, Effects.<Throwable> noop());
   }
 
@@ -208,7 +208,7 @@ import com.google.common.util.concurrent.SettableFuture;
       }
     }
 
-    @Override public Promise<A> done(Effect<A> e) {
+    @Override public Promise<A> done(Effect<? super A> e) {
       then(onSuccessDo(e));
       return this;
     }

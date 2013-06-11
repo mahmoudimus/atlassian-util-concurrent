@@ -25,7 +25,7 @@ import com.google.common.util.concurrent.FutureCallback;
     return delegate().claim();
   }
 
-  @Override public Promise<A> done(Effect<A> e) {
+  @Override public Promise<A> done(Effect<? super A> e) {
     delegate().done(e);
     return this;
   }
