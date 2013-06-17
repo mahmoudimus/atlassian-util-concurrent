@@ -218,7 +218,7 @@ import com.google.common.util.concurrent.SettableFuture;
       return this;
     }
 
-    @Override public Promise<A> then(FutureCallback<A> callback) {
+    @Override public Promise<A> then(FutureCallback<? super A> callback) {
       Futures.addCallback(delegate(), callback);
       return this;
     }

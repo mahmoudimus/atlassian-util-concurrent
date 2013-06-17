@@ -106,7 +106,7 @@ import com.google.common.util.concurrent.ListenableFuture;
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<A> then(FutureCallback<A> callback);
+  Promise<A> then(FutureCallback<? super A> callback);
 
   /**
    * Transforms this {@link Promise} from one type to another by way of a

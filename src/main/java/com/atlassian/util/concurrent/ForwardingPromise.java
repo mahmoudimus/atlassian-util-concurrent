@@ -35,7 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
     return this;
   }
 
-  @Override public Promise<A> then(FutureCallback<A> callback) {
+  @Override public Promise<A> then(FutureCallback<? super A> callback) {
     delegate().then(callback);
     return this;
   }
