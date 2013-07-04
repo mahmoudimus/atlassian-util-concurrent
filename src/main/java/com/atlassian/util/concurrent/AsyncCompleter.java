@@ -16,6 +16,7 @@
 
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Assertions.isTrue;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.google.common.base.Predicates.notNull;
@@ -241,7 +242,7 @@ import java.util.concurrent.TimeUnit;
           cancelRemaining();
           throw timeout.getTimeoutException();
         }
-        futures.remove(future);
+        isTrue("Expected the future to be in the list of registered futures", futures.remove(future));
         return future.get();
       } catch (final InterruptedException e) {
         throw new RuntimeInterruptedException(e);
