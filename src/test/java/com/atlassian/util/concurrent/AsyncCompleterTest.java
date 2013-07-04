@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
-import com.google.common.base.*;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
@@ -150,61 +149,57 @@ public class AsyncCompleterTest {
    This test is to ensure that we complain bitterly inside atlassian-util-concurrent if this happens
   */
   @Test(expected = IllegalArgumentException.class) public void testAssertionErrorWhenGivenBadCompletionService() {
-        final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).completionServiceFactory(new CancellingCompletionServiceFactory()).build();
+    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).completionServiceFactory(new CancellingCompletionServiceFactory()).build();
 
-        Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
-        assertEquals(1, queued.next().intValue());
-        assertEquals(2, queued.next().intValue());
+    Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
+    assertEquals(1, queued.next().intValue());
+    assertEquals(2, queued.next().intValue());
+  }
+
+  private static class CancellingCompletionServiceFactory implements AsyncCompleter.ExecutorCompletionServiceFactory {
+    @Override public <T> com.google.common.base.Function<Executor, CompletionService<T>> create() {
+      return new com.google.common.base.Function<Executor, CompletionService<T>>() {
+        @Override public CompletionService<T> apply(Executor e) {
+          return new BadCompletionService(e);
+        }
+      };
+    }
+  }
+
+  private static class BadCompletionService<T> implements CompletionService<T> {
+
+    final ExecutorCompletionService<T> delegate;
+
+    public BadCompletionService(final Executor e) {
+      delegate = new ExecutorCompletionService<T>(e);
     }
 
-    private static class CancellingCompletionServiceFactory implements AsyncCompleter.ExecutorCompletionServiceFactory {
-        @Override public <T> com.google.common.base.Function<Executor, CompletionService<T>> create() {
-            return new com.google.common.base.Function<Executor, CompletionService<T>>() {
-                @Override public CompletionService<T> apply(Executor e) {
-                    return new BadCompletionService(e);
-                }
-            };
-        }
+    @Override public Future submit(final Callable callable) {
+      Future<T> submit = delegate.submit(callable);
+      return Promises.promise(submit);
     }
 
-    private static class BadCompletionService<T> implements CompletionService<T> {
-
-        final ExecutorCompletionService<T> delegate;
-
-        public BadCompletionService(final Executor e) {
-            delegate = new ExecutorCompletionService<T>(e);
-        }
-
-        @Override public Future submit(final Callable callable) {
-            Future<T> submit = delegate.submit(callable);
-            return Promises.promise(submit);
-        }
-
-        @Override
-        public Future submit(Runnable runnable, T result)
-        {
-            Future<T> submit = delegate.submit(runnable, result);
-            return Promises.promise(submit);
-        }
-
-        @Override
-        public Future take() throws InterruptedException
-        {
-            return delegate.take();
-        }
-
-        @Override
-        public Future poll()
-        {
-            return delegate.poll();
-        }
-
-        @Override
-        public Future poll(final long l, final TimeUnit timeUnit) throws InterruptedException
-        {
-            return delegate.poll(l, timeUnit);
-        }
+    @Override
+    public Future submit(Runnable runnable, T result) {
+      Future<T> submit = delegate.submit(runnable, result);
+      return Promises.promise(submit);
     }
+
+    @Override
+    public Future take() throws InterruptedException {
+      return delegate.take();
+    }
+
+    @Override
+    public Future poll() {
+      return delegate.poll();
+    }
+
+    @Override
+    public Future poll(final long l, final TimeUnit timeUnit) throws InterruptedException {
+      return delegate.poll(l, timeUnit);
+    }
+  }
 
   <T> Callable<T> callable(final T input) {
     return new Callable<T>() {
