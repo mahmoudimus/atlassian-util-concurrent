@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -136,6 +137,68 @@ public class AsyncCompleterTest {
       }
     });
     assertEquals("blah!", ref.get().get());
+  }
+
+  /*
+   Some background on this one - Streams was giving the AsyncCompletor a CompletionService which broke this property:
+
+   Future a = completionService.submit(task)
+   a.equals(completionService.poll())
+
+   The Future returned by .poll was different than the one returned by .submit, which meant that futures.remove(future) always failed
+   This test is to ensure that we complain bitterly inside atlassian-util-concurrent if this happens
+  */
+  @Test(expected = IllegalArgumentException.class) public void testAssertionErrorWhenGivenBadCompletionService() {
+    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).completionServiceFactory(new CancellingCompletionServiceFactory()).build();
+
+    Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
+    assertEquals(1, queued.next().intValue());
+    assertEquals(2, queued.next().intValue());
+  }
+
+  private static class CancellingCompletionServiceFactory implements AsyncCompleter.ExecutorCompletionServiceFactory {
+    @Override public <T> com.google.common.base.Function<Executor, CompletionService<T>> create() {
+      return new com.google.common.base.Function<Executor, CompletionService<T>>() {
+        @Override public CompletionService<T> apply(Executor e) {
+          return new BadCompletionService(e);
+        }
+      };
+    }
+  }
+
+  private static class BadCompletionService<T> implements CompletionService<T> {
+
+    final ExecutorCompletionService<T> delegate;
+
+    public BadCompletionService(final Executor e) {
+      delegate = new ExecutorCompletionService<T>(e);
+    }
+
+    @Override public Future submit(final Callable callable) {
+      Future<T> submit = delegate.submit(callable);
+      return Promises.promise(submit);
+    }
+
+    @Override
+    public Future submit(Runnable runnable, T result) {
+      Future<T> submit = delegate.submit(runnable, result);
+      return Promises.promise(submit);
+    }
+
+    @Override
+    public Future take() throws InterruptedException {
+      return delegate.take();
+    }
+
+    @Override
+    public Future poll() {
+      return delegate.poll();
+    }
+
+    @Override
+    public Future poll(final long l, final TimeUnit timeUnit) throws InterruptedException {
+      return delegate.poll(l, timeUnit);
+    }
   }
 
   <T> Callable<T> callable(final T input) {
