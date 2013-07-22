@@ -152,9 +152,9 @@ public class AsyncCompleterTest {
    * to ensure that we complain bitterly inside atlassian-util-concurrent if
    * this happens
    */
-  @Test(expected = IllegalArgumentException.class) public void testAssertionErrorWhenGivenBadCompletionService() {
-    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).completionServiceFactory(
-      new CancellingCompletionServiceFactory()).build();
+  @Test(expected = IllegalArgumentException.class) public void errorWhenGivenBadCompletionService() {
+    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor())
+      .completionServiceFactory(new CancellingCompletionServiceFactory()).checkCompletionServiceFutureIdentity().build();
 
     Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
     assertEquals(1, queued.next().intValue());

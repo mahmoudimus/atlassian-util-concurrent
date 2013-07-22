@@ -64,11 +64,14 @@ import java.util.concurrent.TimeUnit;
   private final Executor executor;
   private final ExceptionPolicy policy;
   private final ExecutorCompletionServiceFactory completionServiceFactory;
+  private final CompletionServiceDecorator completionServiceDecorator;
 
-  AsyncCompleter(final Executor executor, final ExceptionPolicy policy, final ExecutorCompletionServiceFactory completionServiceFactory) {
+  AsyncCompleter(final Executor executor, final ExceptionPolicy policy, final ExecutorCompletionServiceFactory completionServiceFactory,
+    CompletionServiceDecorator completionServiceDecorator) {
     this.executor = notNull("executor", executor);
     this.policy = notNull("policy", policy);
     this.completionServiceFactory = notNull("completionServiceFactory", completionServiceFactory);
+    this.completionServiceDecorator = completionServiceDecorator;
   }
 
   /**
@@ -115,7 +118,7 @@ import java.util.concurrent.TimeUnit;
    * function that is responsible for getting things from the CompletionService.
    */
   <T> Iterable<T> invokeAllTasks(final Iterable<? extends Callable<T>> callables, final Accessor<T> accessor) {
-    final CompletionService<T> apply = completionServiceFactory.<T> create().apply(executor);
+    final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(executor));
     // we must copy the resulting Iterable<Supplier> so
     // each iteration doesn't resubmit the jobs
     final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(apply, accessor)));
@@ -130,6 +133,7 @@ import java.util.concurrent.TimeUnit;
     Executor executor;
     ExceptionPolicy policy = Policies.THROW;
     ExecutorCompletionServiceFactory completionServiceFactory = new DefaultExecutorCompletionServiceFactory();
+    CompletionServiceDecorator completionServiceDecorator = CompletionServiceDecorator.Identity.INSTANCE;
 
     /**
      * Create a Builder with the supplied Executor
@@ -158,6 +162,11 @@ import java.util.concurrent.TimeUnit;
       return this;
     }
 
+    public Builder checkCompletionServiceFutureIdentity() {
+      this.completionServiceDecorator = new CompletionServiceDecorator.IdentityChecker();
+      return this;
+    }
+
     /**
      * Create a {@link AsyncCompleter} that limits the number of jobs executed
      * to the underlying executor to a hard limit.
@@ -170,11 +179,11 @@ import java.util.concurrent.TimeUnit;
      * @see LimitedExecutor for more discussion of how this limit is relevant
      */
     public AsyncCompleter limitParallelExecutionTo(final int limit) {
-      return new AsyncCompleter(new LimitedExecutor(executor, limit), policy, completionServiceFactory);
+      return new AsyncCompleter(new LimitedExecutor(executor, limit), policy, completionServiceFactory, completionServiceDecorator);
     }
 
     public AsyncCompleter build() {
-      return new AsyncCompleter(executor, policy, completionServiceFactory);
+      return new AsyncCompleter(executor, policy, completionServiceFactory, completionServiceDecorator);
     }
   }
 
@@ -242,7 +251,7 @@ import java.util.concurrent.TimeUnit;
           cancelRemaining();
           throw timeout.getTimeoutException();
         }
-        isTrue("Expected the future to be in the list of registered futures", futures.remove(future));
+        futures.remove(future);
         return future.get();
       } catch (final InterruptedException e) {
         throw new RuntimeInterruptedException(e);
@@ -286,6 +295,68 @@ import java.util.concurrent.TimeUnit;
   static final class ExecutorCompletionServiceFunction<T> implements Function<Executor, CompletionService<T>> {
     public CompletionService<T> apply(final Executor executor) {
       return new ExecutorCompletionService<T>(executor);
+    }
+  }
+
+  interface CompletionServiceDecorator {
+    <T> CompletionService<T> apply(CompletionService<T> acc);
+
+    static enum Identity implements CompletionServiceDecorator {
+      INSTANCE;
+      @Override public <T> CompletionService<T> apply(CompletionService<T> acc) {
+        return acc;
+      }
+    }
+
+    class IdentityChecker implements CompletionServiceDecorator {
+      @Override public <T> CompletionService<T> apply(CompletionService<T> delegate) {
+        return new IdentityCheckedCompletionService<T>(delegate);
+      }
+    }
+  }
+
+  /**
+   * Checks that any Future returned equals one that was submitted through here.
+   * <p>
+   * Note that this guarantee is not strictly supported by the interface, but it
+   * may be desirable to check that the delegate preserves identity.
+   */
+  static class IdentityCheckedCompletionService<T> implements CompletionService<T> {
+    private final CompletionService<T> delegate;
+    private final Collection<Future<T>> futures = new ConcurrentLinkedQueue<Future<T>>();
+
+    IdentityCheckedCompletionService(CompletionService<T> delegate) {
+      this.delegate = delegate;
+    }
+
+    Future<T> add(Future<T> f) {
+      futures.add(f);
+      return f;
+    }
+
+    Future<T> check(Future<T> f) {
+      isTrue("Expected the future to be in the list of registered futures", futures.remove(f));
+      return f;
+    }
+
+    public Future<T> submit(Callable<T> task) {
+      return add(delegate.submit(task));
+    }
+
+    public Future<T> submit(Runnable task, T result) {
+      return add(delegate.submit(task, result));
+    }
+
+    public Future<T> take() throws InterruptedException {
+      return check(delegate.take());
+    }
+
+    public Future<T> poll() {
+      return check(delegate.poll());
+    }
+
+    public Future<T> poll(long timeout, TimeUnit unit) throws InterruptedException {
+      return check(delegate.poll(timeout, unit));
     }
   }
 }
