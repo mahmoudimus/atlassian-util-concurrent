@@ -1,5 +1,6 @@
 package com.atlassian.util.concurrent;
 
+import static com.atlassian.util.concurrent.Promises.forFuture;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -140,16 +141,20 @@ public class AsyncCompleterTest {
   }
 
   /*
-   Some background on this one - Streams was giving the AsyncCompletor a CompletionService which broke this property:
-
-   Future a = completionService.submit(task)
-   a.equals(completionService.poll())
-
-   The Future returned by .poll was different than the one returned by .submit, which meant that futures.remove(future) always failed
-   This test is to ensure that we complain bitterly inside atlassian-util-concurrent if this happens
-  */
+   * Some background on this one - Streams was giving the AsyncCompletor a
+   * CompletionService which broke this property:
+   * 
+   * Future a = completionService.submit(task)
+   * a.equals(completionService.poll())
+   * 
+   * The Future returned by .poll was different than the one returned by
+   * .submit, which meant that futures.remove(future) always failed This test is
+   * to ensure that we complain bitterly inside atlassian-util-concurrent if
+   * this happens
+   */
   @Test(expected = IllegalArgumentException.class) public void testAssertionErrorWhenGivenBadCompletionService() {
-    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).completionServiceFactory(new CancellingCompletionServiceFactory()).build();
+    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).completionServiceFactory(
+      new CancellingCompletionServiceFactory()).build();
 
     Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
     assertEquals(1, queued.next().intValue());
@@ -160,7 +165,7 @@ public class AsyncCompleterTest {
     @Override public <T> com.google.common.base.Function<Executor, CompletionService<T>> create() {
       return new com.google.common.base.Function<Executor, CompletionService<T>>() {
         @Override public CompletionService<T> apply(Executor e) {
-          return new BadCompletionService(e);
+          return new BadCompletionService<T>(e);
         }
       };
     }
@@ -174,29 +179,23 @@ public class AsyncCompleterTest {
       delegate = new ExecutorCompletionService<T>(e);
     }
 
-    @Override public Future submit(final Callable callable) {
-      Future<T> submit = delegate.submit(callable);
-      return Promises.promise(submit);
+    @Override public Future<T> submit(final Callable<T> callable) {
+      return forFuture(delegate.submit(callable));
     }
 
-    @Override
-    public Future submit(Runnable runnable, T result) {
-      Future<T> submit = delegate.submit(runnable, result);
-      return Promises.promise(submit);
+    @Override public Future<T> submit(Runnable runnable, T result) {
+      return forFuture(delegate.submit(runnable, result));
     }
 
-    @Override
-    public Future take() throws InterruptedException {
+    @Override public Future<T> take() throws InterruptedException {
       return delegate.take();
     }
 
-    @Override
-    public Future poll() {
+    @Override public Future<T> poll() {
       return delegate.poll();
     }
 
-    @Override
-    public Future poll(final long l, final TimeUnit timeUnit) throws InterruptedException {
+    @Override public Future<T> poll(final long l, final TimeUnit timeUnit) throws InterruptedException {
       return delegate.poll(l, timeUnit);
     }
   }
