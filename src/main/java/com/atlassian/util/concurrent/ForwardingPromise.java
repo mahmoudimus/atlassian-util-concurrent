@@ -44,7 +44,7 @@ import com.google.common.util.concurrent.FutureCallback;
     return delegate().map(function);
   }
 
-  @Override public <B> Promise<B> flatMap(Function<? super A, Promise<B>> function) {
+  @Override public <B> Promise<B> flatMap(Function<? super A, ? extends Promise<? extends B>> function) {
     return delegate().flatMap(function);
   }
 

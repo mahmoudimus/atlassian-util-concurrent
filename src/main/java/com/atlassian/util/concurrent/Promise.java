@@ -134,7 +134,7 @@ import com.google.common.util.concurrent.ListenableFuture;
    * @param function The transformation function to a new Promise value
    * @return A new promise resulting from the transformation
    */
-  <B> Promise<B> flatMap(Function<? super A, Promise<B>> function);
+  <B> Promise<B> flatMap(Function<? super A, ? extends Promise<? extends B>> function);
 
   /**
    * Recover from an exception using the supplied exception strategy

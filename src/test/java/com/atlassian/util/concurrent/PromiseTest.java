@@ -2,6 +2,7 @@ package com.atlassian.util.concurrent;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
@@ -105,5 +106,20 @@ public class PromiseTest {
     public void apply(Throwable throwable) {
       this.throwable = throwable;
     }
+  }
+
+  class Parent {};
+
+  class Child extends Parent {};
+
+  @Test public void covariantReturn() {
+    Promise<Parent> some =  Promises.promise(new Parent());
+    Function<Parent, Promise<Child>> f = new Function<Parent, Promise<Child>>() {
+      @Override public Promise<Child> apply(Parent p) {
+        return Promises.promise(new Child());
+      }
+    };
+    Promise<Parent> mapped = some.<Parent> flatMap(f);
+    assertThat(mapped.claim(), notNullValue());
   }
 }

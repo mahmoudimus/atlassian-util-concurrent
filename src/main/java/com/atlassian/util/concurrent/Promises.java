@@ -227,13 +227,13 @@ import com.google.common.util.concurrent.SettableFuture;
       return forListenableFuture(Futures.transform(this, function));
     }
 
-    @Override public <B> Promise<B> flatMap(final Function<? super A, Promise<B>> f) {
+    @Override public <B> Promise<B> flatMap(final Function<? super A, ? extends Promise<? extends B>> f) {
       final SettableFuture<B> result = SettableFuture.create();
       final Effect<Throwable> failResult = reject(result);
       done(new Effect<A>() {
         @Override public void apply(A v) {
           try {
-            Promise<B> next = f.apply(v);
+            @SuppressWarnings("unchecked") Promise<B> next = (Promise<B>) f.apply(v);
             next.done(new Effect<B>() {
               @Override public void apply(B t) {
                 result.set(t);
