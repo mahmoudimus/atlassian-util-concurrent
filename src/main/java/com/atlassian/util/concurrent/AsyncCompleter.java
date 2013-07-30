@@ -127,7 +127,7 @@ import java.util.concurrent.TimeUnit;
   }
 
   /**
-   * For creating instances of a {@link AsyncCompleter}.
+   * For creating instances of {@link AsyncCompleter}.
    */
   public static class Builder {
     Executor executor;
@@ -308,6 +308,10 @@ import java.util.concurrent.TimeUnit;
       }
     }
 
+    /**
+     * Used to assert that the CompletionService returns identical Futures from
+     * submit and take/poll
+     */
     class IdentityChecker implements CompletionServiceDecorator {
       @Override public <T> CompletionService<T> apply(CompletionService<T> delegate) {
         return new IdentityCheckedCompletionService<T>(delegate);
