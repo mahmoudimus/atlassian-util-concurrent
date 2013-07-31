@@ -5,6 +5,8 @@ import java.util.Comparator;
 /**
  * Value representing an amount of Memory, as measured in {@link Unit memory
  * units}.
+ * 
+ * @since 2.5
  */
 public class Memory {
   //
