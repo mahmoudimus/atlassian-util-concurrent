@@ -91,8 +91,20 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param throwable The throwable
    * @param resultType The result type
    * @return The new promise
+   * @deprecated. Use {@link #rejected(Throwable)}
    */
   public static <A> Promise<A> rejected(Throwable throwable, Class<A> resultType) {
+    return rejected(throwable);
+  }
+
+  /**
+   * Creates a new, rejected promise from the given {@link Throwable} and result
+   * type.
+   *
+   * @param throwable The throwable
+   * @return The new promise
+   */
+  public static <A> Promise<A> rejected(Throwable throwable) {
     return new Of<A>(Futures.<A> immediateFailedFuture(throwable));
   }
 
@@ -104,9 +116,22 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param t The throwable
    * @param resultType The result type
    * @return The new promise
+   * @deprecated Use {@link #toRejectedPromise(Throwable)}
    */
   public static <A> Promise<A> toRejectedPromise(Throwable t, Class<A> resultType) {
-    return rejected(t, resultType);
+    return rejected(t);
+  }
+
+  /**
+   * Creates a new, rejected promise from the given Throwable and result type.
+   * <p>
+   * Synonym for {@link #rejected(Throwable, Class)}
+   *
+   * @param t The throwable
+   * @return The new promise
+   */
+  public static <A> Promise<A> toRejectedPromise(Throwable t) {
+    return rejected(t);
   }
 
   /**
