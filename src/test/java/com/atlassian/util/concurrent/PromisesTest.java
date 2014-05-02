@@ -52,7 +52,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
   @Test public void promiseRejected() {
     final Throwable instance = new Throwable();
-    final Promise<Object> promise = Promises.rejected(instance, Object.class);
+    final Promise<Object> promise = Promises.rejected(instance);
 
     assertThat(promise.isDone(), is(true));
     assertThat(promise.isCancelled(), is(false));

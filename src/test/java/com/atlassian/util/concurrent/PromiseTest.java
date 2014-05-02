@@ -45,7 +45,7 @@ public class PromiseTest {
   }
 
   @Test public void foldPromiseBad() {
-    Promise<Integer> promise = Promises.rejected(new RuntimeException("Oh my!"), Integer.class);
+    Promise<Integer> promise = Promises.rejected(new RuntimeException("Oh my!"));
     assertThat(promise.fold(getThrowableMessage, toStringFunction()).claim(), is("Oh my!"));
   }
 
@@ -96,7 +96,7 @@ public class PromiseTest {
   }
 
   @Test public void recoverPromiseBad() {
-    Promise<String> promise = Promises.rejected(new RuntimeException("Oh Noes!!!"), String.class);
+    Promise<String> promise = Promises.rejected(new RuntimeException("Oh Noes!!!"));
     assertThat(promise.recover(getThrowableMessage).claim(), is("Oh Noes!!!"));
   }
 
