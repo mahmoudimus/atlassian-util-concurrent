@@ -91,7 +91,8 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param throwable The throwable
    * @param resultType The result type
    * @return The new promise
-   * @deprecated. Use {@link #rejected(Throwable)}
+   * @deprecated Use {@link #rejected(Throwable)}
+   * @since 2.5.0
    */
   public static <A> Promise<A> rejected(Throwable throwable, Class<A> resultType) {
     return rejected(throwable);
@@ -117,6 +118,7 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param resultType The result type
    * @return The new promise
    * @deprecated Use {@link #toRejectedPromise(Throwable)}
+   * @since 2.5.0
    */
   public static <A> Promise<A> toRejectedPromise(Throwable t, Class<A> resultType) {
     return rejected(t);
