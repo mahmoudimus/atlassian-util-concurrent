@@ -13,7 +13,7 @@ There is more documentation on the wiki_.
 
 Issue Tracking
 --------------
-Issues are tracked in the CONCURRENT_ project on labs.atlassian.com
+Issues are tracked here_
 
 .. _wiki: https://bitbucket.org/atlassian/atlassian-util-concurrent/wiki
-.. _CONCURRENT: https://labs.atlassian.com/browse/CONCURRENT
+.. _here: https://bitbucket.org/atlassian/atlassian-util-concurrent/issues?status=new&status=open
