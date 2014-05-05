@@ -179,6 +179,13 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
     }
   }
 
+  static final class State {
+    static final int INIT = 0;
+    static final int RUNNING = 1;
+    static final int RAN = 2;
+    static final int CANCELLED = 4;
+  }
+
   /**
    * Synchronization control for LazyReference. Note that this must be a
    * non-static inner class in order to invoke the protected <tt>create</tt>
@@ -188,19 +195,14 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
    * Uses AQS sync state to represent run status.
    */
   private final class Sync extends AbstractQueuedSynchronizer {
+    
+    static final int IGNORED = 0;
 
     /**
      * only here to shut up the compiler warnings, the outer class is NOT
      * serializable
      */
     private static final long serialVersionUID = -1645412544240373524L;
-
-    /** State value representing that task is running */
-    private static final int RUNNING = 1;
-    /** State value representing that task ran */
-    private static final int RAN = 2;
-    /** State value representing that task was cancelled */
-    private static final int CANCELLED = 4;
 
     /** The result to return from get() */
     private T result;
@@ -215,7 +217,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
     private volatile Thread runner;
 
     private boolean ranOrCancelled(final int state) {
-      return (state & (RAN | CANCELLED)) != 0;
+      return (state & (State.RAN | State.CANCELLED)) != State.INIT;
     }
 
     /**
@@ -245,8 +247,8 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
     }
 
     T get() throws InterruptedException, ExecutionException {
-      acquireSharedInterruptibly(0);
-      if (getState() == CANCELLED) {
+      acquireSharedInterruptibly(IGNORED);
+      if (getState() == State.CANCELLED) {
         throw new CancellationException();
       }
       if (exception != null) {
@@ -258,19 +260,19 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
     void set(final T v) {
       for (;;) {
         final int s = getState();
-        if (s == RAN) {
+        if (s == State.RAN) {
           return;
         }
-        if (s == CANCELLED) {
+        if (s == State.CANCELLED) {
           // aggressively release to set runner to null,
           // in case we are racing with a cancel request
           // that will try to interrupt runner
-          releaseShared(0);
+          releaseShared(IGNORED);
           return;
         }
-        if (compareAndSetState(s, RAN)) {
+        if (compareAndSetState(s, State.RAN)) {
           result = v;
-          releaseShared(0);
+          releaseShared(IGNORED);
           return;
         }
       }
@@ -279,17 +281,17 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
     void setException(final Throwable t) {
       for (;;) {
         final int s = getState();
-        if (s == RAN) {
+        if (s == State.RAN) {
           return;
         }
-        if (s == CANCELLED) {
+        if (s == State.CANCELLED) {
           // aggressively release to set runner to null,
           // in case we are racing with a cancel request
           // that will try to interrupt runner
           releaseShared(0);
           return;
         }
-        if (compareAndSetState(s, RAN)) {
+        if (compareAndSetState(s, State.RAN)) {
           exception = t;
           result = null;
           releaseShared(0);
@@ -304,7 +306,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
         if (ranOrCancelled(s)) {
           return;
         }
-        if (compareAndSetState(s, CANCELLED)) {
+        if (compareAndSetState(s, State.CANCELLED)) {
           break;
         }
       }
@@ -314,19 +316,19 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
           r.interrupt();
         }
       }
-      releaseShared(0);
+      releaseShared(IGNORED);
     }
 
     void run() {
-      if (!compareAndSetState(0, RUNNING)) {
+      if ((getState() != State.INIT) || !compareAndSetState(State.INIT, State.RUNNING)) {
         return;
       }
       try {
         runner = Thread.currentThread();
-        if (getState() == RUNNING) {
+        if (getState() == State.RUNNING) {
           set(create());
         } else {
-          releaseShared(0); // cancel
+          releaseShared(IGNORED); // cancel
         }
       } catch (final Throwable ex) {
         setException(ex);
