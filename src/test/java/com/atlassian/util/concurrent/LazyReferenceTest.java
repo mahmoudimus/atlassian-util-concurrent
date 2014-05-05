@@ -23,6 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+
 public class LazyReferenceTest {
 
   /**
@@ -291,5 +294,14 @@ public class LazyReferenceTest {
     final ExecutionException e = new ExecutionException("", er);
     final Exception ex = new LazyReference.InitializationException(e);
     assertSame(er, ex.getCause());
+  }
+
+  @Test(expected = LazyReference.InitializationException.class) public void reentrancy() {
+    final LazyReference<String> ref = new LazyReference<String>() {
+      @Override protected String create() throws Exception {
+        return this.get();
+      }
+    };
+    ref.get();
   }
 }

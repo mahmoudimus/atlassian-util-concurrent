@@ -222,7 +222,13 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
      * Implements AQS base acquire to succeed if ran or cancelled
      */
     @Override protected int tryAcquireShared(final int ignore) {
-      return isDone() ? 1 : -1;
+      if (!isDone()) {
+        if (runner == Thread.currentThread()) {
+          throw new IllegalMonitorStateException("Not reentrant!");
+        }
+        return -1;
+      }
+      return 1;
     }
 
     /**
