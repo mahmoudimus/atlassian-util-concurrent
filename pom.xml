@@ -152,12 +152,14 @@
             <optional>true</optional>
         </dependency>
     </dependencies>
+    <!--
     <distributionManagement>
         <site>
             <id>atlassian-documentation</id>
             <url>scpexe://docs-app.internal.atlassian.com/var/www/domains/docs.atlassian.com/${project.artifactId}/${project.version}</url>
         </site>
     </distributionManagement>
+    -->
     <properties>
         <jdkLevel>1.6</jdkLevel>
         <guava.osgi.version>14.0</guava.osgi.version>
