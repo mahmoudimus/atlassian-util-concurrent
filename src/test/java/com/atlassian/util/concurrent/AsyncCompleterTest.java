@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
@@ -109,16 +110,25 @@ public class AsyncCompleterTest {
   }
 
   @Test public void callableCompletedBeforeTimeout() {
-    final AsyncCompleter completion = new AsyncCompleter.Builder(new CallerExecutor()).build();
-    final ImmutableList<Callable<Integer>> input = ImmutableList.of(sleeper(1, 2));
-    final Integer value = completion.invokeAll(input, 1, TimeUnit.NANOSECONDS).iterator().next();
-    assertEquals(1, value.intValue());
+    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(ImmutableList.of(new Callable<Integer>() {
+      @Override public Integer call() throws Exception {
+        return 1;
+      }
+    }), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
   }
 
   @Test(expected = RuntimeTimeoutException.class) public void callableTimedOutBeforeCompleting() {
-    final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor()).build();
-    // should reach timeout before completing
-    completion.invokeAll(ImmutableList.of(sleeper(1, 10)), 1, TimeUnit.NANOSECONDS).iterator().next();
+    final CountDownLatch latch = new CountDownLatch(1);
+    try {
+      new AsyncCompleter.Builder(new NaiveExecutor()).build().invokeAll(ImmutableList.of(new Callable<Integer>() {
+        @Override public Integer call() throws Exception {
+          latch.await();
+          return 1;
+        }
+      }), 1, TimeUnit.NANOSECONDS).iterator().next();
+    } finally {
+      latch.countDown();
+    }
   }
 
   @Test public void invocationRegistersWithAccessor() throws Exception {
@@ -208,12 +218,4 @@ public class AsyncCompleterTest {
     };
   }
 
-  <T> Callable<T> sleeper(final T input, final int sleep) {
-    return new Callable<T>() {
-      public T call() throws Exception {
-        Thread.sleep(sleep);
-        return input;
-      }
-    };
-  }
 }
