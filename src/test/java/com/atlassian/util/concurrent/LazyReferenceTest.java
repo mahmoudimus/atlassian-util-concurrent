@@ -125,7 +125,7 @@ public class LazyReferenceTest {
     }
   }
 
-  @Test public void getNotInterruptable() throws Exception {
+  @Test public void getNotInterruptibleDoesntThrow() {
     final BooleanLatch latch = new BooleanLatch();
 
     final LazyReference<Integer> ref = new LazyReference<Integer>() {
@@ -161,6 +161,17 @@ public class LazyReferenceTest {
 
     final int obj = ref.get();
     assertEquals(10, obj);
+  }
+
+  @Test public void getResetsInterrupted() throws Exception {
+    final LazyReference<String> ref = new LazyReference<String>() {
+      @Override protected String create() throws Exception {
+        return "test!";// exchange.get();
+      }
+    };
+    Thread.currentThread().interrupt();
+    ref.get();
+    assertTrue(Thread.interrupted());
   }
 
   @Test(expected = InterruptedException.class) public void getInterruptiblyThrowsInterrupted() throws Exception {
@@ -266,17 +277,6 @@ public class LazyReferenceTest {
     };
     ref.cancel();
     ref.get(); // throws
-  }
-
-  @Test public void getNotInterruptible() throws Exception {
-    final LazyReference<String> ref = new LazyReference<String>() {
-      @Override protected String create() throws Exception {
-        return "test!";// exchange.get();
-      }
-    };
-    Thread.currentThread().interrupt();
-    ref.get();
-    assertTrue(Thread.interrupted());
   }
 
   @Test public void initExConstructorWithBlankExecExCause() throws Exception {
