@@ -195,7 +195,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
    * Uses AQS sync state to represent run status.
    */
   private final class Sync extends AbstractQueuedSynchronizer {
-    
+
     static final int IGNORED = 0;
 
     /**
@@ -325,11 +325,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
       }
       try {
         runner = Thread.currentThread();
-        if (getState() == State.RUNNING) {
-          set(create());
-        } else {
-          releaseShared(IGNORED); // cancel
-        }
+        set(create());
       } catch (final Throwable ex) {
         setException(ex);
       }
