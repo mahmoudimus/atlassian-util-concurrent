@@ -282,23 +282,19 @@ public class LazyReferenceTest {
   @Test public void initExConstructorWithBlankExecExCause() throws Exception {
     @SuppressWarnings("serial")
     final ExecutionException e = new ExecutionException("") {};
-    final Exception ex = new LazyReference.InitializationException(e);
-    assertSame(e, ex.getCause());
+    assertSame(e, new LazyReference.InitializationException(e).getCause());
   }
 
   @Test public void initExConstructorWithRealExecExCause() throws Exception {
     final NoSuchMethodError er = new NoSuchMethodError();
-    final ExecutionException e = new ExecutionException("", er);
-    final Exception ex = new LazyReference.InitializationException(e);
-    assertSame(er, ex.getCause());
+    assertSame(er, new LazyReference.InitializationException(new ExecutionException("", er)).getCause());
   }
 
   @Test(expected = LazyReference.InitializationException.class) public void reentrancy() {
-    final LazyReference<String> ref = new LazyReference<String>() {
+    new LazyReference<String>() {
       @Override protected String create() throws Exception {
         return this.get();
       }
-    };
-    ref.get();
+    }.get();
   }
 }
