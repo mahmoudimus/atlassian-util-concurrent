@@ -162,6 +162,6 @@
     -->
     <properties>
         <jdkLevel>1.6</jdkLevel>
-        <guava.osgi.version>11.0</guava.osgi.version>
+        <guava.osgi.version>10.0.1</guava.osgi.version>
     </properties>
 </project>
