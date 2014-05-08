@@ -289,17 +289,17 @@ public class ResettableLazyReferenceTest {
       }
     };
     assertThat(ref.get(), is(0));
-    assertThat(ref.reset().get(), is(0));
+    assertThat(ref.resets().get(), is(0));
     assertThat(ref.get(), is(1));
-    assertThat(ref.reset().get(), is(1));
+    assertThat(ref.resets().get(), is(1));
     assertThat(ref.get(), is(2));
-    assertThat(ref.reset().get(), is(2));
+    assertThat(ref.resets().get(), is(2));
     assertThat(ref.get(), is(3));
-    assertThat(ref.reset().get(), is(3));
+    assertThat(ref.resets().get(), is(3));
     assertThat(ref.get(), is(4));
-    assertThat(ref.reset().get(), is(4));
+    assertThat(ref.resets().get(), is(4));
     assertThat(ref.get(), is(5));
-    assertThat(ref.reset().get(), is(5));
+    assertThat(ref.resets().get(), is(5));
   }
 
   @Test public void initExConstructorWithBlankExecExCause() throws Exception {
@@ -327,13 +327,26 @@ public class ResettableLazyReferenceTest {
     assertThat(count.get(), is(1));
     assertThat(count.get(), is(1));
     assertThat(count.get(), is(1));
-    assertThat(count.reset().get(), is(1));
+    assertThat(count.resets().get(), is(1));
     assertThat(count.get(), is(2));
     assertThat(count.get(), is(2));
-    assertThat(count.reset().get(), is(2));
+    assertThat(count.resets().get(), is(2));
     assertThat(count.get(), is(3));
     assertThat(count.get(), is(3));
     assertThat(count.get(), is(3));
-    assertThat(count.reset().get(), is(3));
+    assertThat(count.resets().get(), is(3));
+  }
+
+  @Test public void reset() throws Exception {
+    final ResettableLazyReference<Integer> count = new ResettableLazyReference<Integer>() {
+      private int createCallCount;
+
+      @Override protected Integer create() throws Exception {
+        return ++createCallCount;
+      }
+    };
+    assertThat(count.get(), is(1));
+    count.reset();
+    assertThat(count.get(), is(2));
   }
 }

@@ -113,25 +113,47 @@ import net.jcip.annotations.ThreadSafe;
   }
 
   /**
-   * Reset the internal reference. Anyone currently in the process of getting
-   * the old reference will still receive that reference however.
+   * Reset the internal reference. Anyone currently in the process of calling
+   * {@link #get()} will still force that and receive the old reference however.
+   * 
+   * Note: since 2.6 this is final, override {@link #onReset(Supplier)} to
+   * implement custom reset behavior.
+   */
+  public final void reset() {
+    resets();
+  }
+
+  /**
+   * Reset the internal reference and returns a LazyReference of the old value.
+   * Anyone currently in the process of calling {@link #get()} will still force
+   * that and receive the old reference however.
    * 
    * @return A supplier of the old value (since 2.5, in earlier versions this
    * was void). Calling the supplier may block and cause the initialization to
    * occur.
    */
-  public Supplier<T> reset() {
+  public final LazyReference<T> resets() {
     @SuppressWarnings("unchecked")
-    Supplier<T> result = updater.getAndSet(this, new InternalReference<T>(this));
+    LazyReference<T> result = updater.getAndSet(this, new InternalReference<T>(this));
+    onReset(result);
     return result;
   }
+
+  /**
+   * Template extension method for providing custom reset behavior.
+   * 
+   * @param oldValue the old LazyReference, guaranteed that nobody else has 
+   * access anymore.
+   * @since 2.6
+   */
+  protected void onReset(LazyReference<T> oldValue) {}
 
   /**
    *   Has the {@link #create()} reference been initialized.
    * 
    * @return true if the task is complete and has not been reset.
    */
-  public boolean isInitialized() {
+  public final boolean isInitialized() {
     return referrent.isInitialized();
   }
 
@@ -139,7 +161,7 @@ import net.jcip.annotations.ThreadSafe;
    * Cancel the initializing operation if it has not already run. Will try and
    * interrupt if it is currently running.
    */
-  public void cancel() {
+  public final void cancel() {
     referrent.cancel();
   }
 
