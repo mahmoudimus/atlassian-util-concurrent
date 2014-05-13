@@ -213,7 +213,7 @@ import com.google.common.util.concurrent.SettableFuture;
     return futureCallback(Effects.<A> noop(), effect);
   }
 
-  private static final class Of<A> extends SimpleForwardingListenableFuture<A> implements Promise<A> {
+  static final class Of<A> extends SimpleForwardingListenableFuture<A> implements Promise<A> {
     public Of(ListenableFuture<A> delegate) {
       super(delegate);
     }

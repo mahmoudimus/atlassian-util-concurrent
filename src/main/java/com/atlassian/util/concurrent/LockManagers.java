@@ -16,8 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Functions.fromSupplier;
-import static com.atlassian.util.concurrent.LockManagers.Manager.createManager;
 import static com.atlassian.util.concurrent.ManagedLocks.lockFactory;
 import static com.atlassian.util.concurrent.ManagedLocks.managedLockFactory;
 import static com.atlassian.util.concurrent.WeakMemoizer.weakMemoizer;
@@ -73,8 +71,7 @@ public class LockManagers {
    * instead.
    */
   @Deprecated public static <T, D> LockManager<T> weakLockManager(final Function<T, D> stripeFunction) {
-    final Function<D, ManagedLock> lockFactory = fromSupplier(managedLockFactory(lockFactory()));
-    return createManager(stripeFunction, weakMemoizer(lockFactory));
+    return Manager.create(stripeFunction, weakMemoizer(Functions.<D, ManagedLock> fromSupplier(managedLockFactory(lockFactory))));
   }
 
   /**
@@ -84,7 +81,7 @@ public class LockManagers {
    * @param <D> the type used for the internal lock resolution.
    */
   static class Manager<T, D> implements LockManager<T> {
-    static final <T, D> Manager<T, D> createManager(final Function<T, D> stripeFunction, final Function<D, ManagedLock> lockFactory) {
+    static final <T, D> Manager<T, D> create(final Function<T, D> stripeFunction, final Function<D, ManagedLock> lockFactory) {
       return new Manager<T, D>(stripeFunction, lockFactory);
     }
 

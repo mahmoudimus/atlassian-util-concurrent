@@ -113,7 +113,7 @@ public class ManagedLocks {
    */
   public static @NotNull <T, D> com.atlassian.util.concurrent.Function<T, ManagedLock> weakManagedLockFactory(
     final @NotNull Function<T, D> stripeFunction) {
-    return weakManagedLockFactory(stripeFunction, lockFactory());
+    return weakManagedLockFactory(stripeFunction, lockFactory);
   }
 
   /**
@@ -170,7 +170,7 @@ public class ManagedLocks {
    */
   public static @NotNull <T, D> com.atlassian.util.concurrent.Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(
     final Function<T, D> stripeFunction) {
-    return weakReadWriteManagedLockFactory(stripeFunction, readWriteLockFactory());
+    return weakReadWriteManagedLockFactory(stripeFunction, readWriteLockFactory);
   }
 
   /**
@@ -193,26 +193,22 @@ public class ManagedLocks {
    * 
    * @return lock factory
    */
-  static @NotNull com.atlassian.util.concurrent.Supplier<Lock> lockFactory() {
-    return new com.atlassian.util.concurrent.Supplier<Lock>() {
-      public Lock get() {
-        return new ReentrantLock();
-      }
-    };
-  }
+  static @NotNull final com.atlassian.util.concurrent.Supplier<Lock> lockFactory = new com.atlassian.util.concurrent.Supplier<Lock>() {
+    public Lock get() {
+      return new ReentrantLock();
+    }
+  };
 
   /**
    * A {@link Supplier} of {@link ReentrantReadWriteLock read write locks}.
    * 
    * @return lock factory
    */
-  static @NotNull com.atlassian.util.concurrent.Supplier<ReadWriteLock> readWriteLockFactory() {
-    return new com.atlassian.util.concurrent.Supplier<ReadWriteLock>() {
-      public ReadWriteLock get() {
-        return new ReentrantReadWriteLock();
-      }
-    };
-  }
+  static @NotNull com.atlassian.util.concurrent.Supplier<ReadWriteLock> readWriteLockFactory = new com.atlassian.util.concurrent.Supplier<ReadWriteLock>() {
+    public ReadWriteLock get() {
+      return new ReentrantReadWriteLock();
+    }
+  };
 
   /**
    * A {@link Supplier} of {@link ManagedLock managed locks}.

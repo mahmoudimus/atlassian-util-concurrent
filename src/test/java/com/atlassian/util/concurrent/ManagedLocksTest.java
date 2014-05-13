@@ -41,25 +41,25 @@ public class ManagedLocksTest {
   }
 
   @Test public void lockFactory() throws Exception {
-    final Supplier<Lock> lockFactory = ManagedLocks.lockFactory();
+    final Supplier<Lock> lockFactory = ManagedLocks.lockFactory;
     assertNotNull(lockFactory);
     assertNotNull(lockFactory.get());
   }
 
   @Test public void readWriteLockFactory() throws Exception {
-    final Supplier<ReadWriteLock> lockFactory = ManagedLocks.readWriteLockFactory();
+    final Supplier<ReadWriteLock> lockFactory = ManagedLocks.readWriteLockFactory;
     assertNotNull(lockFactory);
     assertNotNull(lockFactory.get());
   }
 
   @Test public void manage() throws Exception {
-    final Supplier<ManagedLock> lockFactory = ManagedLocks.managedLockFactory(ManagedLocks.lockFactory());
+    final Supplier<ManagedLock> lockFactory = ManagedLocks.managedLockFactory(ManagedLocks.lockFactory);
     assertNotNull(lockFactory);
     assertNotNull(lockFactory.get());
   }
 
   @Test public void manageReadWrite() throws Exception {
-    final Supplier<ManagedLock.ReadWrite> lockFactory = ManagedLocks.managedReadWriteLockFactory(ManagedLocks.readWriteLockFactory());
+    final Supplier<ManagedLock.ReadWrite> lockFactory = ManagedLocks.managedReadWriteLockFactory(ManagedLocks.readWriteLockFactory);
     assertNotNull(lockFactory);
     assertNotNull(lockFactory.get());
   }

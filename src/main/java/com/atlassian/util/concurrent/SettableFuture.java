@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
    * 
    * @param value the value to be set.
    */
-  public SettableFuture<T> set(final T value) {
+  public final SettableFuture<T> set(final T value) {
     setAndCheckValue(new ReferenceValue<T>(value));
     return this;
   }
@@ -69,32 +69,32 @@ import java.util.concurrent.atomic.AtomicReference;
    * 
    * @param value the value to be set.
    */
-  public SettableFuture<T> setException(final Throwable throwable) {
+  public final SettableFuture<T> setException(final Throwable throwable) {
     setAndCheckValue(new ThrowableValue<T>(throwable));
     return this;
   }
 
-  public T get() throws InterruptedException, ExecutionException {
+  public final T get() throws InterruptedException, ExecutionException {
     latch.await();
     return ref.get().get();
   }
 
-  public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+  public final T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
     if (!latch.await(timeout, unit)) {
       throw new TimedOutException(timeout, unit);
     }
     return ref.get().get();
   }
 
-  public boolean isDone() {
+  public final boolean isDone() {
     return ref.get() != null;
   }
 
-  public boolean isCancelled() {
+  public final boolean isCancelled() {
     return isDone() && (ref.get() instanceof CancelledValue<?>);
   }
 
-  public boolean cancel(final boolean mayInterruptIfRunning) {
+  public final boolean cancel(final boolean mayInterruptIfRunning) {
     return setValue(new CancelledValue<T>()) == null;
   }
 
@@ -105,7 +105,7 @@ import java.util.concurrent.atomic.AtomicReference;
    * @param value to set.
    * @return the old value if set or null.
    */
-  private void setAndCheckValue(final Value<T> value) {
+  private final void setAndCheckValue(final Value<T> value) {
     final Value<T> oldValue = setValue(value);
     if ((oldValue != null) && !value.equals(oldValue)) {
       throw new IllegalStateException("cannot change value after it has been set");
@@ -118,7 +118,7 @@ import java.util.concurrent.atomic.AtomicReference;
    * @param value to set.
    * @return the old value if set or null.
    */
-  private Value<T> setValue(final Value<T> value) {
+  private final Value<T> setValue(final Value<T> value) {
     while (true) {
       final Value<T> oldValue = ref.get();
       if (oldValue != null) {

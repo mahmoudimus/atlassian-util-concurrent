@@ -88,7 +88,7 @@ import net.jcip.annotations.ThreadSafe;
    * exception. The {@link InitializationException#getCause()} will contain the
    * exception thrown by the {@link #create()} method
    */
-  public T get() {
+  public final T get() {
     return referrent.get();
   }
 

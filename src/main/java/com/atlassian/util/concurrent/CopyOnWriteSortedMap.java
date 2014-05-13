@@ -274,7 +274,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
       super(map, viewType);
     }
 
-    @Override public <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
+    @Override public final <N extends Map<? extends K, ? extends V>> SortedMap<K, V> copy(final N map) {
       return new TreeMap<K, V>(map);
     }
   }

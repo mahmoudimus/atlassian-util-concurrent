@@ -155,7 +155,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
    * 
    * @return true if the task is complete
    */
-  public boolean isInitialized() {
+  public final boolean isInitialized() {
     return sync.isDone();
   }
 
@@ -163,7 +163,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
    * Cancel the initializing operation if it has not already run. Will try and
    * interrupt if it is currently running.
    */
-  public void cancel() {
+  public final void cancel() {
     sync.cancel(true);
   }
 

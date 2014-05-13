@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentMap;
  * apply.
  * @param <V> the value
  */
-@ThreadSafe class WeakMemoizer<K, V> implements Function<K, V> {
+@ThreadSafe final class WeakMemoizer<K, V> implements Function<K, V> {
   static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
     return new WeakMemoizer<K, V>(delegate);
   }

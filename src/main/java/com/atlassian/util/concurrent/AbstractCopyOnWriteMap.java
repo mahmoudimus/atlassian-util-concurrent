@@ -107,7 +107,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
   }
 
-  public boolean remove(final Object key, final Object value) {
+  public final boolean remove(final Object key, final Object value) {
     lock.lock();
     try {
       if (delegate.containsKey(key) && equals(value, delegate.get(key))) {
@@ -123,7 +123,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
   }
 
-  public boolean replace(final K key, final V oldValue, final V newValue) {
+  public final boolean replace(final K key, final V oldValue, final V newValue) {
     lock.lock();
     try {
       if (!delegate.containsKey(key) || !equals(oldValue, delegate.get(key))) {
@@ -138,7 +138,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
   }
 
-  public V replace(final K key, final V value) {
+  public final V replace(final K key, final V value) {
     lock.lock();
     try {
       if (!delegate.containsKey(key)) {
@@ -169,7 +169,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
   }
 
-  public V putIfAbsent(final K key, final V value) {
+  public final V putIfAbsent(final K key, final V value) {
     lock.lock();
     try {
       if (!delegate.containsKey(key)) {

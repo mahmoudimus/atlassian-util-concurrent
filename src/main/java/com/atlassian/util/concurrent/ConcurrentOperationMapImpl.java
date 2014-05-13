@@ -41,7 +41,7 @@ import java.util.concurrent.FutureTask;
     this.futureFactory = Assertions.notNull("futureFactory", futureFactory);
   }
 
-  public R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
+  public final R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
     CallerRunsFuture<R> future = map.get(key);
     while (future == null) {
       map.putIfAbsent(key, futureFactory.get(operation));

@@ -31,7 +31,7 @@ public class ThreadFactories {
   /**
    * Simple builder for {@link ThreadFactory} instances
    */
-  public static class Builder {
+  public static final class Builder {
     String name;
     Type type = Type.USER;
     int priority = Thread.NORM_PRIORITY;

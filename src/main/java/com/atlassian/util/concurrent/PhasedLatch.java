@@ -29,16 +29,20 @@ import net.jcip.annotations.ThreadSafe;
  * performing an action. The action is then guarded by that phase and can await
  * that phase to be advanced via a call to {@link #release() release} the
  * current phase.
+ * <p>
+ * This class is not final but cannot be sub-classed due to the private ctor.
  */
 @ThreadSafe public class PhasedLatch implements ReusableLatch {
   private static final PhaseComparator comparator = new PhaseComparator();
 
   private final Sync sync = new Sync();
 
+  PhasedLatch() {}
+
   /**
    * Release the current phase.
    */
-  public void release() {
+  public final void release() {
     sync.releaseShared(1);
   }
 
@@ -47,7 +51,7 @@ import net.jcip.annotations.ThreadSafe;
    * 
    * @throws InterruptedException if interrupted
    */
-  public void await() throws InterruptedException {
+  public final void await() throws InterruptedException {
     awaitPhase(getPhase());
   }
 
@@ -59,7 +63,7 @@ import net.jcip.annotations.ThreadSafe;
    * @return true if the phase was passed, false otherwise
    * @throws InterruptedException if interrupted
    */
-  public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
+  public final boolean await(final long time, final TimeUnit unit) throws InterruptedException {
     return sync.tryAcquireSharedNanos(getPhase(), unit.toNanos(time));
   }
 
@@ -69,7 +73,7 @@ import net.jcip.annotations.ThreadSafe;
    * @param phase the phase to wait for
    * @throws InterruptedException if interrupted
    */
-  public void awaitPhase(final int phase) throws InterruptedException {
+  public final void awaitPhase(final int phase) throws InterruptedException {
     sync.acquireSharedInterruptibly(phase);
   }
 
@@ -82,7 +86,7 @@ import net.jcip.annotations.ThreadSafe;
    * @return true if the phase was passed, false otherwise
    * @throws InterruptedException if interrupted
    */
-  public boolean awaitPhase(final int phase, final long period, final TimeUnit unit) throws InterruptedException {
+  public final boolean awaitPhase(final int phase, final long period, final TimeUnit unit) throws InterruptedException {
     return sync.tryAcquireSharedNanos(phase, unit.toNanos(period));
   }
 

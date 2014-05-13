@@ -74,7 +74,7 @@ import net.jcip.annotations.ThreadSafe;
    * Releases at most one waiting thread. If the current state is released then
    * nothing happens.
    */
-  public void release() {
+  public final void release() {
     sync.release(0);
   }
 
@@ -107,7 +107,7 @@ import net.jcip.annotations.ThreadSafe;
    * @throws InterruptedException if the current thread is interrupted while
    * waiting
    */
-  public void await() throws InterruptedException {
+  public final void await() throws InterruptedException {
     sync.acquireInterruptibly(0);
   }
 
@@ -154,7 +154,7 @@ import net.jcip.annotations.ThreadSafe;
    * @throws InterruptedException if the current thread is interrupted while
    * waiting
    */
-  public boolean await(final long timeout, final TimeUnit unit) throws InterruptedException {
+  public final boolean await(final long timeout, final TimeUnit unit) throws InterruptedException {
     return sync.tryAcquireNanos(0, unit.toNanos(timeout));
   }
 }

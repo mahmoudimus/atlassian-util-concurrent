@@ -242,7 +242,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
       super(map, viewType);
     }
 
-    @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+    @Override public final <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
       return new HashMap<K, V>(map);
     }
   }
@@ -257,7 +257,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
       super(map, viewType);
     }
 
-    @Override public <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
+    @Override public final <N extends Map<? extends K, ? extends V>> Map<K, V> copy(final N map) {
       return new LinkedHashMap<K, V>(map);
     }
   }

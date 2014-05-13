@@ -8,7 +8,7 @@ import java.util.Comparator;
  * 
  * @since 2.5
  */
-public class Memory {
+public final class Memory {
   //
   // static factory methods
   //

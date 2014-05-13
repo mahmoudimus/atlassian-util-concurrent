@@ -175,7 +175,7 @@ import java.util.concurrent.locks.Condition;
    * @throws InterruptedException if the current thread is interrupted while
    * waiting
    */
-  @NotNull public V take() throws InterruptedException {
+  @NotNull public final V take() throws InterruptedException {
     V result = null;
     while (result == null) {
       latch.await();
@@ -206,7 +206,7 @@ import java.util.concurrent.locks.Condition;
    * @throws TimeoutException if the timeout is reached without another thread
    * having called {@link #set(Object)}.
    */
-  @NotNull public V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
+  @NotNull public final V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
     final Timeout timeout = Timeout.getNanosTimeout(time, unit);
     V result = null;
     while (result == null) {
@@ -233,7 +233,7 @@ import java.util.concurrent.locks.Condition;
    * @throws InterruptedException if the current thread is interrupted while
    * waiting
    */
-  @NotNull public V get() throws InterruptedException {
+  @NotNull public final V get() throws InterruptedException {
     V result = ref.get();
     while (result == null) {
       latch.await();
@@ -261,7 +261,7 @@ import java.util.concurrent.locks.Condition;
    * @throws InterruptedException if the current thread is interrupted while
    * waiting
    */
-  @NotNull public V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
+  @NotNull public final V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
     final Timeout timeout = Timeout.getNanosTimeout(time, unit);
     V result = ref.get();
     while (result == null) {
@@ -278,7 +278,7 @@ import java.util.concurrent.locks.Condition;
    * 
    * @param value the new value.
    */
-  public void set(@NotNull final V value) {
+  public final void set(@NotNull final V value) {
     notNull("value", value);
     internalSet(value);
   }
@@ -290,7 +290,7 @@ import java.util.concurrent.locks.Condition;
    * 
    * @return true if the current reference is null.
    */
-  public boolean isEmpty() {
+  public final boolean isEmpty() {
     return peek() == null;
   }
 
@@ -301,14 +301,14 @@ import java.util.concurrent.locks.Condition;
    * 
    * @return the current reference or null if there is none.
    */
-  @Nullable public V peek() {
+  @Nullable public final V peek() {
     return ref.get();
   }
 
   /**
    * Clear the current reference.
    */
-  public void clear() {
+  public final void clear() {
     internalSet(null);
   }
 
@@ -321,7 +321,7 @@ import java.util.concurrent.locks.Condition;
    * 
    * @param value maybe null
    */
-  private void internalSet(@Nullable final V value) {
+  private final void internalSet(@Nullable final V value) {
     ref.set(value);
     latch.release();
   }
