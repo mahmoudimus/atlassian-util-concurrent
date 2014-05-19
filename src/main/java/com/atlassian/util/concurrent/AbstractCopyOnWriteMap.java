@@ -206,7 +206,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
   }
 
-  @GuardedBy("lock") protected void set(final M map) {
+  @GuardedBy("lock") protected final void set(final M map) {
     delegate = map;
   }
 
