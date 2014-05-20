@@ -116,13 +116,10 @@ import net.jcip.annotations.ThreadSafe;
    * Reset the internal reference. Anyone currently in the process of calling
    * {@link #get()} will still force that and receive the old reference.
    * 
-   * Note: this method <strong>must not</strong> be overridden. It is virtual
-   * only for historical reasons, override {@link #onReset(Supplier)} to
-   * implement custom reset behavior. It will be made final in 3.0
+   * Note: this method was made final in 3.0. Override
+   * {@link #onReset(LazyReference)} to implement custom reset behavior.
    */
-  public 
-// TODO 3.0 final
-  void reset() {
+  public final void reset() {
     resets();
   }
 
@@ -146,7 +143,7 @@ import net.jcip.annotations.ThreadSafe;
    * Template extension method for providing custom reset behavior.
    * 
    * @param oldValue the old LazyReference, guaranteed that nobody else has
-   * access anymore.
+   * access to it anymore.
    * @since 2.6
    */
   protected void onReset(LazyReference<T> oldValue) {}
