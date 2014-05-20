@@ -18,6 +18,7 @@ package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Assertions.isTrue;
 import static com.atlassian.util.concurrent.Assertions.notNull;
+import static com.atlassian.util.concurrent.Executors.limited;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Suppliers.memoize;
@@ -168,18 +169,19 @@ import java.util.concurrent.TimeUnit;
     }
 
     /**
-     * Create a {@link AsyncCompleter} that limits the number of jobs executed
+     * Create a {@link AsyncCompleter} that limits the number of jobs submitted
      * to the underlying executor to a hard limit.
      * <p>
      * Note: this only makes sense if the underlying executor does not have a
-     * limit on the number of threads it will create, or the limit is much
-     * higher than this limit.
+     * limit on the number of threads it will create, on the size of the queue
+     * submitted jobs will live in, or where the limit is much higher than this
+     * limit.
      * 
      * @param limit the number of parallel jobs to execute at any one time
      * @see LimitedExecutor for more discussion of how this limit is relevant
      */
     public AsyncCompleter limitParallelExecutionTo(final int limit) {
-      return new AsyncCompleter(new LimitedExecutor(executor, limit), policy, completionServiceFactory, completionServiceDecorator);
+      return new AsyncCompleter(limited(executor, limit), policy, completionServiceFactory, completionServiceDecorator);
     }
 
     public AsyncCompleter build() {
