@@ -16,6 +16,8 @@
 
 package com.atlassian.util.concurrent;
 
+import java.util.concurrent.Callable;
+
 /**
  * Useful {@link Supplier} implementations.
  */
@@ -96,6 +98,25 @@ public final class Suppliers {
 
     @Override public T get() {
       return delegate.get();
+    }
+  }
+
+  /**
+   * Turn a {@link Supplier} into a {@link Callable}
+   */
+  public static <T> Callable<T> toCallable(Supplier<T> supplier) {
+    return new CallableAdapter<T>(supplier);
+  }
+
+  static class CallableAdapter<T> implements Callable<T> {
+    private final Supplier<T> supplier;
+
+    CallableAdapter(final Supplier<T> supplier) {
+      this.supplier = supplier;
+    }
+
+    @Override public T call() {
+      return supplier.get();
     }
   }
 
