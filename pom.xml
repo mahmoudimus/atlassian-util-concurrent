@@ -9,7 +9,7 @@
     <groupId>com.atlassian.util.concurrent</groupId>
     <artifactId>atlassian-util-concurrent</artifactId>
     <name>Atlassian Concurrency Utilities</name>
-    <version>2.6.1-SNAPSHOT</version>
+    <version>2.6.1</version>
     <description>This project contains utility classes that are used by
 		various products and projects inside Atlassian and may have some
 		utility to the world at large.</description>
