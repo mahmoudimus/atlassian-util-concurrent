@@ -53,7 +53,8 @@ public final class Functions {
     return new ValueExtractor<T>();
   }
 
-  private static class ValueExtractor<T> implements com.google.common.base.Function<com.google.common.base.Supplier<? extends T>, T> {
+  private static class ValueExtractor<T> implements
+    com.google.common.base.Function<com.google.common.base.Supplier<? extends T>, T> {
     public T apply(final com.google.common.base.Supplier<? extends T> supplier) {
       return supplier.get();
     }
@@ -76,6 +77,21 @@ public final class Functions {
   }
 
   /**
+   * Get a function that weakly memoizes the output – ie. subsequent calls for
+   * the same input value will return the same reference if it has not been
+   * garbage collected because there are no external strong referrents to it.
+   * 
+   * @param <T> the input or key type for the function. Must be a value
+   * (immutable) and have a well behaved hashcode implementation.
+   * @param <R> the output type of the for the function.
+   * @param f the function to call if the value is not already cached.
+   * @return the function that will .
+   */
+  public static <T, R> Function<T, R> weakMemoize(Function<T, R> f) {
+    return WeakMemoizer.weakMemoizer(f);
+  }
+
+  /**
    * Function that can be used to ignore any RuntimeExceptions that a
    * {@link Supplier} may produce and return null instead.
    * 
@@ -86,7 +102,8 @@ public final class Functions {
     return new ExceptionIgnorer<T>();
   }
 
-  static class ExceptionIgnorer<T> implements com.google.common.base.Function<com.google.common.base.Supplier<T>, com.google.common.base.Supplier<T>> {
+  static class ExceptionIgnorer<T> implements
+    com.google.common.base.Function<com.google.common.base.Supplier<T>, com.google.common.base.Supplier<T>> {
     public com.google.common.base.Supplier<T> apply(final com.google.common.base.Supplier<T> from) {
       return new IgnoreAndReturnNull<T>(from);
     }
