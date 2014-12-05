@@ -46,13 +46,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
   @GuardedBy("lock") private volatile M delegate;
 
-  // import edu.umd.cs.findbugs.annotations.@SuppressWarnings
   private final transient Lock lock = new ReentrantLock();
 
-  // private final transient EntrySet entrySet = new EntrySet();
-  // private final transient KeySet keySet = new KeySet();
-  // private final transient Values values = new Values();
-  // private final View.Type viewType;
   private final View<K, V> view;
 
   /**
