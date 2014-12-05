@@ -74,6 +74,25 @@ import com.google.common.util.concurrent.SettableFuture;
 
   /**
    * Creates a new, resolved promise for the specified concrete value.
+   * 
+   * @param value The value for which a promise should be created
+   * @return The new promise
+   * 
+   * @since 2.7
+   */
+  public static <A> Function<A, Promise<A>> toPromise() {
+    return new ToPromise<A>();
+  }
+  
+  static class ToPromise<A> implements Function<A, Promise<A>> {
+    @Override
+    public Promise<A> apply(A a) {
+      return promise(a);
+    }
+  }
+
+  /**
+   * Creates a new, resolved promise for the specified concrete value.
    * <p>
    * Synonym for {@link #promise(Object)}.
    * 
