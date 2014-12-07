@@ -67,7 +67,8 @@ import java.util.concurrent.TimeUnit;
   private final ExecutorCompletionServiceFactory completionServiceFactory;
   private final CompletionServiceDecorator completionServiceDecorator;
 
-  AsyncCompleter(final Executor executor, final ExceptionPolicy policy, final ExecutorCompletionServiceFactory completionServiceFactory,
+  AsyncCompleter(final Executor executor, final ExceptionPolicy policy,
+    final ExecutorCompletionServiceFactory completionServiceFactory,
     CompletionServiceDecorator completionServiceDecorator) {
     this.executor = notNull("executor", executor);
     this.policy = notNull("policy", policy);
@@ -119,10 +120,12 @@ import java.util.concurrent.TimeUnit;
    * function that is responsible for getting things from the CompletionService.
    */
   <T> Iterable<T> invokeAllTasks(final Iterable<? extends Callable<T>> callables, final Accessor<T> accessor) {
-    final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(executor));
+    final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(
+      executor));
     // we must copy the resulting Iterable<Supplier> so
     // each iteration doesn't resubmit the jobs
-    final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(apply, accessor)));
+    final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(apply,
+      accessor)));
     final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
     return filter(transform(handled, Functions.<T> fromSupplier()), notNull());
   }
@@ -139,7 +142,7 @@ import java.util.concurrent.TimeUnit;
     /**
      * Create a Builder with the supplied Executor
      * 
-     * @param executor
+     * @param executor the executor to wrap
      */
     public Builder(@NotNull final Executor executor) {
       this.executor = notNull("executor", executor);
@@ -148,6 +151,8 @@ import java.util.concurrent.TimeUnit;
     /**
      * Ignore exceptions thrown by any {@link Callables}, note will cause nulls
      * in the resulting iterable!
+     * 
+     * @return this
      */
     public Builder ignoreExceptions() {
       return handleExceptions(Policies.IGNORE_EXCEPTIONS);
@@ -178,12 +183,14 @@ import java.util.concurrent.TimeUnit;
      * limit.
      * 
      * @param limit the number of parallel jobs to execute at any one time
+     * @return the built AsyncCompleter
      * @see LimitedExecutor for more discussion of how this limit is relevant
      */
     public AsyncCompleter limitParallelExecutionTo(final int limit) {
       return new AsyncCompleter(limited(executor, limit), policy, completionServiceFactory, completionServiceDecorator);
     }
 
+    /** @return the built AsyncCompleter */
     public AsyncCompleter build() {
       return new AsyncCompleter(executor, policy, completionServiceFactory, completionServiceDecorator);
     }
