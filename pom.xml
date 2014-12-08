@@ -159,7 +159,7 @@
         </site>
     </distributionManagement>
     <properties>
-        <jdkLevel>1.5</jdkLevel>
+        <jdkLevel>1.6</jdkLevel>
         <guava.osgi.version>10.0.1</guava.osgi.version>
     </properties>
 </project>
