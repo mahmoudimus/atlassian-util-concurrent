@@ -79,7 +79,7 @@ public final class Functions {
   /**
    * Get a function that weakly memoizes the output – ie. subsequent calls for
    * the same input value will return the same reference if it has not been
-   * garbage collected because there are no external strong referrents to it.
+   * garbage collected because there are no external strong referents to it.
    * 
    * @param <T> the input or key type for the function. Must be a value
    * (immutable) and have a well behaved hashcode implementation.
