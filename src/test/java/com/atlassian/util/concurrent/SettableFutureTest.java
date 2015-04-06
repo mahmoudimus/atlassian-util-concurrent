@@ -114,20 +114,18 @@ public class SettableFutureTest {
     final CountDownLatch running = new CountDownLatch(1);
     final AtomicInteger count = new AtomicInteger(3);
     final CountDownLatch complete = new CountDownLatch(1);
-    new Thread(new Runnable() {
-      public void run() {
-        try {
-          running.countDown();
-          count.set(future.get());
-          complete.countDown();
-          // /CLOVER:OFF
-        } catch (final InterruptedException e) {
-          throw new RuntimeInterruptedException(e);
-        } catch (final ExecutionException e) {
-          throw new RuntimeException(e.getCause());
-        }
-        // /CLOVER:ON
+    new Thread(() -> {
+      try {
+        running.countDown();
+        count.set(future.get());
+        complete.countDown();
+        // /CLOVER:OFF
+      } catch (final InterruptedException e) {
+        throw new RuntimeInterruptedException(e);
+      } catch (final ExecutionException e) {
+        throw new RuntimeException(e.getCause());
       }
+      // /CLOVER:ON
     }).start();
     running.await();
     pause();

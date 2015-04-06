@@ -30,9 +30,8 @@ import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import net.jcip.annotations.ThreadSafe;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-import com.google.common.util.concurrent.Callables;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -122,9 +121,9 @@ import java.util.concurrent.TimeUnit;
     final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(executor));
     // we must copy the resulting Iterable<Supplier> so
     // each iteration doesn't resubmit the jobs
-    final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<T>(apply, accessor)));
-    final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler());
-    return filter(transform(handled, Functions.<T> fromSupplier()), notNull());
+    final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<>(apply, accessor)::apply));
+    final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler()::apply);
+    return filter(transform(handled, Functions.<T> fromSupplier()::apply), notNull());
   }
 
   /**
@@ -146,7 +145,7 @@ import java.util.concurrent.TimeUnit;
     }
 
     /**
-     * Ignore exceptions thrown by any {@link Callables}, note will cause nulls
+     * Ignore exceptions thrown by any {@link com.google.common.util.concurrent.Callables}, note will cause nulls
      * in the resulting iterable!
      */
     public Builder ignoreExceptions() {
@@ -225,7 +224,9 @@ import java.util.concurrent.TimeUnit;
     public Supplier<T> apply(final Callable<T> task) {
       accessor.register(completionService.submit(task));
       // never call get twice as it gets a new element from the queue
-      return memoize(nextCompleteItem);
+      //TODO replace with new memoizer
+//      return memoize(nextCompleteItem::get);
+      return null;
     }
   }
 

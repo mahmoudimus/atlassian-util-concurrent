@@ -18,20 +18,16 @@ public class ReadWriteManagedLockTest {
     final AtomicBoolean called = new AtomicBoolean();
     final TrackedReadWriteLock lock = new TrackedReadWriteLock();
     final ManagedLock.ReadWrite managedLock = ManagedLocks.manageReadWrite(lock);
-    assertEquals("blah", managedLock.read().withLock(new Supplier<String>() {
-      public String get() {
-        called.set(true);
-        return "blah";
-      }
+    assertEquals("blah", managedLock.read().withLock((Supplier<String>) () -> {
+      called.set(true);
+      return "blah";
     }));
     assertTrue(called.get());
     lock.read.check();
     called.set(false);
-    assertEquals("blah", managedLock.write().withLock(new Supplier<String>() {
-      public String get() {
-        called.set(true);
-        return "blah";
-      }
+    assertEquals("blah", managedLock.write().withLock((Supplier<String>) () -> {
+      called.set(true);
+      return "blah";
     }));
     assertTrue(called.get());
     lock.write.check();
@@ -42,20 +38,16 @@ public class ReadWriteManagedLockTest {
     final TrackedReadWriteLock lock = new TrackedReadWriteLock();
     final ManagedLock.ReadWrite managedLock = ManagedLocks.manageReadWrite(lock);
 
-    assertEquals("blah", managedLock.read().withLock(new Callable<String>() {
-      public String call() {
-        called.set(true);
-        return "blah";
-      }
+    assertEquals("blah", managedLock.read().withLock((Callable<String>) () -> {
+      called.set(true);
+      return "blah";
     }));
     assertTrue(called.get());
     lock.read.check();
     called.set(false);
-    assertEquals("blah", managedLock.write().withLock(new Callable<String>() {
-      public String call() {
-        called.set(true);
-        return "blah";
-      }
+    assertEquals("blah", managedLock.write().withLock((Callable<String>) () -> {
+      called.set(true);
+      return "blah";
     }));
     assertTrue(called.get());
     lock.write.check();
@@ -66,18 +58,14 @@ public class ReadWriteManagedLockTest {
     final TrackedReadWriteLock lock = new TrackedReadWriteLock();
     final ManagedLock.ReadWrite managedLock = ManagedLocks.manageReadWrite(lock);
 
-    managedLock.read().withLock(new Runnable() {
-      public void run() {
-        called.set(true);
-      }
+    managedLock.read().withLock(() -> {
+      called.set(true);
     });
     assertTrue(called.get());
     lock.read.check();
     called.set(false);
-    managedLock.write().withLock(new Runnable() {
-      public void run() {
-        called.set(true);
-      }
+    managedLock.write().withLock(() -> {
+      called.set(true);
     });
     assertTrue(called.get());
     lock.write.check();

@@ -1,19 +1,18 @@
 package com.atlassian.util.concurrent.atomic;
 
-import static com.google.common.base.Suppliers.ofInstance;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class AtomicReferenceTest {
   @Test public void getAndSetIfNormal() {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(to, ref.getOrSetAndGetIf(from, ofInstance(to)));
+    assertEquals(to, ref.getOrSetAndGetIf(from, () -> to));
   }
 
   @Test public void getAndSetIfNormalValue() {
@@ -26,7 +25,7 @@ public class AtomicReferenceTest {
   @Test public void getAndSetIfNull() {
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>();
-    assertEquals(to, Atomics.getAndSetIfNull(ref, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIfNull(ref, (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetContended() {
@@ -34,12 +33,10 @@ public class AtomicReferenceTest {
     final String to = "to";
     final String different = "different";
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(different, ref.getOrSetAndGetIf(from, new Supplier<String>() {
-      public String get() {
-        // being called, set the reference so the CAS fails
-        ref.set(different);
-        return to;
-      }
+    assertEquals(different, ref.getOrSetAndGetIf(from, () -> {
+      // being called, set the reference so the CAS fails
+      ref.set(different);
+      return to;
     }));
   }
 
@@ -48,14 +45,14 @@ public class AtomicReferenceTest {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(old);
-    assertEquals(old, ref.getOrSetAndGetIf(from, ofInstance(to)));
+    assertEquals(old, ref.getOrSetAndGetIf(from, () ->to));
   }
 
   @Test public void getAndSetSameValue() {
     final String from = "from";
     final String to = from;
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(to, ref.getOrSetAndGetIf(from, ofInstance(to)));
+    assertEquals(to, ref.getOrSetAndGetIf(from, () -> to));
   }
 
   @Test public void getAndSetSameValueDifferent() {
@@ -63,18 +60,14 @@ public class AtomicReferenceTest {
     final String to = from;
     final String different = "blah";
     final AtomicReference<String> ref = new AtomicReference<String>(different);
-    assertEquals(different, ref.getOrSetAndGetIf(from, ofInstance(to)));
+    assertEquals(different, ref.getOrSetAndGetIf(from, () -> to));
   }
 
   @Test public void updateNormal() {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    final Function<String, String> newValueFactory = new Function<String, String>() {
-      public String apply(final String input) {
-        return to;
-      }
-    };
+    final Function<String, String> newValueFactory = input -> to;
     assertEquals(to, ref.update(newValueFactory));
   }
 

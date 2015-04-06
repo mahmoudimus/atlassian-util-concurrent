@@ -15,11 +15,7 @@ import java.lang.ref.WeakReference;
 public class WeakMemoizerTest {
 
   static final Function<Integer, String> lock() {
-    return Functions.fromSupplier(new Supplier<String>() {
-      public String get() {
-        return new String("test");
-      }
-    });
+    return Functions.fromSupplier(() -> "test");
   }
 
   @Test public void callingTwiceReturnsSame() throws Exception {
@@ -32,17 +28,17 @@ public class WeakMemoizerTest {
   }
 
   @Test public void lockReferenceNotNull() throws Exception {
-    final MappedReference<String, String> ref = new MappedReference<String, String>("test", new String("value"), new ReferenceQueue<String>());
+    final MappedReference<String, String> ref = new MappedReference<String, String>("test", "value", new ReferenceQueue<>());
     assertNotNull(ref.getDescriptor());
     assertNotNull(ref.get());
   }
 
   @Test(expected = IllegalArgumentException.class) public void referenceNullDescriptor() throws Exception {
-    new MappedReference<String, String>(null, "value", new ReferenceQueue<String>());
+    new MappedReference<String, String>(null, "value", new ReferenceQueue<>());
   }
 
   @Test(expected = IllegalArgumentException.class) public void referenceNullValue() throws Exception {
-    new MappedReference<String, String>("ref", null, new ReferenceQueue<String>());
+    new MappedReference<String, String>("ref", null, new ReferenceQueue<>());
   }
 
   @Test public void many() throws Exception {

@@ -23,9 +23,7 @@ package com.atlassian.util.concurrent;
 public class Effects {
   private Effects() {}
 
-  private static Effect<Object> NOOP = new Effect<Object>() {
-    public void apply(Object a) {};
-  };
+  private static Effect<Object> NOOP = a -> {};
 
   public static <E> Effect<E> noop() {
     @SuppressWarnings("unchecked")

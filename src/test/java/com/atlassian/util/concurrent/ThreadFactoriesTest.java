@@ -63,15 +63,8 @@ public class ThreadFactoriesTest {
 
   @Test public void uncaughtExceptionHandler() throws Exception {
     final BlockingReference<Throwable> ref = BlockingReference.newSRSW();
-    ThreadFactories.named(this.getClass().getName()).type(ThreadFactories.Type.USER).uncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
-      @Override public void uncaughtException(final Thread t, final Throwable e) {
-        ref.set(e);
-      }
-    }).build().newThread(new Runnable() {
-      @Override public void run() {
-        throw new IllegalArgumentException("the one!");
-      }
+    ThreadFactories.named(this.getClass().getName()).type(ThreadFactories.Type.USER).uncaughtExceptionHandler((t, e) -> ref.set(e)).build().newThread(() -> {
+      throw new IllegalArgumentException("the one!");
     }).start();
     final Throwable throwable = ref.get(2, TimeUnit.SECONDS);
     assertNotNull(throwable);

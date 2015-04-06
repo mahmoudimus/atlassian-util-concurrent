@@ -185,20 +185,20 @@ import java.util.concurrent.TimeoutException;
     NANOS {
       @Override public long currentTime() {
         return System.nanoTime();
-      };
+      }
 
       @Override public TimeUnit precision() {
         return TimeUnit.NANOSECONDS;
-      };
+      }
     },
     MILLIS {
       @Override public long currentTime() {
         return System.currentTimeMillis();
-      };
+      }
 
       @Override public TimeUnit precision() {
         return TimeUnit.MILLISECONDS;
-      };
-    };
+      }
+    }
   }
 }

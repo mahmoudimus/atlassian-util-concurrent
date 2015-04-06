@@ -59,11 +59,7 @@ public class ConcurrentOperationMapImplTest {
     new Thread(new SignallingWorker(startSignal, doneSignal) {
       @Override void doWork() {
         try {
-          assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
-            public Integer call() {
-              return counter.incrementAndGet();
-            }
-          }));
+          assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", counter::incrementAndGet));
         } catch (final ExecutionException e) {
           fail(e.toString());
         }
@@ -72,11 +68,7 @@ public class ConcurrentOperationMapImplTest {
     new Thread(new SignallingWorker(startSignal, doneSignal) {
       @Override void doWork() {
         try {
-          assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", new Callable<Integer>() {
-            public Integer call() {
-              return counter.incrementAndGet();
-            }
-          }));
+          assertEquals(Integer.valueOf(1), concurrentOperationMap.runOperation("same-key", counter::incrementAndGet));
         } catch (final ExecutionException e) {
           fail(e.toString());
         }
@@ -108,11 +100,9 @@ public class ConcurrentOperationMapImplTest {
       private static final long serialVersionUID = 1472906008827102127L;
     }
 
-    final Callable<Integer> operation = new Callable<Integer>() {
-      public Integer call() {
-        counter.incrementAndGet();
-        throw new MyException();
-      }
+    final Callable<Integer> operation = () -> {
+      counter.incrementAndGet();
+      throw new MyException();
     };
     try {
       concurrentOperationMap.runOperation("same-key", operation);
@@ -140,10 +130,8 @@ public class ConcurrentOperationMapImplTest {
       private static final long serialVersionUID = -9171222011228163934L;
     }
 
-    final Callable<Integer> operation = new Callable<Integer>() {
-      public Integer call() {
-        throw new MyException();
-      }
+    final Callable<Integer> operation = () -> {
+      throw new MyException();
     };
     try {
       concurrentOperationMap.runOperation("same-key", operation);
@@ -157,10 +145,8 @@ public class ConcurrentOperationMapImplTest {
     // Create two threads whose job will be to call runOpertion with the
     // same name object
 
-    final Callable<Integer> operation = new Callable<Integer>() {
-      public Integer call() {
-        throw new MyError();
-      }
+    final Callable<Integer> operation = () -> {
+      throw new MyError();
     };
     concurrentOperationMap.runOperation("same-key", operation);
   }
@@ -175,10 +161,8 @@ public class ConcurrentOperationMapImplTest {
       private static final long serialVersionUID = 22367874459914044L;
     }
 
-    final Callable<Integer> operation = new Callable<Integer>() {
-      public Integer call() throws MyException {
-        throw new MyException();
-      }
+    final Callable<Integer> operation = () -> {
+      throw new MyException();
     };
     try {
       concurrentOperationMap.runOperation("same-key", operation);

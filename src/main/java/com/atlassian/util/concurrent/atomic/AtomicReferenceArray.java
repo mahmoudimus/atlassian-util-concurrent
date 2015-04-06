@@ -16,15 +16,15 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
- * {@link #getAndSetIf(int, Object, Object)} and {@link #update(int, Function)}.
+ * {@link #getOrSetAndGetIf(int, Object, Object)} and {@link #update(int, Function)}.
  * 
- * @param E the element type of the array.
+ * @param <E> the element type of the array.
  * @since 0.0.12
  */
 public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicReferenceArray<E> {
@@ -48,7 +48,7 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    * Creates a new AtomicReferenceArray with the same length as, and all
    * elements copied from, the given array.
    * 
-   * @param array the array to copy elements from
+   * @param initialValue the array to copy elements from
    * @throws NullPointerException if array is null
    */
   public AtomicReferenceArray(final E[] initialValue) {
@@ -65,7 +65,6 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    * instead. If the old value argument does not match, ignore both and just
    * return the current value.
    * 
-   * @param <T> the object type.
    * @param oldValue to check the current value against (reference equality
    * check only).
    * @param newValue a {@link Supplier} for a new value. May be called more than

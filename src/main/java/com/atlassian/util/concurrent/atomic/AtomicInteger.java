@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * {@link java.util.concurrent.atomic.AtomicInteger} with richer functionality.

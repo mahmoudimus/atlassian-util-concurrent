@@ -7,25 +7,17 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.util.concurrent.SettableFuture;
 
 public class PromiseTest {
-  Function<Throwable, String> getThrowableMessage = new Function<Throwable, String>() {
-    @Override public String apply(Throwable t) {
-      return t.getMessage();
-    }
-  };
+  Function<Throwable, String> getThrowableMessage = Throwable::getMessage;
 
   @Test public void flatMapPromise() {
     final SettableFuture<String> fOne = SettableFuture.<String> create();
     final SettableFuture<Integer> fTwo = SettableFuture.<Integer> create();
     final Promise<String> pOne = Promises.forListenableFuture(fOne);
-    final Promise<Integer> pTwo = pOne.flatMap(new Function<String, Promise<Integer>>() {
-      public Promise<Integer> apply(String input) {
-        return Promises.forListenableFuture(fTwo);
-      };
-    });
+    final Promise<Integer> pTwo = pOne.flatMap(input -> Promises.forListenableFuture(fTwo));
 
     assertThat(pOne.isDone(), is(false));
     assertThat(pTwo.isDone(), is(false));
@@ -41,20 +33,18 @@ public class PromiseTest {
 
   @Test public void foldPromiseGood() {
     Promise<Integer> promise = Promises.promise(3);
-    assertThat(promise.fold(getThrowableMessage, toStringFunction()).claim(), is("3"));
+    assertThat(promise.fold(getThrowableMessage, toStringFunction()::apply).claim(), is("3"));
   }
 
   @Test public void foldPromiseBad() {
     Promise<Integer> promise = Promises.rejected(new RuntimeException("Oh my!"));
-    assertThat(promise.fold(getThrowableMessage, toStringFunction()).claim(), is("Oh my!"));
+    assertThat(promise.fold(getThrowableMessage, toStringFunction()::apply).claim(), is("Oh my!"));
   }
 
   @Test public void foldPromiseGoodWithError() {
     Promise<Integer> promise = Promises.promise(4);
-    assertThat(promise.fold(getThrowableMessage, new Function<Integer, String>() {
-      public String apply(Integer i) {
-        throw new RuntimeException("I lied!");
-      }
+    assertThat(promise.fold(getThrowableMessage, i -> {
+      throw new RuntimeException("I lied!");
     }).claim(), is("I lied!"));
   }
 
@@ -65,10 +55,8 @@ public class PromiseTest {
       public String apply(Throwable input) {
         throw new RuntimeException(input);
       }
-    }, new Function<Integer, String>() {
-      public String apply(Integer i) {
-        throw new RuntimeException("I lied!");
-      }
+    }, i -> {
+      throw new RuntimeException("I lied!");
     }).fail(failEffect);
 
     assertThat(failEffect.throwable.getCause().getMessage(), is("I lied!"));
@@ -76,11 +64,7 @@ public class PromiseTest {
 
   @Test public void failCanTransformException() {
     final SettableFuture<String> future = SettableFuture.<String> create();
-    final Promise<String> promise = Promises.forListenableFuture(future).map(new Function<String, String>() {
-      @Override public String apply(String input) {
-        return "Ok";
-      }
-    }).recover(new Function<Throwable, String>() {
+    final Promise<String> promise = Promises.forListenableFuture(future).map(input -> "Ok").recover(new Function<Throwable, String>() {
       @Override public String apply(Throwable input) {
         return input.getMessage();
       }
@@ -114,11 +98,7 @@ public class PromiseTest {
 
   @Test public void covariantReturn() {
     Promise<Parent> some =  Promises.promise(new Parent());
-    Function<Parent, Promise<Child>> f = new Function<Parent, Promise<Child>>() {
-      @Override public Promise<Child> apply(Parent p) {
-        return Promises.promise(new Child());
-      }
-    };
+    Function<Parent, Promise<Child>> f = p -> Promises.promise(new Child());
     Promise<Parent> mapped = some.<Parent> flatMap(f);
     assertThat(mapped.claim(), notNullValue());
   }

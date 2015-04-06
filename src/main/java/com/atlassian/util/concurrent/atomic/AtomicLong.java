@@ -16,12 +16,12 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * {@link java.util.concurrent.atomic.AtomicLong} with richer functionality.
  * This class implements commonly implemented patterns of use of compareAndSet
- * such as {@link #getAndSetIf(long, long)} and {@link #update(Function)}.
+ * such as {@link #getOrSetAndGetIf(long, long)} and {@link #update(Function)}.
  * 
  * @inheritDoc
  * @since 0.0.12

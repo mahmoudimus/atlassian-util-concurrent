@@ -30,11 +30,7 @@ public final class Suppliers {
    * @return a supplier that always returns the supplied argument
    */
   public static <T> Supplier<T> memoize(final T source) {
-    return new Supplier<T>() {
-      public T get() {
-        return source;
-      }
-    };
+    return () -> source;
   }
 
   /**
@@ -48,22 +44,18 @@ public final class Suppliers {
    * @return the result
    */
   public static <D, T> Supplier<T> fromFunction(final D input, final Function<D, T> function) {
-    return new Supplier<T>() {
-      public T get() {
-        return function.get(input);
-      }
-    };
+    return () -> function.get(input);
   }
 
   /**
    * Map to a google-collections Supplier.
    * 
    * @param <T> type
-   * @param function the function to map
+   * @param supplier the supplier to wrap
    * @return the mapped function.
    */
   public static <T> com.google.common.base.Supplier<T> toGoogleSupplier(final Supplier<T> supplier) {
-    return new ToGoogleAdapter<T>(supplier);
+    return new ToGoogleAdapter<>(supplier);
   }
 
   static class ToGoogleAdapter<T> implements com.google.common.base.Supplier<T> {
@@ -82,17 +74,17 @@ public final class Suppliers {
    * Map from a google-collections Supplier.
    * 
    * @param <T> type
-   * @param function the function to map
+   * @param supplier the supplier to wrap
    * @return the mapped function.
    */
-  public static <T> Supplier<T> fromGoogleSupplier(final com.google.common.base.Supplier<T> supplier) {
-    return new FromGoogleAdapter<T>(supplier);
+  public static <T> Supplier<T> fromGoogleSupplier(final com.google.common.base.Supplier <T> supplier) {
+    return new FromGoogleAdapter<>(supplier);
   }
 
   static class FromGoogleAdapter<T> implements Supplier<T> {
     private final com.google.common.base.Supplier<T> delegate;
 
-    FromGoogleAdapter(final com.google.common.base.Supplier<T> delegate) {
+    FromGoogleAdapter(final com.google.common.base.Supplier <T> delegate) {
       this.delegate = delegate;
     }
 
@@ -105,7 +97,7 @@ public final class Suppliers {
    * Turn a {@link Supplier} into a {@link Callable}
    */
   public static <T> Callable<T> toCallable(Supplier<T> supplier) {
-    return new CallableAdapter<T>(supplier);
+    return new CallableAdapter<>(supplier);
   }
 
   static class CallableAdapter<T> implements Callable<T> {

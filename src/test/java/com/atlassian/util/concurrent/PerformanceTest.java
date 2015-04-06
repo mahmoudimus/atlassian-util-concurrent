@@ -21,7 +21,7 @@ public class PerformanceTest {
   @Test public void test() {}
 
   public static void main(final String[] args) {
-    final List<Q> queues = new ArrayList<Q>();
+    final List<Q> queues = new ArrayList<>();
     queues.add(new SRSWBlockingQueue());
     queues.add(new SyncQueue());
     queues.add(new RefQueue());
@@ -47,14 +47,12 @@ public class PerformanceTest {
   }
 
   public long runTest(final Q q, final int iterations) {
-    final Thread reader = new Thread(new Runnable() {
-      public void run() {
-        try {
-          while (true) {
-            q.take();
-          }
-        } catch (final InterruptedException e) {}
-      }
+    final Thread reader = new Thread(() -> {
+      try {
+        while (true) {
+          q.take();
+        }
+      } catch (final InterruptedException e) {}
     });
     reader.start();
     long start;
@@ -224,7 +222,7 @@ public class PerformanceTest {
       do {
         list = queue.getAndSet(null);
         if (list == null) {
-          list = new LinkedList<Integer>();
+          list = new LinkedList<>();
         }
         list.add(i);
       } while (!queue.compareAndSet(null, list));
@@ -299,7 +297,7 @@ class LockingReference<V> {
 
   /**
    * Set the value of this reference. This method is lock-free. A thread waiting
-   * in {@link #take()} or {@link #take(long, TimeUnit)} will be released and
+   * in {@link #take()} or {@link PhasedBlockingReference#take(long, TimeUnit)} will be released and
    * given this value.
    * 
    * @param value the new value.
@@ -341,14 +339,14 @@ class LRUBlockingQueue<E> extends LinkedBlockingQueue<E> {
       remove(peek());
     }
     return super.offer(o);
-  };
+  }
 
   @Override public void put(final E o) throws InterruptedException {
     while (remainingCapacity() == 0) {
       remove(peek());
     }
     super.put(o);
-  };
+  }
 }
 
 class PhasedBlockingReference<V> {

@@ -14,13 +14,11 @@ public class PhasedLatchTest {
   @Test public void phasesAwait() throws Exception {
     final PhasedLatch latch = new PhasedLatch();
 
-    assertPhases(latch, new Sink<PhasedLatch>() {
-      public void consume(final PhasedLatch element) {
-        try {
-          latch.await();
-        } catch (final InterruptedException e) {
-          throw new Finished();
-        }
+    assertPhases(latch, element -> {
+      try {
+        latch.await();
+      } catch (final InterruptedException e) {
+        throw new Finished();
       }
     });
   }
@@ -28,13 +26,11 @@ public class PhasedLatchTest {
   @Test public void phasesAwaitTimeout() throws Exception {
     final PhasedLatch latch = new PhasedLatch();
 
-    assertPhases(latch, new Sink<PhasedLatch>() {
-      public void consume(final PhasedLatch element) {
-        try {
-          latch.await(1, TimeUnit.SECONDS);
-        } catch (final InterruptedException e) {
-          throw new Finished();
-        }
+    assertPhases(latch, element -> {
+      try {
+        latch.await(1, TimeUnit.SECONDS);
+      } catch (final InterruptedException e) {
+        throw new Finished();
       }
     });
   }
@@ -42,13 +38,11 @@ public class PhasedLatchTest {
   @Test public void phasesAwaitPhase() throws Exception {
     final PhasedLatch latch = new PhasedLatch();
 
-    assertPhases(latch, new Sink<PhasedLatch>() {
-      public void consume(final PhasedLatch element) {
-        try {
-          latch.awaitPhase(latch.getPhase());
-        } catch (final InterruptedException e) {
-          throw new Finished();
-        }
+    assertPhases(latch, element -> {
+      try {
+        latch.awaitPhase(latch.getPhase());
+      } catch (final InterruptedException e) {
+        throw new Finished();
       }
     });
   }
@@ -56,13 +50,11 @@ public class PhasedLatchTest {
   @Test public void phasesAwaitPhaseTimeout() throws Exception {
     final PhasedLatch latch = new PhasedLatch();
 
-    assertPhases(latch, new Sink<PhasedLatch>() {
-      public void consume(final PhasedLatch element) {
-        try {
-          latch.awaitPhase(latch.getPhase(), 1, TimeUnit.SECONDS);
-        } catch (final InterruptedException e) {
-          throw new Finished();
-        }
+    assertPhases(latch, element -> {
+      try {
+        latch.awaitPhase(latch.getPhase(), 1, TimeUnit.SECONDS);
+      } catch (final InterruptedException e) {
+        throw new Finished();
       }
     });
   }
@@ -71,15 +63,13 @@ public class PhasedLatchTest {
 
   private void assertPhases(final PhasedLatch latch, final Sink<PhasedLatch> job) {
     final AtomicInteger count = new AtomicInteger();
-    final Runnable worker = new Runnable() {
-      public void run() {
-        try {
-          while (true) {
-            job.consume(latch);
-            count.getAndIncrement();
-          }
-        } catch (final Finished ignore) {}
-      }
+    final Runnable worker = () -> {
+      try {
+        while (true) {
+          job.consume(latch);
+          count.getAndIncrement();
+        }
+      } catch (final Finished ignore) {}
     };
     final Thread client = new Thread(worker);
     final Thread client2 = new Thread(worker);

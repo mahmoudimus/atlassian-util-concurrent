@@ -16,13 +16,13 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * AtomicReference with richer functionality. This class implements commonly
  * implemented patterns of use of compareAndSet such as
- * {@link #getAndSetIf(Object, Object)} and {@link #update(Function)}.
+ * {@link #getOrSetAndGetIf(Object, Object)} and {@link #update(Function)}.
  * 
  * @inheritDoc
  * @since 0.0.12
@@ -59,7 +59,6 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
    * instead. If the old value argument does not match, ignore both and just
    * return the current value.
    * 
-   * @param <T> the object type.
    * @param oldValue to check the current value against (reference equality
    * check only).
    * @param newValue a {@link Supplier} for a new value. May be called more than

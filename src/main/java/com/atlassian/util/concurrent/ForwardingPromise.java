@@ -1,9 +1,10 @@
 package com.atlassian.util.concurrent;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.ForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
+
+import java.util.function.Function;
 
 /**
  * A promise which forwards all its method calls to another promise. Subclasses

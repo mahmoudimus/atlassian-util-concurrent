@@ -1,11 +1,10 @@
 package com.atlassian.util.concurrent.atomic;
 
-import static com.google.common.base.Suppliers.ofInstance;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +22,7 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(to, Atomics.getAndSetIf(ref, from, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIf(ref, from, (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetIfNormalValue() {
@@ -34,17 +33,17 @@ public class AtomicsTest {
   }
 
   @Test(expected = IllegalArgumentException.class) public void getAndSetIfRefNPE() {
-    Atomics.getAndSetIf((AtomicReference<String>) null, "", ofInstance(""));
+    Atomics.getAndSetIf((AtomicReference<String>) null, "", (Supplier<String>)() -> "");
   }
 
   @Test(expected = IllegalArgumentException.class) public void getAndSetIfRefValueNPE() {
-    Atomics.getAndSetIf((AtomicReference<String>) null, "", "");
+    Atomics.getAndSetIf(null, "", "");
   }
 
   @Test public void getAndSetIfNull() {
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(null);
-    assertEquals(to, Atomics.getAndSetIfNull(ref, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIfNull(ref,  (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetContended() {
@@ -52,12 +51,10 @@ public class AtomicsTest {
     final String to = "to";
     final String different = "different";
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(different, Atomics.getAndSetIf(ref, from, new Supplier<String>() {
-      public String get() {
-        // being called, set the reference so the CAS fails
-        ref.set(different);
-        return to;
-      }
+    assertEquals(different, Atomics.getAndSetIf(ref, from, (Supplier<String>) () -> {
+      // being called, set the reference so the CAS fails
+      ref.set(different);
+      return to;
     }));
   }
 
@@ -66,14 +63,14 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(old);
-    assertEquals(old, Atomics.getAndSetIf(ref, from, ofInstance(to)));
+    assertEquals(old, Atomics.getAndSetIf(ref, from, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetSameValue() {
     final String from = "from";
     final String to = from;
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(to, Atomics.getAndSetIf(ref, from, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIf(ref, from, (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetSameValueDifferent() {
@@ -81,7 +78,7 @@ public class AtomicsTest {
     final String to = from;
     final String different = "blah";
     final AtomicReference<String> ref = new AtomicReference<String>(different);
-    assertEquals(different, Atomics.getAndSetIf(ref, from, ofInstance(to)));
+    assertEquals(different, Atomics.getAndSetIf(ref, from, (Supplier<String>)() -> to));
   }
 
   //
@@ -92,7 +89,7 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetArrayIfNormalValue() {
@@ -106,21 +103,21 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
   }
 
   @Test(expected = IllegalArgumentException.class) public void getAndSetIfArrayNPE() {
-    Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "", ofInstance(""));
+    Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "",  (Supplier<String>) () -> "");
   }
 
   @Test(expected = IllegalArgumentException.class) public void getAndSetIfArrayValueNPE() {
-    Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "", "");
+    Atomics.getAndSetIf(null, 0, "", "");
   }
 
   @Test public void getAndSetArrayIfNull() {
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { null });
-    assertEquals(to, Atomics.getAndSetIfNull(ref, 0, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIfNull(ref, 0, (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetArrayContended() {
@@ -128,12 +125,10 @@ public class AtomicsTest {
     final String to = "to";
     final String different = "different";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(different, Atomics.getAndSetIf(ref, 0, from, new Supplier<String>() {
-      public String get() {
-        // being called, set the reference so the CAS fails
-        ref.set(0, different);
-        return to;
-      }
+    assertEquals(different, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>) () -> {
+      // being called, set the reference so the CAS fails
+      ref.set(0, different);
+      return to;
     }));
   }
 
@@ -142,14 +137,14 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { old });
-    assertEquals(old, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
+    assertEquals(old, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to ));
   }
 
   @Test public void getAndSetArraySameValue() {
     final String from = "from";
     final String to = from;
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
+    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
   }
 
   @Test public void getAndSetArraySameValueDifferent() {
@@ -157,11 +152,11 @@ public class AtomicsTest {
     final String to = from;
     final String different = "blah";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { different });
-    assertEquals(different, Atomics.getAndSetIf(ref, 0, from, ofInstance(to)));
+    assertEquals(different, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
   }
 
   @Test(expected = IndexOutOfBoundsException.class) public void getAndSetArrayThrowsIndexOutOfBounds() {
-    Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test", ofInstance("blah"));
+    Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test",  (Supplier<String>)() -> "blah");
   }
 
   //
@@ -252,7 +247,7 @@ public class AtomicsTest {
   }
 
   @Test(expected = IllegalArgumentException.class) public void getAndSetIfBooleanNPE() {
-    Atomics.getAndSetIf((AtomicBoolean) null, false, false);
+    Atomics.getAndSetIf(null, false, false);
   }
 
   @Test public void getAndSetBooleanReturnsOldValueIfChanged() {

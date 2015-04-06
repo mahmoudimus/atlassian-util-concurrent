@@ -17,9 +17,8 @@
 package com.atlassian.util.concurrent.atomic;
 
 import static com.atlassian.util.concurrent.Assertions.notNull;
-import static com.google.common.base.Suppliers.ofInstance;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -128,7 +127,8 @@ import javax.annotation.concurrent.ThreadSafe;
    * created value.
    */
   public static <T> T getAndSetIfNull(final AtomicReference<T> reference, final T newValue) {
-    return getAndSetIf(reference, null, ofInstance(newValue));
+    Supplier<T> supplier = () -> newValue;
+    return getAndSetIf(reference, null, supplier);
   }
 
   /**
@@ -231,14 +231,14 @@ import javax.annotation.concurrent.ThreadSafe;
    * greater than the array size.
    */
   public static <T> T getAndSetIfNull(final AtomicReferenceArray<T> reference, final int index, final T newValue) {
-    return getAndSetIf(reference, index, null, ofInstance(newValue));
+    Supplier<T> supplier = () -> newValue;
+    return getAndSetIf(reference, index, null, supplier);
   }
 
   /**
    * Get the current value of the {@link AtomicLong reference} but if it matches
    * the oldValue argument, compare-and-set it the new value.
    * 
-   * @param <T> the object type.
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against.
    * @param newValue the new value.
@@ -267,7 +267,6 @@ import javax.annotation.concurrent.ThreadSafe;
    * matches the oldValue argument, compare-and-set it to one created by the
    * newValue {@link Supplier}.
    * 
-   * @param <T> the object type.
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against.
    * @param newValue the new value.
@@ -296,7 +295,6 @@ import javax.annotation.concurrent.ThreadSafe;
    * matches the oldValue argument, compare-and-set it to one created by the
    * newValue {@link Supplier}.
    * 
-   * @param <T> the object type.
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against.
    * @param newValue the new value.

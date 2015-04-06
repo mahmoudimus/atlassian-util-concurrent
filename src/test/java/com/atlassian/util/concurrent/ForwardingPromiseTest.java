@@ -16,9 +16,7 @@ public class ForwardingPromiseTest {
   };
 
   <A> Effect<A> doNothing(Class<A> c) {
-    return new Effect<A>() {
-      public void apply(A a) {};
-    };
+    return a -> {};
   }
 
   @Test public void testDoneReturnsThis() {

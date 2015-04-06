@@ -30,11 +30,7 @@ import java.util.concurrent.FutureTask;
   private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
 
   public ConcurrentOperationMapImpl() {
-    this(new Function<Callable<R>, CallerRunsFuture<R>>() {
-      public CallerRunsFuture<R> get(final Callable<R> input) {
-        return new CallerRunsFuture<R>(input);
-      }
-    });
+    this(CallerRunsFuture::new);
   }
 
   ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {

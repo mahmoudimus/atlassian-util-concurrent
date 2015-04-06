@@ -38,11 +38,7 @@ public class BlockingReferenceTest {
 
   @Test public void initialValueSRSWReferenceGet() throws Exception {
     final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueSRSWReferenceGet");
-    final Exec<String> executor = executor(factory(threads, new Callable<String>() {
-      public String call() throws Exception {
-        return ref.get();
-      }
-    }));
+    final Exec<String> executor = executor(factory(threads, ref::get));
     try {
       for (int i = 0; i < threads; i++) {
         assertSame("initialValueSRSWReferenceGet", executor.completion.take().get());
@@ -54,11 +50,7 @@ public class BlockingReferenceTest {
 
   @Test public void initialValueMRSWReferenceGet() throws Exception {
     final BlockingReference<String> ref = BlockingReference.newSRSW("initialValueMRSWReferenceGet");
-    final Exec<String> executor = executor(factory(threads, new Callable<String>() {
-      public String call() throws Exception {
-        return ref.get();
-      }
-    }));
+    final Exec<String> executor = executor(factory(threads, ref::get));
     try {
       for (int i = 0; i < threads; i++) {
         assertSame("initialValueMRSWReferenceGet", executor.completion.take().get());
@@ -70,11 +62,7 @@ public class BlockingReferenceTest {
 
   @Test public void setMRSWReferenceGet() throws Exception {
     final BlockingReference<String> ref = BlockingReference.newMRSW();
-    final Exec<String> executor = executor(factory(threads, new Callable<String>() {
-      public String call() throws Exception {
-        return ref.get();
-      }
-    }));
+    final Exec<String> executor = executor(factory(threads, ref::get));
     try {
       ref.set("testSRSWReferenceSetGet");
       for (int i = 0; i < threads; i++) {
@@ -90,11 +78,9 @@ public class BlockingReferenceTest {
   @Test public void setSRSWReferenceTake() throws Exception {
     final CountDownLatch running = new CountDownLatch(1);
     final BlockingReference<String> ref = BlockingReference.newSRSW();
-    final Exec<String> executor = executor(factory(threads, new Callable<String>() {
-      public String call() throws Exception {
-        running.await();
-        return ref.take();
-      }
+    final Exec<String> executor = executor(factory(threads, () -> {
+      running.await();
+      return ref.take();
     }));
     try {
       ref.set("testSRSWReferenceSetGet");
@@ -118,11 +104,7 @@ public class BlockingReferenceTest {
 
   @Test public void setMRSWReferenceTake() throws Exception {
     final BlockingReference<String> ref = BlockingReference.newMRSW();
-    final Exec<String> executor = executor(factory(threads, new Callable<String>() {
-      public String call() throws Exception {
-        return ref.take();
-      }
-    }));
+    final Exec<String> executor = executor(factory(threads, ref::take));
     try {
       ref.set("setMRSWReferenceTake");
       assertSame("setMRSWReferenceTake", executor.completion.take().get());
@@ -195,16 +177,10 @@ public class BlockingReferenceTest {
   private CallableFactory factory(final int threads, final Callable<String> delegate) {
     final CountDownLatch start = new CountDownLatch(threads);
 
-    final Supplier<Callable<String>> supplier = new Supplier<Callable<String>>() {
-      public Callable<String> get() {
-        return new Callable<String>() {
-          public String call() throws Exception {
-            start.countDown();
-            start.await();
-            return delegate.call();
-          }
-        };
-      }
+    final Supplier<Callable<String>> supplier = () -> () -> {
+      start.countDown();
+      start.await();
+      return delegate.call();
     };
 
     return new CallableFactory() {
@@ -262,7 +238,7 @@ public class BlockingReferenceTest {
       completionService.submit(factory.get());
     }
     factory.await();
-    return new Exec<String>(pool, completionService);
+    return new Exec<>(pool, completionService);
   }
 
   static class Exec<T> {

@@ -28,7 +28,7 @@ public final class Functions {
    * @return the function
    */
   public static <D, R> Function<D, R> fromSupplier(final @NotNull Supplier<R> supplier) {
-    return new FromSupplier<D, R>(supplier);
+    return new FromSupplier<>(supplier);
   }
 
   private static class FromSupplier<D, R> implements Function<D, R> {
@@ -49,13 +49,13 @@ public final class Functions {
    * @param <T> the type returned, note the Supplier can be covariant.
    * @return a function that extracts the value from a supplier
    */
-  static <T> com.google.common.base.Function<com.google.common.base.Supplier<? extends T>, T> fromSupplier() {
-    return new ValueExtractor<T>();
+  static <T> java.util.function.Function<java.util.function.Supplier<? extends T>, T> fromSupplier() {
+    return new ValueExtractor<>();
   }
 
   private static class ValueExtractor<T> implements
-    com.google.common.base.Function<com.google.common.base.Supplier<? extends T>, T> {
-    public T apply(final com.google.common.base.Supplier<? extends T> supplier) {
+    java.util.function.Function<java.util.function.Supplier<? extends T>, T> {
+    public T apply(final java.util.function.Supplier<? extends T> supplier) {
       return supplier.get();
     }
   }
@@ -98,21 +98,21 @@ public final class Functions {
    * @param <T> the result type
    * @return a Function that transforms an exception into a null
    */
-  static <T> com.google.common.base.Function<com.google.common.base.Supplier<T>, com.google.common.base.Supplier<T>> ignoreExceptions() {
+  static <T> java.util.function.Function<java.util.function.Supplier<T>, java.util.function.Supplier<T>> ignoreExceptions() {
     return new ExceptionIgnorer<T>();
   }
 
   static class ExceptionIgnorer<T> implements
-    com.google.common.base.Function<com.google.common.base.Supplier<T>, com.google.common.base.Supplier<T>> {
-    public com.google.common.base.Supplier<T> apply(final com.google.common.base.Supplier<T> from) {
-      return new IgnoreAndReturnNull<T>(from);
+    java.util.function.Function<java.util.function.Supplier<T>, java.util.function.Supplier<T>> {
+    public java.util.function.Supplier<T> apply(final java.util.function.Supplier<T> from) {
+      return new IgnoreAndReturnNull<>(from);
     }
   }
 
-  static class IgnoreAndReturnNull<T> implements com.google.common.base.Supplier<T> {
-    private final com.google.common.base.Supplier<T> delegate;
+  static class IgnoreAndReturnNull<T> implements java.util.function.Supplier<T> {
+    private final java.util.function.Supplier<T> delegate;
 
-    IgnoreAndReturnNull(final com.google.common.base.Supplier<T> delegate) {
+    IgnoreAndReturnNull(final java.util.function.Supplier<T> delegate) {
       this.delegate = notNull("delegate", delegate);
     }
 
@@ -133,11 +133,11 @@ public final class Functions {
    * @param function the function to map
    * @return the mapped function.
    */
-  public static <T, R> com.google.common.base.Function<T, R> toGoogleFunction(final Function<T, R> function) {
-    return new ToGoogleAdapter<T, R>(function);
+  public static <T, R> java.util.function.Function<T, R> toGoogleFunction(final Function<T, R> function) {
+    return new ToGoogleAdapter<>(function);
   }
 
-  static class ToGoogleAdapter<T, R> implements com.google.common.base.Function<T, R> {
+  static class ToGoogleAdapter<T, R> implements java.util.function.Function<T, R> {
     private final Function<T, R> delegate;
 
     ToGoogleAdapter(final Function<T, R> delegate) {

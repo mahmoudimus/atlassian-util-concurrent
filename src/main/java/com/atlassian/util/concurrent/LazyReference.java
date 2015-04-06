@@ -72,10 +72,10 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * override {@link #get()}, the garbage collection semantics of WeakReference
  * are irrelevant. The referenced object will not become eligible for GC unless
  * the object holding the reference to this object is collectible.
- * 
- * @param T the type of the contained element.
+ *
+ * @param <T> the type of the contained element.
  */
-@ThreadSafe public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T>, com.google.common.base.Supplier<T> {
+@ThreadSafe public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T>, java.util.function.Supplier<T> {
 
   private final Sync sync = new Sync();
 

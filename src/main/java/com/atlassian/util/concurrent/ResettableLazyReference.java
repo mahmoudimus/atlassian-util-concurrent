@@ -59,7 +59,7 @@ import net.jcip.annotations.ThreadSafe;
  * {@link #getInterruptibly()} throws and your {@link #create()} will not be
  * called again.
  * 
- * @param T the type of the contained element.
+ * @param <T> the type of the contained element.
  */
 @ThreadSafe public abstract class ResettableLazyReference<T> implements Supplier<T> {
   @SuppressWarnings("rawtypes") private static final AtomicReferenceFieldUpdater<ResettableLazyReference, InternalReference> updater = AtomicReferenceFieldUpdater

@@ -18,7 +18,7 @@ package com.atlassian.util.concurrent;
 import java.util.concurrent.Future;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -115,7 +115,7 @@ import com.google.common.util.concurrent.ListenableFuture;
    * Note: This is designed for cases in which the transformation is fast and
    * lightweight, as the method is performed on the same thread as the thing
    * producing this promise. For more details see the note on
-   * {@link Futures#transform(Future, Function)}.
+   * {@link com.google.common.util.concurrent.Futures#transform(Future, com.google.common.base.Function)}.
    * 
    * @param function The transformation function
    * @return A new promise resulting from the transformation

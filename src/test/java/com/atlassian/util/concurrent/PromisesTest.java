@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.atlassian.util.concurrent.atomic.AtomicReference;
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.SettableFuture;
@@ -209,10 +209,8 @@ import com.google.common.util.concurrent.SettableFuture;
     final SettableFuture<Object> future = SettableFuture.create();
 
     final Promise<Object> originalPromise = Promises.forListenableFuture(future);
-    final Promise<SomeObject> transformedPromise = originalPromise.flatMap(new Function<Object, Promise<SomeObject>>() {
-      @Override public Promise<SomeObject> apply(Object input) {
-        throw new IllegalStateException();
-      }
+    final Promise<SomeObject> transformedPromise = originalPromise.flatMap(input -> {
+      throw new IllegalStateException();
     });
 
     future.set(new SomeObject("hi"));
@@ -353,11 +351,7 @@ import com.google.common.util.concurrent.SettableFuture;
     final AtomicReference<Throwable> ref = new AtomicReference<Throwable>();
     final SettableFuture<String> f = SettableFuture.<String> create();
     Promise<String> p = Promises.forListenableFuture(f);
-    p.fail(new Effect<Throwable>() {
-      @Override public void apply(Throwable t) {
-        ref.getAndSet(t);
-      }
-    });
+    p.fail(ref::getAndSet);
 
     assertThat(ref.get(), is(nullValue()));
     Throwable ex = new RuntimeException("boo yaa!");

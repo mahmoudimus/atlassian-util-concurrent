@@ -74,18 +74,16 @@ public class ResettableLazyReferenceTest {
 
     for (int i = 0; i < nThreads; i++) {
       final int j = i;
-      tasks.add(new Callable<Object>() {
-        public Object call() throws Exception {
-          /*
-           * Put in a latch to synchronize all threads and try to get them to
-           * call ref.get() at the same time (to increase concurrency and make
-           * this test more useful)
-           */
-          latch.countDown();
-          latch.await();
-          results[j] = ref.get();
-          return results[j];
-        }
+      tasks.add(() -> {
+        /*
+         * Put in a latch to synchronize all threads and try to get them to
+         * call ref.get() at the same time (to increase concurrency and make
+         * this test more useful)
+         */
+        latch.countDown();
+        latch.await();
+        results[j] = ref.get();
+        return results[j];
       });
     }
 
@@ -142,10 +140,8 @@ public class ResettableLazyReferenceTest {
       }
     };
 
-    final Thread client = new Thread(new Runnable() {
-      public void run() {
-        ref.get();
-      }
+    final Thread client = new Thread(() -> {
+      ref.get();
     }, this.getClass().getName());
     client.start();
 
@@ -205,26 +201,22 @@ public class ResettableLazyReferenceTest {
     };
 
     final AtomicReference<Result<Integer>> result1 = new AtomicReference<Result<Integer>>();
-    final Thread client1 = new Thread(new Runnable() {
-      public void run() {
-        try {
-          result1.compareAndSet(null, new Result<Integer>(ref.getInterruptibly()));
-        } catch (final Exception e) {
-          result1.compareAndSet(null, new Result<Integer>(e));
-        }
+    final Thread client1 = new Thread(() -> {
+      try {
+        result1.compareAndSet(null, new Result<Integer>(ref.getInterruptibly()));
+      } catch (final Exception e) {
+        result1.compareAndSet(null, new Result<Integer>(e));
       }
     }, this.getClass().getName());
     client1.start();
 
     pause();
     final AtomicReference<Result<Integer>> result2 = new AtomicReference<Result<Integer>>();
-    final Thread client2 = new Thread(new Runnable() {
-      public void run() {
-        try {
-          result2.compareAndSet(null, new Result<Integer>(ref.getInterruptibly()));
-        } catch (final Exception e) {
-          result2.compareAndSet(null, new Result<Integer>(e));
-        }
+    final Thread client2 = new Thread(() -> {
+      try {
+        result2.compareAndSet(null, new Result<Integer>(ref.getInterruptibly()));
+      } catch (final Exception e) {
+        result2.compareAndSet(null, new Result<Integer>(e));
       }
     }, this.getClass().getName());
     client2.start();

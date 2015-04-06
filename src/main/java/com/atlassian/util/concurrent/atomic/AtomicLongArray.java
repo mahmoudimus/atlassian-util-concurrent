@@ -16,12 +16,12 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
- * {@link #getAndSetIf(int, Object, Object)} and {@link #update(int, Function)}.
+ * {@link #getOrSetAndGetIf(int, long, long)} and {@link #update(int, Function)}.
  * 
  * @inheritDoc
  * @since 0.0.12
@@ -47,7 +47,7 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
    * Creates a new AtomicLongArray with the same length as, and all elements
    * copied from, the given array.
    * 
-   * @param array the array to copy elements from
+   * @param initialValue the array to copy elements from
    * @throws NullPointerException if array is null
    */
   public AtomicLongArray(final long[] initialValue) {

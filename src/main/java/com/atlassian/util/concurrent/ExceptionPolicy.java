@@ -1,9 +1,9 @@
 package com.atlassian.util.concurrent;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import static com.google.common.base.Functions.identity;
+import static java.util.function.Function.identity;
 
 /**
  * Represents an exception handling policy. Default implementations can be found

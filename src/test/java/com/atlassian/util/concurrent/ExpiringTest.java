@@ -6,6 +6,7 @@ import static java.lang.Integer.valueOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import com.google.common.base.Predicates;
 import org.junit.Test;
 
 import com.google.common.base.Predicate;
@@ -14,19 +15,15 @@ public class ExpiringTest {
   @Test public void expiring() {
     final Counter counter = new Counter();
 
-    final Supplier<Integer> e = new Expiring<Integer>(counter, new Supplier<Predicate<Void>>() {
-      @Override public Predicate<Void> get() {
-        return new Predicate<Void>() {
-          boolean once = true; // first time true
+    final Supplier<Integer> e = new Expiring<Integer>(counter, () -> new Predicate<Void>() {
+      boolean once = true; // first time true
 
-          @Override public boolean apply(final Void input) {
-            try {
-              return once;
-            } finally {
-              once = false;
-            }
-          }
-        };
+      @Override public boolean apply(final Void input) {
+        try {
+          return once;
+        } finally {
+          once = false;
+        }
       }
     });
     assertEquals(0, counter.count.get());
@@ -39,11 +36,7 @@ public class ExpiringTest {
   @Test public void notExpiring() {
     final Counter counter = new Counter();
 
-    final Supplier<Integer> e = new Expiring<Integer>(counter, new Supplier<Predicate<Void>>() {
-      @Override public Predicate<Void> get() {
-        return alwaysTrue();
-      }
-    });
+    final Supplier<Integer> e = new Expiring<Integer>(counter, Predicates::alwaysTrue);
     assertEquals(0, counter.count.get());
     assertEquals(valueOf(1), e.get());
     assertEquals(1, counter.count.get());
@@ -53,11 +46,7 @@ public class ExpiringTest {
   }
 
   @Test(expected = AssertionError.class) public void detectsProgramErrorInfiniteLoopProtection() {
-    new Expiring<Integer>(new Counter(), new Supplier<Predicate<Void>>() {
-      @Override public Predicate<Void> get() {
-        return alwaysFalse();
-      }
-    }).get();
+    Integer integer = new Expiring<>(new Counter(), Predicates::alwaysFalse).get();
   }
 
   @Test(expected = UnsupportedOperationException.class) public void deadGet() {

@@ -150,11 +150,7 @@ public class ManagedLocks {
     notNull("stripeFunction", stripeFunction);
     final Function<D, ReadWrite> readWriteManagedLockFactory = fromSupplier(managedReadWriteLockFactory(lockFactory));
     final WeakMemoizer<D, ManagedLock.ReadWrite> locks = weakMemoizer(readWriteManagedLockFactory);
-    return new Function<T, ManagedLock.ReadWrite>() {
-      public ManagedLock.ReadWrite get(final T input) {
-        return locks.get(stripeFunction.get(input));
-      };
-    };
+    return input -> locks.get(stripeFunction.get(input));
   }
 
   /**
@@ -193,22 +189,14 @@ public class ManagedLocks {
    * 
    * @return lock factory
    */
-  static @NotNull final Supplier<Lock> lockFactory = new Supplier<Lock>() {
-    public Lock get() {
-      return new ReentrantLock();
-    }
-  };
+  static @NotNull final Supplier<Lock> lockFactory = ReentrantLock::new;
 
   /**
    * A {@link Supplier} of {@link ReentrantReadWriteLock read write locks}.
    * 
    * @return lock factory
    */
-  static @NotNull Supplier<ReadWriteLock> readWriteLockFactory = new Supplier<ReadWriteLock>() {
-    public ReadWriteLock get() {
-      return new ReentrantReadWriteLock();
-    }
-  };
+  static @NotNull Supplier<ReadWriteLock> readWriteLockFactory = ReentrantReadWriteLock::new;
 
   /**
    * A {@link Supplier} of {@link ManagedLock managed locks}.
@@ -217,11 +205,7 @@ public class ManagedLocks {
    */
   static @NotNull Supplier<ManagedLock> managedLockFactory(final @NotNull Supplier<Lock> supplier) {
     notNull("supplier", supplier);
-    return new Supplier<ManagedLock>() {
-      public ManagedLock get() {
-        return new ManagedLockImpl(supplier.get());
-      }
-    };
+    return () -> new ManagedLockImpl(supplier.get());
   }
 
   /**
@@ -233,11 +217,7 @@ public class ManagedLocks {
   static @NotNull Supplier<ManagedLock.ReadWrite> managedReadWriteLockFactory(
     final @NotNull Supplier<ReadWriteLock> supplier) {
     notNull("supplier", supplier);
-    return new Supplier<ManagedLock.ReadWrite>() {
-      public ManagedLock.ReadWrite get() {
-        return new ReadWriteManagedLock(supplier.get());
-      }
-    };
+    return () -> new ReadWriteManagedLock(supplier.get());
   }
 
   /**
@@ -264,7 +244,7 @@ public class ManagedLocks {
 
   static class ManagedFactory<T, D> implements Function<T, ManagedLock> {
     static final <T, D> ManagedFactory<T, D> managedFactory(final Function<D, ManagedLock> lockResolver, final Function<T, D> stripeFunction) {
-      return new ManagedFactory<T, D>(lockResolver, stripeFunction);
+      return new ManagedFactory<>(lockResolver, stripeFunction);
     }
 
     private final Function<D, ManagedLock> lockResolver;
@@ -277,14 +257,13 @@ public class ManagedLocks {
 
     public ManagedLock get(final T descriptor) {
       return lockResolver.get(stripeFunction.get(descriptor));
-    };
+    }
   }
 
   /**
    * Default implementation of {@link ManagedLock}
-   * 
-   * @param <T> the input type
-   * @param <D> the type used for the internal lock resolution.
+   *
+   * TODO what is the R type here
    */
   static class ManagedLockImpl implements ManagedLock {
     private final Lock lock;

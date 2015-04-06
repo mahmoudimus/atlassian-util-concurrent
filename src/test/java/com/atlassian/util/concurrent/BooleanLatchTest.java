@@ -19,11 +19,9 @@ public class BooleanLatchTest {
   @Test public void singleThreadIsReleased() throws Exception {
     final AtomicInteger call = new AtomicInteger();
     final BooleanLatch latch = new BooleanLatch();
-    final Exec<String> completionService = getCompletionService(factory(5, new Callable<String>() {
-      public String call() throws Exception {
-        latch.await();
-        return String.valueOf(call.incrementAndGet());
-      }
+    final Exec<String> completionService = getCompletionService(factory(5, () -> {
+      latch.await();
+      return String.valueOf(call.incrementAndGet());
     }));
     try {
       latch.release();
@@ -55,11 +53,9 @@ public class BooleanLatchTest {
   @Test public void singleThreadIsReleasedWithTimeout() throws Exception {
     final AtomicInteger call = new AtomicInteger();
     final BooleanLatch latch = new BooleanLatch();
-    final Exec<String> completionService = getCompletionService(factory(5, new Callable<String>() {
-      public String call() throws Exception {
-        latch.await(100, TimeUnit.SECONDS);
-        return String.valueOf(call.incrementAndGet());
-      }
+    final Exec<String> completionService = getCompletionService(factory(5, () -> {
+      latch.await(100, TimeUnit.SECONDS);
+      return String.valueOf(call.incrementAndGet());
     }));
     try {
       latch.release();
@@ -91,16 +87,10 @@ public class BooleanLatchTest {
   private CallableFactory factory(final int threads, final Callable<String> delegate) {
     final CountDownLatch start = new CountDownLatch(threads);
 
-    final Supplier<Callable<String>> supplier = new Supplier<Callable<String>>() {
-      public Callable<String> get() {
-        return new Callable<String>() {
-          public String call() throws Exception {
-            start.countDown();
-            start.await();
-            return delegate.call();
-          }
-        };
-      }
+    final Supplier<Callable<String>> supplier = () -> () -> {
+      start.countDown();
+      start.await();
+      return delegate.call();
     };
 
     return new CallableFactory() {
@@ -138,7 +128,7 @@ public class BooleanLatchTest {
       completionService.submit(factory.get());
     }
     factory.await();
-    return new Exec<String>(pool, completionService);
+    return new Exec<>(pool, completionService);
   }
 
   static class Exec<T> {

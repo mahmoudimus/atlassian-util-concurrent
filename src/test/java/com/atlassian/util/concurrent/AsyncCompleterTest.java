@@ -54,11 +54,9 @@ public class AsyncCompleterTest {
 
   @Test public void singleExecute() {
     final AtomicInteger count = new AtomicInteger();
-    final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
-      public void execute(final Runnable command) {
-        count.getAndIncrement();
-        command.run();
-      }
+    final AsyncCompleter completion = new AsyncCompleter.Builder(command -> {
+      count.getAndIncrement();
+      command.run();
     }).build();
     final Iterable<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1)));
     assertEquals(1, queued.iterator().next().intValue());
@@ -85,11 +83,7 @@ public class AsyncCompleterTest {
 
   @Test public void limitedExecute() {
     final List<Runnable> jobs = Lists.newArrayList();
-    final AsyncCompleter completion = new AsyncCompleter.Builder(new Executor() {
-      public void execute(final Runnable command) {
-        jobs.add(command);
-      }
-    }).handleExceptions(Policies.THROW).limitParallelExecutionTo(1);
+    final AsyncCompleter completion = new AsyncCompleter.Builder(jobs::add).handleExceptions(Policies.THROW).limitParallelExecutionTo(1);
     final Iterable<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2), callable(3)));
 
     final Iterator<Integer> iterator = queued.iterator();
@@ -110,21 +104,16 @@ public class AsyncCompleterTest {
   }
 
   @Test public void callableCompletedBeforeTimeout() {
-    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(ImmutableList.of(new Callable<Integer>() {
-      @Override public Integer call() throws Exception {
-        return 1;
-      }
-    }), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
+    Callable<Integer> callable = () -> 1;
+    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(ImmutableList.of(callable), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
   }
 
   @Test(expected = RuntimeTimeoutException.class) public void callableTimedOutBeforeCompleting() {
     final CountDownLatch latch = new CountDownLatch(1);
     try {
-      new AsyncCompleter.Builder(new NaiveExecutor()).build().invokeAll(ImmutableList.of(new Callable<Integer>() {
-        @Override public Integer call() throws Exception {
-          latch.await();
-          return 1;
-        }
+      new AsyncCompleter.Builder(new NaiveExecutor()).build().invokeAll(ImmutableList.of(() -> {
+        latch.await();
+        return 1;
       }), 1, TimeUnit.NANOSECONDS).iterator().next();
     } finally {
       latch.countDown();
@@ -172,12 +161,8 @@ public class AsyncCompleterTest {
   }
 
   private static class CancellingCompletionServiceFactory implements AsyncCompleter.ExecutorCompletionServiceFactory {
-    @Override public <T> com.google.common.base.Function<Executor, CompletionService<T>> create() {
-      return new com.google.common.base.Function<Executor, CompletionService<T>>() {
-        @Override public CompletionService<T> apply(Executor e) {
-          return new BadCompletionService<T>(e);
-        }
-      };
+    @Override public <T> java.util.function.Function<Executor, CompletionService<T>> create() {
+      return e -> new BadCompletionService<T>(e);
     }
   }
 
@@ -211,11 +196,7 @@ public class AsyncCompleterTest {
   }
 
   <T> Callable<T> callable(final T input) {
-    return new Callable<T>() {
-      public T call() throws Exception {
-        return input;
-      }
-    };
+    return () -> input;
   }
 
 }

@@ -63,7 +63,7 @@ public class CopyOnWriteSortedMapTest {
     final MapBuilder<String, String> builder = MapBuilder.builder();
     builder.add("one", "value").add("two", "value").add("three", "value");
     final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder()
-      .ordering(new ReverseComparator<String>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
+      .ordering(new ReverseComparator<>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
 
     assertEquals(3, map.size());
   }
@@ -111,7 +111,7 @@ public class CopyOnWriteSortedMapTest {
     final MapBuilder<String, String> builder = MapBuilder.builder();
     builder.add("one", "value").add("two", "value").add("three", "value");
     final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder()
-      .ordering(new ReverseComparator<String>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
+      .ordering(new ReverseComparator<>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
     map.put("one", "value");
     map.put("two", "value");
     map.put("three", "value");
@@ -132,7 +132,7 @@ public class CopyOnWriteSortedMapTest {
     final MapBuilder<String, String> builder = MapBuilder.builder();
     builder.add("one", "value").add("two", "value").add("three", "value");
     final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().addAll(builder.toMap())
-      .ordering(new ReverseComparator<String>(new StringComparator())).newTreeMap();
+      .ordering(new ReverseComparator<>(new StringComparator())).newTreeMap();
 
     assertEquals(3, map.size());
     assertEquals("one", map.lastKey());
@@ -190,70 +190,32 @@ public class CopyOnWriteSortedMapTest {
   }
 
   static <K, V> void assertUnmodifiableMap(final Map<K, V> map, final K key, final V value) {
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        map.put(key, value);
-      }
-    });
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        map.remove(key);
-      }
-    });
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        map.clear();
-      }
-    });
+    assertThrowsUnsupportedOp(() -> map.put(key, value));
+    assertThrowsUnsupportedOp(() -> map.remove(key));
+    assertThrowsUnsupportedOp(() -> map.clear());
 
     assertUnmodifiableCollection(map.keySet(), key);
     assertUnmodifiableCollection(map.values(), value);
   }
 
   static <T> void assertUnmodifiableCollection(final Collection<T> coll, final T element) {
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        coll.clear();
-      }
-    });
+    assertThrowsUnsupportedOp(coll::clear);
 
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        coll.remove(element);
-      }
-    });
+    assertThrowsUnsupportedOp(() -> coll.remove(element));
 
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        coll.removeAll(Collections.EMPTY_LIST);
-      }
-    });
+    assertThrowsUnsupportedOp(() -> coll.removeAll(Collections.EMPTY_LIST));
 
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        coll.add(element);
-      }
-    });
+    assertThrowsUnsupportedOp(() -> coll.add(element));
 
     final Collection<T> empty = Collections.emptyList();
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        coll.addAll(empty);
-      }
-    });
+    assertThrowsUnsupportedOp(() -> coll.addAll(empty));
 
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        coll.retainAll(empty);
-      }
-    });
+    assertThrowsUnsupportedOp(() -> coll.retainAll(empty));
 
-    assertThrowsUnsupportedOp(new Runnable() {
-      public void run() {
-        final Iterator<?> it = coll.iterator();
-        it.next();
-        it.remove();
-      }
+    assertThrowsUnsupportedOp(() -> {
+      final Iterator<?> it = coll.iterator();
+      it.next();
+      it.remove();
     });
   }
 

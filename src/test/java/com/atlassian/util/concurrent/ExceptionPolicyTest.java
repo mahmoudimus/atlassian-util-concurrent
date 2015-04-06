@@ -6,7 +6,7 @@ import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import org.junit.Test;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 public class ExceptionPolicyTest {
   @Test(expected = TestException.class) public void exceptionsThrow() {

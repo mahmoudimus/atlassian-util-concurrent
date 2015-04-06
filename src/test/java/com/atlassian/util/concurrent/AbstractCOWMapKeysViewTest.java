@@ -126,7 +126,7 @@ public class AbstractCOWMapKeysViewTest {
     }
 
     @Override <N extends java.util.Map<? extends String, ? extends String>> java.util.Map<String, String> copy(final N map) {
-      return new HashMap<String, String>(map);
+      return new HashMap<>(map);
     }
   }
 }

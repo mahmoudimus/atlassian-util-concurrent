@@ -14,19 +14,13 @@ public class ExecutorSubmitterTest {
   }
 
   @Test public void submitCallableGetResult() throws Exception {
-    assertThat(Executors.submitter(new CallerExecutor()).submit(new Callable<String>() {
-      @Override public String call() throws Exception {
-        return "fred!";
-      }
-    }).get(), is("fred!"));
+    assertThat(Executors.submitter(new CallerExecutor()).submit((Callable<String>) () -> "fred!").get(), is("fred!"));
   }
 
   @Test(expected = ExecutorSubmitterException.class) public void submitCallableGetException() throws Throwable {
     try {
-      Executors.submitter(new CallerExecutor()).submit(new Callable<String>() {
-        @Override public String call() throws Exception {
-          throw new ExecutorSubmitterException();
-        }
+      Executors.submitter(new CallerExecutor()).submit((Callable<String>) () -> {
+        throw new ExecutorSubmitterException();
       }).get();
     } catch (ExecutionException e) {
       throw e.getCause();
@@ -34,19 +28,13 @@ public class ExecutorSubmitterTest {
   }
 
   @Test public void submitSupplierGetResult() throws Exception {
-    assertThat(Executors.submitter(new CallerExecutor()).submit(new Supplier<String>() {
-      @Override public String get() {
-        return "fred!";
-      }
-    }).get(), is("fred!"));
+    assertThat(Executors.submitter(new CallerExecutor()).submit((Supplier<String>) () -> "fred!").get(), is("fred!"));
   }
 
   @Test(expected = ExecutorSubmitterException.class) public void submitSupplierGetException() throws Throwable {
     try {
-      Executors.submitter(new CallerExecutor()).submit(new Supplier<String>() {
-        @Override public String get() {
-          throw new ExecutorSubmitterException();
-        }
+      Executors.submitter(new CallerExecutor()).submit((Supplier<String>) () -> {
+        throw new ExecutorSubmitterException();
       }).get();
     } catch (ExecutionException e) {
       throw e.getCause();

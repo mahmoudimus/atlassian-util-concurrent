@@ -14,32 +14,26 @@ import org.junit.Test;
 public class ManagedLockTest {
   @Test public void supplierReturnsValue() throws Exception {
     final AtomicBoolean called = new AtomicBoolean();
-    assertEquals("blah", manage(new ReentrantLock()).withLock(new Supplier<String>() {
-      public String get() {
-        called.set(true);
-        return "blah";
-      }
+    assertEquals("blah", manage(new ReentrantLock()).withLock((Supplier<String>) () -> {
+      called.set(true);
+      return "blah";
     }));
     assertTrue(called.get());
   }
 
   @Test public void callableReturnsValue() throws Exception {
     final AtomicBoolean called = new AtomicBoolean();
-    assertEquals("blah", manage(new ReentrantLock()).withLock(new Callable<String>() {
-      public String call() {
-        called.set(true);
-        return "blah";
-      }
+    assertEquals("blah", manage(new ReentrantLock()).withLock((Callable<String>) () -> {
+      called.set(true);
+      return "blah";
     }));
     assertTrue(called.get());
   }
 
   @Test public void runnableRuns() throws Exception {
     final AtomicBoolean called = new AtomicBoolean();
-    manage(new ReentrantLock()).withLock(new Runnable() {
-      public void run() {
-        called.set(true);
-      }
+    manage(new ReentrantLock()).withLock(() -> {
+      called.set(true);
     });
     assertTrue(called.get());
   }
@@ -67,11 +61,9 @@ public class ManagedLockTest {
     }
 
     try {
-      manager.withLock(new Callable<String>() {
-        public String call() throws StupidException {
-          called.set(true);
-          throw new StupidException();
-        }
+      manager.withLock((Callable<String>) () -> {
+        called.set(true);
+        throw new StupidException();
       });
     } catch (final StupidException ignore) {}
 
@@ -98,10 +90,8 @@ public class ManagedLockTest {
       }
     });
 
-    manager.withLock(new Runnable() {
-      public void run() {
-        called.set(true);
-      }
+    manager.withLock(() -> {
+      called.set(true);
     });
 
     assertTrue(called.get());
@@ -132,11 +122,9 @@ public class ManagedLockTest {
     }
 
     try {
-      manager.withLock(new Runnable() {
-        public void run() throws StupidException {
-          called.set(true);
-          throw new StupidException();
-        }
+      manager.withLock((Runnable) () -> {
+        called.set(true);
+        throw new StupidException();
       });
       fail("StupidException expected");
     } catch (final StupidException ignore) {}
@@ -149,10 +137,8 @@ public class ManagedLockTest {
   @Test(expected = Exception.class) public void reThrowsCallableException() throws Exception {
     final ManagedLock manager = new ManagedLocks.ManagedLockImpl(new ReentrantLock());
 
-    manager.withLock(new Callable<Void>() {
-      public Void call() throws Exception {
-        throw new Exception();
-      }
+    manager.withLock((Callable<Void>) () -> {
+      throw new Exception();
     });
   }
 }

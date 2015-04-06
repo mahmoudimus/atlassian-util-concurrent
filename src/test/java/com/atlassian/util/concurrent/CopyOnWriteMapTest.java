@@ -52,7 +52,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -69,7 +69,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
 
@@ -113,8 +113,8 @@ public class CopyOnWriteMapTest {
   @Test public void delegateEqualityValues() throws Exception {
     final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
     final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.<String, String> builder().addAll(map).newHashMap();
-    assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
-    assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
+    assertEquals(new ArrayList<>(map.values()), new ArrayList<>(cowMap.values()));
+    assertEquals(new ArrayList<>(map.values()).hashCode(), new ArrayList<>(cowMap.values()).hashCode());
     assertEquals(map.values().toString(), cowMap.values().toString());
   }
 
@@ -145,8 +145,8 @@ public class CopyOnWriteMapTest {
   @Test public void delegateValuesLinked() throws Exception {
     final Map<String, String> map = MapBuilder.<String, String> builder().add("key", "value").toMap();
     final CopyOnWriteMap<String, String> cowMap = CopyOnWriteMap.<String, String> builder().addAll(map).newLinkedMap();
-    assertEquals(new ArrayList<String>(map.values()), new ArrayList<String>(cowMap.values()));
-    assertEquals(new ArrayList<String>(map.values()).hashCode(), new ArrayList<String>(cowMap.values()).hashCode());
+    assertEquals(new ArrayList<>(map.values()), new ArrayList<>(cowMap.values()));
+    assertEquals(new ArrayList<>(map.values()).hashCode(), new ArrayList<>(cowMap.values()).hashCode());
     assertEquals(map.values().toString(), cowMap.values().toString());
   }
 
@@ -268,7 +268,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -313,7 +313,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -362,7 +362,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -409,7 +409,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -460,7 +460,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -513,7 +513,7 @@ public class CopyOnWriteMapTest {
 
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
         count.getAndIncrement();
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       }
     };
     assertEquals(1, count.get());
@@ -566,19 +566,19 @@ public class CopyOnWriteMapTest {
 
       // /CLOVER:OFF
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       };
       // /CLOVER:ON
     };
   }
 
   @Test(expected = IllegalArgumentException.class) public void nullViewType() throws Exception {
-    new CopyOnWriteMap<String, String>(new HashMap<String, String>(), null) {
+    new CopyOnWriteMap<String, String>(new HashMap<>(), null) {
       private static final long serialVersionUID = 4223850632932526917L;
 
       // /CLOVER:OFF
       @Override public <N extends Map<? extends String, ? extends String>> Map<String, String> copy(final N map) {
-        return new HashMap<String, String>(map);
+        return new HashMap<>(map);
       };
       // /CLOVER:ON
     };
@@ -608,7 +608,7 @@ public class CopyOnWriteMapTest {
       private static final long serialVersionUID = -17380087385174856L;
 
       @Override protected <N extends Map<? extends String, ? extends String>> java.util.Map<String, String> copy(final N map) {
-        ref.set(new HashMap<String, String>(map));
+        ref.set(new HashMap<>(map));
         return ref.get();
       };
     };
@@ -696,7 +696,7 @@ class MapBuilder<K, V> {
   }
 
   static <K, V> MapBuilder<K, V> builder() {
-    return new MapBuilder<K, V>();
+    return new MapBuilder<>();
   }
 
   MapBuilder<K, V> add(final K key, final V value) {
@@ -721,7 +721,7 @@ class MapBuilder<K, V> {
   }
 
   Map<K, V> toMap() {
-    return Collections.unmodifiableMap(new HashMap<K, V>(map));
+    return Collections.unmodifiableMap(new HashMap<>(map));
   }
 
   static class E implements Map.Entry<String, String> {

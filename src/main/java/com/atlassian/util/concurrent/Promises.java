@@ -22,8 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
+import java.util.function.Function;
 import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -75,7 +74,6 @@ import com.google.common.util.concurrent.SettableFuture;
   /**
    * Creates a new, resolved promise for the specified concrete value.
    * 
-   * @param value The value for which a promise should be created
    * @return The new promise
    * 
    * @since 2.7
@@ -184,11 +182,7 @@ import com.google.common.util.concurrent.SettableFuture;
    * @return The fail callback
    */
   public static Effect<Throwable> reject(final SettableFuture<?> delegate) {
-    return new Effect<Throwable>() {
-      @Override public void apply(Throwable t) {
-        delegate.setException(t);
-      }
-    };
+    return delegate::setException;
   }
 
   /**
@@ -270,7 +264,7 @@ import com.google.common.util.concurrent.SettableFuture;
     }
 
     @Override public <B> Promise<B> map(Function<? super A, ? extends B> function) {
-      return forListenableFuture(Futures.transform(this, function));
+      return forListenableFuture(Futures.transform(this, function::apply));
     }
 
     @Override public <B> Promise<B> flatMap(final Function<? super A, ? extends Promise<? extends B>> f) {
@@ -294,18 +288,16 @@ import com.google.common.util.concurrent.SettableFuture;
     }
 
     @Override public Promise<A> recover(Function<Throwable, ? extends A> handleThrowable) {
-      return this.fold(handleThrowable, Functions.<A> identity());
+      return this.fold(handleThrowable, Function.identity());
     }
 
     @Override public <B> Promise<B> fold(final Function<Throwable, ? extends B> ft, final Function<? super A, ? extends B> fa) {
       final SettableFuture<B> result = SettableFuture.create();
-      final Effect<Throwable> error = new Effect<Throwable>() {
-        @Override public void apply(Throwable t) {
-          try {
-            result.set(ft.apply(t));
-          } catch (Throwable inner) {
-            result.setException(inner);
-          }
+      final Effect<Throwable> error = t -> {
+        try {
+          result.set(ft.apply(t));
+        } catch (Throwable inner) {
+          result.setException(inner);
         }
       };
       done(new Effect<A>() {
