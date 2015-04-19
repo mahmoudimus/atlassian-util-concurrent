@@ -19,9 +19,9 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Assertions.isTrue;
 import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.atlassian.util.concurrent.Executors.limited;
+import static com.atlassian.util.concurrent.Suppliers.memoize;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.google.common.base.Predicates.notNull;
-import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
@@ -224,9 +224,7 @@ import java.util.concurrent.TimeUnit;
     public Supplier<T> apply(final Callable<T> task) {
       accessor.register(completionService.submit(task));
       // never call get twice as it gets a new element from the queue
-      //TODO replace with new memoizer
-//      return memoize(nextCompleteItem::get);
-      return null;
+      return memoize(nextCompleteItem::get);
     }
   }
 

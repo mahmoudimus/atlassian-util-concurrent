@@ -15,7 +15,7 @@ import java.lang.ref.WeakReference;
 public class WeakMemoizerTest {
 
   static final Function<Integer, String> lock() {
-    return Functions.fromSupplier(() -> "test");
+    return Functions.fromSupplier(() -> new String("test"));
   }
 
   @Test public void callingTwiceReturnsSame() throws Exception {
