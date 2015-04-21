@@ -68,21 +68,6 @@ import net.jcip.annotations.ThreadSafe;
   private volatile InternalReference<T> referrent = new InternalReference<T>(this);
 
   /**
-   * Returns a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
-   *
-   * @param supplier that creates the value that will be held by the {@link ResettableLazyReference}.
-   * @param T the type of the contained element.
-   * @return a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
-   */
-  public static <T> ResettableLazyReference<T> from(final Supplier<T> supplier) {
-    return new ResettableLazyReference<T>() {
-      @Override protected T create() throws Exception {
-        return supplier.get();
-      }
-    };
-  }
-
-  /**
    * The object factory method, guaranteed to be called once and only once.
    * 
    * @return the object that {@link #get()} and {@link #getInterruptibly()} will
