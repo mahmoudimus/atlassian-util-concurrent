@@ -72,7 +72,7 @@ public final class Lazy {
    * @param <T> the type of the contained element.
    * @return a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
    */
-  public static <T> ResettableLazyReference<T> from(final Supplier<T> supplier) {
+  public static <T> ResettableLazyReference<T> lazy(final Supplier<T> supplier) {
     return new ResettableLazyReference<T>() {
       @Override protected T create() throws Exception {
         return supplier.get();
