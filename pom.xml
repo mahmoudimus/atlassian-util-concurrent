@@ -162,7 +162,7 @@
     -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jdkLevel>1.6</jdkLevel>
+        <jdkLevel>1.8</jdkLevel>
         <guava.osgi.version>10.0.1</guava.osgi.version>
     </properties>
 </project>

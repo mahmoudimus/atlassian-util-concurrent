@@ -71,6 +71,8 @@ public final class Lazy {
    * @param supplier that creates the value that will be held by the {@link ResettableLazyReference}.
    * @param <T> the type of the contained element.
    * @return a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
+   * 
+   * @since 3.0
    */
   public static <T> ResettableLazyReference<T> resettable(final Supplier<T> supplier) {
     return new ResettableLazyReference<T>() {
