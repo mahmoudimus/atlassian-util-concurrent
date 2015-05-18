@@ -3,11 +3,10 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.atlassian.util.concurrent.Timeout.timeoutFactory;
 import static com.atlassian.util.concurrent.Timeout.TimeSuppliers.NANOS;
-
-import com.google.common.base.Predicate;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * Factory for creating lazily populated references.
@@ -91,7 +90,7 @@ public final class Lazy {
       this.timeout = timeout;
     }
 
-    @Override public boolean apply(final Void input) {
+    @Override public boolean test(final Void input) {
       return !timeout.isExpired();
     }
   }
@@ -109,7 +108,7 @@ public final class Lazy {
       lastAccess = timeout.get();
     }
 
-    @Override public boolean apply(final Void input) {
+    @Override public boolean test(final Void input) {
       final boolean alive = !lastAccess.isExpired();
       if (alive) {
         lastAccess = timeout.get();

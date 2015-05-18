@@ -2,7 +2,7 @@ package com.atlassian.util.concurrent;
 
 import com.atlassian.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.base.Predicate;
+import java.util.function.Predicate;
 
 import static java.util.Objects.requireNonNull;
 
@@ -62,7 +62,7 @@ final class Expiring<T> implements Supplier<T> {
     final Predicate<Void> alive = requireNonNull(strategy.get());
 
     @Override public boolean alive() {
-      return alive.apply(null);
+      return alive.test(null);
     }
 
     @Override public T create() {
