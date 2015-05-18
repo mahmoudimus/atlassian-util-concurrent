@@ -24,6 +24,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.function.Supplier;
 
 /**
  * Lazily loaded reference that is not constructed until required. This class is
@@ -75,7 +76,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  *
  * @param <T> the type of the contained element.
  */
-@ThreadSafe public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T>, java.util.function.Supplier<T> {
+@ThreadSafe public abstract class LazyReference<T> extends WeakReference<T> implements Supplier<T> {
 
   private final Sync sync = new Sync();
 

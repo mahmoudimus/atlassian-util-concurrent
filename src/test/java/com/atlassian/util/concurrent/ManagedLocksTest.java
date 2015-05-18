@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ManagedLocksTest {
   @Test(expected = NullPointerException.class) public void weakManagedLockFactoryNullStripe() throws Exception {
@@ -66,11 +68,11 @@ public class ManagedLocksTest {
 
   @Test public void managedFactory() throws Exception {
     final Function<Integer, ManagedLock> lockFactory = ManagedLocks.weakManagedLockFactory();
-    assertNotNull(lockFactory.get(1));
+    assertNotNull(lockFactory.apply(1));
   }
 
   @Test public void managedReadWriteFactory() throws Exception {
     final Function<Integer, ManagedLock.ReadWrite> lockFactory = ManagedLocks.weakReadWriteManagedLockFactory();
-    assertNotNull(lockFactory.get(1));
+    assertNotNull(lockFactory.apply(1));
   }
 }

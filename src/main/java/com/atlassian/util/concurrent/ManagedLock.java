@@ -18,6 +18,7 @@ package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Supplier;
 
 /**
  * {@link ManagedLock} allows {@link Callable callables}, {@link Runnable

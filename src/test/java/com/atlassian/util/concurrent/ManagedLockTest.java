@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import org.junit.Test;
 

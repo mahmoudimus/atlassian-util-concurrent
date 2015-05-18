@@ -7,6 +7,8 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
+import java.util.function.Supplier;
+
 public class LazyTest {
   @Test public void strong() throws Exception {
     final Supplier<Integer> s = Lazy.supplier(new Counter());

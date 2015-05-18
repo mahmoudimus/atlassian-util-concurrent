@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import org.junit.Test;
 

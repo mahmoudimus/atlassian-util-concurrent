@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.function.Function;
 
 public class WeakMemoizerTest {
 
@@ -20,11 +21,11 @@ public class WeakMemoizerTest {
 
   @Test public void callingTwiceReturnsSame() throws Exception {
     final WeakMemoizer<Integer, String> memoizer = WeakMemoizer.weakMemoizer(lock());
-    assertSame(memoizer.get(1), memoizer.get(1));
+    assertSame(memoizer.apply(1), memoizer.apply(1));
   }
 
   @Test public void callingDifferentMemoizersReturnsDifferent() throws Exception {
-    assertNotSame(WeakMemoizer.weakMemoizer(lock()).get(1), WeakMemoizer.weakMemoizer(lock()).get(1));
+    assertNotSame(WeakMemoizer.weakMemoizer(lock()).apply(1), WeakMemoizer.weakMemoizer(lock()).apply(1));
   }
 
   @Test public void lockReferenceNotNull() throws Exception {
@@ -48,7 +49,7 @@ public class WeakMemoizerTest {
     for (int i = 0; i < 10; i++) {
       System.gc();
       for (int j = 0; j < size; j++) {
-        assertSame(memoizer.get(j), memoizer.get(j));
+        assertSame(memoizer.apply(j), memoizer.apply(j));
       }
     }
   }
@@ -56,11 +57,11 @@ public class WeakMemoizerTest {
   @Test public void losesReference() throws Exception {
     final WeakMemoizer<Integer, String> memoizer = WeakMemoizer.weakMemoizer(lock());
 
-    final WeakReference<String> one = new WeakReference<String>(memoizer.get(1));
+    final WeakReference<String> one = new WeakReference<String>(memoizer.apply(1));
     for (int i = 0; i < 10; i++) {
       System.gc();
     }
-    assertNotNull(memoizer.get(1));
+    assertNotNull(memoizer.apply(1));
     assertNull(one.get());
   }
 }

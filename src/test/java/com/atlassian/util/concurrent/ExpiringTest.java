@@ -7,6 +7,7 @@ import static org.junit.Assert.assertFalse;
 import org.junit.Test;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class ExpiringTest {
   @Test public void expiring() {

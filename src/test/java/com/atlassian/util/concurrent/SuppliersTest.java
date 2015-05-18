@@ -6,6 +6,8 @@ import static org.junit.Assert.assertSame;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class SuppliersTest {
   @Test public void memoize() {

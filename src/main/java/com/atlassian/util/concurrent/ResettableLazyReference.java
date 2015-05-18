@@ -17,6 +17,7 @@
 package com.atlassian.util.concurrent;
 
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Supplier;
 
 import com.atlassian.util.concurrent.LazyReference.InitializationException;
 

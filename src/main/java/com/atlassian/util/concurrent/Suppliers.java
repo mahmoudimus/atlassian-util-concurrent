@@ -18,6 +18,8 @@ package com.atlassian.util.concurrent;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Useful {@link Supplier} implementations.
@@ -45,53 +47,7 @@ public final class Suppliers {
    * @return the result
    */
   public static <D, T> Supplier<T> fromFunction(final D input, final Function<D, T> function) {
-    return () -> function.get(input);
-  }
-
-  /**
-   * Map to a google-collections Supplier.
-   * 
-   * @param <T> type
-   * @param supplier the supplier to wrap
-   * @return the mapped function.
-   */
-  public static <T> com.google.common.base.Supplier<T> toGoogleSupplier(final Supplier<T> supplier) {
-    return new ToGoogleAdapter<>(supplier);
-  }
-
-  static class ToGoogleAdapter<T> implements com.google.common.base.Supplier<T> {
-    private final Supplier<T> delegate;
-
-    ToGoogleAdapter(final Supplier<T> delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override public T get() {
-      return delegate.get();
-    }
-  }
-
-  /**
-   * Map from a google-collections Supplier.
-   * 
-   * @param <T> type
-   * @param supplier the supplier to wrap
-   * @return the mapped function.
-   */
-  public static <T> Supplier<T> fromGoogleSupplier(final com.google.common.base.Supplier <T> supplier) {
-    return new FromGoogleAdapter<>(supplier);
-  }
-
-  static class FromGoogleAdapter<T> implements Supplier<T> {
-    private final com.google.common.base.Supplier<T> delegate;
-
-    FromGoogleAdapter(final com.google.common.base.Supplier <T> delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override public T get() {
-      return delegate.get();
-    }
+    return () -> function.apply(input);
   }
 
   /**

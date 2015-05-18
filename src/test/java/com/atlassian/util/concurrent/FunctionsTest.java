@@ -5,6 +5,9 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 public class FunctionsTest {
   @Test public void fromSupplier() {
     final Supplier<Integer> supplier = new Supplier<Integer>() {
@@ -15,7 +18,7 @@ public class FunctionsTest {
       }
     };
     final Function<String, Integer> function = Functions.fromSupplier(supplier);
-    assertEquals(Integer.valueOf(0), function.get("some"));
+    assertEquals(Integer.valueOf(0), function.apply("some"));
     assertEquals(Integer.valueOf(1), supplier.get());
   }
 
@@ -24,7 +27,7 @@ public class FunctionsTest {
   }
 
   @Test public void identity() {
-    final Function<String, String> function = Functions.identity();
-    assertSame("same", function.get("same"));
+    final Function<String, String> function = Function.identity();
+    assertSame("same", function.apply("same"));
   }
 }

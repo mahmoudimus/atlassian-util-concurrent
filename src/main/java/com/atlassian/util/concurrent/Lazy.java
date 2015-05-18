@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Factory for creating lazily populated references.

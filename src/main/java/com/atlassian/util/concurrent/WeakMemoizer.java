@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -41,7 +42,7 @@ import static java.util.Objects.requireNonNull;
  */
 @ThreadSafe final class WeakMemoizer<K, V> implements Function<K, V> {
   static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
-    return new WeakMemoizer<K, V>(delegate);
+    return new WeakMemoizer<>(delegate);
   }
 
   private final ConcurrentMap<K, MappedReference<K, V>> map;
@@ -66,7 +67,7 @@ import static java.util.Objects.requireNonNull;
    * @param descriptor must not be null
    * @return descriptor lock
    */
-  public V get(final K descriptor) {
+  public V apply(final K descriptor) {
     expungeStaleEntries();
     requireNonNull(descriptor, "descriptor");
     while (true) {
@@ -78,7 +79,7 @@ import static java.util.Objects.requireNonNull;
         }
         map.remove(descriptor, reference);
       }
-      map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
+      map.putIfAbsent(descriptor, new MappedReference<>(descriptor, delegate.apply(descriptor), queue));
     }
   }
 

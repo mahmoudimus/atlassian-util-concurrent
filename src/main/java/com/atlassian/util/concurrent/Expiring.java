@@ -3,6 +3,7 @@ package com.atlassian.util.concurrent;
 import com.atlassian.util.concurrent.atomic.AtomicReference;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
