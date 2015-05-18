@@ -560,7 +560,7 @@ public class CopyOnWriteMapTest {
     CopyOnWriteSortedMapTest.assertUnmodifiableCollection(keys, "key");
   }
 
-  @Test(expected = IllegalArgumentException.class) public void nullMap() throws Exception {
+  @Test(expected = NullPointerException.class) public void nullMap() throws Exception {
     new CopyOnWriteMap<String, String>(null, View.Type.STABLE) {
       private static final long serialVersionUID = 4223850632932526917L;
 
@@ -572,7 +572,7 @@ public class CopyOnWriteMapTest {
     };
   }
 
-  @Test(expected = IllegalArgumentException.class) public void nullViewType() throws Exception {
+  @Test(expected = NullPointerException.class) public void nullViewType() throws Exception {
     new CopyOnWriteMap<String, String>(new HashMap<>(), null) {
       private static final long serialVersionUID = 4223850632932526917L;
 
@@ -584,7 +584,7 @@ public class CopyOnWriteMapTest {
     };
   }
 
-  @Test(expected = IllegalArgumentException.class) public void copyFunctionReturnsNull() throws Exception {
+  @Test(expected = NullPointerException.class) public void copyFunctionReturnsNull() throws Exception {
     new CopyOnWriteMap<String, String>(View.Type.STABLE) {
       private static final long serialVersionUID = 831716474176011289L;
 

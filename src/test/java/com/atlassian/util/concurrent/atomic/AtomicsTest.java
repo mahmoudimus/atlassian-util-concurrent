@@ -32,11 +32,11 @@ public class AtomicsTest {
     assertEquals(to, Atomics.getAndSetIf(ref, from, to));
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfRefNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfRefNPE() {
     Atomics.getAndSetIf((AtomicReference<String>) null, "", (Supplier<String>)() -> "");
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfRefValueNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfRefValueNPE() {
     Atomics.getAndSetIf(null, "", "");
   }
 
@@ -106,11 +106,11 @@ public class AtomicsTest {
     assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfArrayNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfArrayNPE() {
     Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "",  (Supplier<String>) () -> "");
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfArrayValueNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfArrayValueNPE() {
     Atomics.getAndSetIf(null, 0, "", "");
   }
 
@@ -170,7 +170,7 @@ public class AtomicsTest {
     assertEquals(to, Atomics.getAndSetIf(ref, from, to));
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfLongNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfLongNPE() {
     Atomics.getAndSetIf((AtomicLong) null, 0, 0);
   }
 
@@ -208,7 +208,7 @@ public class AtomicsTest {
     assertEquals(to, Atomics.getAndSetIf(ref, from, to));
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfIntegerNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfIntegerNPE() {
     Atomics.getAndSetIf((AtomicInteger) null, 0, 0);
   }
 
@@ -246,7 +246,7 @@ public class AtomicsTest {
     assertEquals(to, Atomics.getAndSetIf(ref, from, to));
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfBooleanNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfBooleanNPE() {
     Atomics.getAndSetIf(null, false, false);
   }
 

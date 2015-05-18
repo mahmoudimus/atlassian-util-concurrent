@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -30,11 +30,11 @@ public class RuntimeTimeoutException extends RuntimeException {
   private static final long serialVersionUID = -5025209597479375477L;
 
   public RuntimeTimeoutException(final TimeoutException cause) {
-    super(notNull("cause", cause));
+    super(requireNonNull(cause, "cause"));
   }
 
   public RuntimeTimeoutException(final String message, final TimeoutException cause) {
-    super(message, notNull("cause", cause));
+    super(message, requireNonNull(cause, "cause"));
   }
 
   public RuntimeTimeoutException(final long time, final TimeUnit unit) {

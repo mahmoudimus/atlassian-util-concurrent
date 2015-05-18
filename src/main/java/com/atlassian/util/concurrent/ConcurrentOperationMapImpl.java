@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import static java.util.Objects.requireNonNull;
+
 @ThreadSafe public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 
   private final ConcurrentMap<K, CallerRunsFuture<R>> map = new ConcurrentHashMap<K, CallerRunsFuture<R>>();
@@ -34,7 +36,7 @@ import java.util.concurrent.FutureTask;
   }
 
   ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {
-    this.futureFactory = Assertions.notNull("futureFactory", futureFactory);
+    this.futureFactory = requireNonNull(futureFactory, "futureFactory");
   }
 
   public final R runOperation(final K key, final Callable<R> operation) throws ExecutionException {

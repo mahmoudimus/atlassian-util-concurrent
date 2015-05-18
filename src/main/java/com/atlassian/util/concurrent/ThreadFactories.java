@@ -16,12 +16,12 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.isTrue;
-import static com.atlassian.util.concurrent.Assertions.notNull;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Factory for creating {@link ThreadFactory} instances. All factory
@@ -42,12 +42,12 @@ public class ThreadFactories {
     }
 
     public Builder name(final String name) {
-      this.name = notNull("name", name);
+      this.name = requireNonNull(name, "name");
       return this;
     }
 
     public Builder type(final Type type) {
-      this.type = notNull("type", type);
+      this.type = requireNonNull(type, "type");
       return this;
     }
 
@@ -57,7 +57,7 @@ public class ThreadFactories {
     }
 
     public Builder uncaughtExceptionHandler(final Thread.UncaughtExceptionHandler exceptionHandler) {
-      this.exceptionHandler = notNull("exceptionHandler", exceptionHandler);
+      this.exceptionHandler = requireNonNull(exceptionHandler, "exceptionHandler");
       return this;
     }
 
@@ -140,10 +140,14 @@ public class ThreadFactories {
     final UncaughtExceptionHandler exceptionHandler;
 
     Default(final String name, final Type type, final int priority, final UncaughtExceptionHandler exceptionHandler) {
-      namePrefix = notNull("name", name) + ":thread-";
-      this.type = notNull("type", type);
-      isTrue("priority too low", priority >= Thread.MIN_PRIORITY);
-      isTrue("priority too high", priority <= Thread.MAX_PRIORITY);
+      namePrefix = requireNonNull(name, "name") + ":thread-";
+      this.type = requireNonNull(type, "type");
+      if(!(priority >= Thread.MIN_PRIORITY)){
+        throw new IllegalArgumentException("priority too low");
+      }
+      if(!(priority <= Thread.MAX_PRIORITY)){
+        throw new IllegalArgumentException("priority too high");
+      }
       this.priority = priority;
       final SecurityManager securityManager = System.getSecurityManager();
       final ThreadGroup parent = (securityManager != null) ? securityManager.getThreadGroup() : Thread.currentThread().getThreadGroup();

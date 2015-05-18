@@ -3,9 +3,9 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.atlassian.util.concurrent.Timeout.timeoutFactory;
 import static com.atlassian.util.concurrent.Timeout.TimeSuppliers.NANOS;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Predicate;
+import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -69,7 +69,7 @@ public final class Lazy {
     volatile Supplier<T> supplier;
 
     Strong(final Supplier<T> supplier) {
-      this.supplier = checkNotNull(supplier);
+      this.supplier = requireNonNull(supplier);
     }
 
     @Override protected T create() throws Exception {
@@ -105,7 +105,7 @@ public final class Lazy {
     private final Supplier<Timeout> timeout;
 
     TimeToIdle(final Supplier<Timeout> timeout) {
-      this.timeout = checkNotNull(timeout);
+      this.timeout = requireNonNull(timeout);
       lastAccess = timeout.get();
     }
 

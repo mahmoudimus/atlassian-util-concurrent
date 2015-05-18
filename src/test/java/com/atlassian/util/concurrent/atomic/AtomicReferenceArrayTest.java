@@ -29,7 +29,7 @@ public class AtomicReferenceArrayTest {
     assertEquals(to, ref.getOrSetAndGetIf(0, from, () -> to));
   }
 
-  @Test(expected = IllegalArgumentException.class) public void getAndSetIfArrayValueNPE() {
+  @Test(expected = NullPointerException.class) public void getAndSetIfArrayValueNPE() {
     Atomics.getAndSetIf(null, 0, "", "");
   }
 

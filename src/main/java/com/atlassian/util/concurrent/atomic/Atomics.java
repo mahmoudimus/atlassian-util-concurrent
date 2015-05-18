@@ -16,8 +16,6 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
-
 import java.util.function.Supplier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,6 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Utility methods for handling the specifics of correctly using the CAS
@@ -53,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * created value.
    */
   public static <T> T getAndSetIf(final AtomicReference<T> reference, final T oldValue, final Supplier<T> newValue) {
-    T result = notNull("reference", reference).get();
+    T result = requireNonNull(reference, "reference").get();
     // loop until invariant is true in case some other thread resets
     // reference to oldValue (although if they are doing that then we still
     // cannot guarantee there will be no ABA problem as they could come
@@ -85,7 +85,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * created value.
    */
   public static <T> T getAndSetIf(final AtomicReference<T> reference, final T oldValue, final T newValue) {
-    T result = notNull("reference", reference).get();
+    T result = requireNonNull(reference, "reference").get();
     // loop until invariant is true in case some other thread resets
     // reference to oldValue (although if they are doing that then we still
     // cannot guarantee there will be no ABA problem as they could come
@@ -149,7 +149,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * greater than the array size
    */
   public static <T> T getAndSetIf(final AtomicReferenceArray<T> reference, final int index, final T oldValue, final Supplier<T> newValue) {
-    T result = notNull("reference", reference).get(index);
+    T result = requireNonNull(reference, "reference").get(index);
     // loop until invariant is true in case some other thread resets
     // reference to oldValue (although if they are doing that then we still
     // cannot guarantee there will be no ABA problem as they could come
@@ -182,7 +182,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * greater than the array size
    */
   public static <T> T getAndSetIf(final AtomicReferenceArray<T> reference, final int index, final T oldValue, final T newValue) {
-    T result = notNull("reference", reference).get(index);
+    T result = requireNonNull(reference, "reference").get(index);
     // loop until invariant is true in case some other thread resets
     // reference to oldValue (although if they are doing that then we still
     // cannot guarantee there will be no ABA problem as they could come
@@ -246,7 +246,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * new value.
    */
   public static long getAndSetIf(final AtomicLong reference, final long oldValue, final long newValue) {
-    long result = notNull("reference", reference).get();
+    long result = requireNonNull(reference, "reference").get();
     // abort if trying to set the same value, otherwise infinite loop
     if (newValue == oldValue) {
       return result;
@@ -274,7 +274,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * new value.
    */
   public static long getAndSetIf(final AtomicInteger reference, final int oldValue, final int newValue) {
-    int result = notNull("reference", reference).get();
+    int result = requireNonNull(reference, "reference").get();
     // abort if trying to set the same value, otherwise infinite loop
     if (newValue == oldValue) {
       return result;
@@ -302,7 +302,7 @@ import javax.annotation.concurrent.ThreadSafe;
    * new value.
    */
   public static boolean getAndSetIf(final AtomicBoolean reference, final boolean oldValue, final boolean newValue) {
-    boolean result = notNull("reference", reference).get();
+    boolean result = requireNonNull(reference, "reference").get();
     // abort if trying to set the same value, otherwise infinite loop
     if (newValue == oldValue) {
       return result;

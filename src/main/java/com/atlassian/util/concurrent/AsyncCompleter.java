@@ -16,15 +16,13 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.isTrue;
-import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.atlassian.util.concurrent.Executors.limited;
 import static com.atlassian.util.concurrent.Suppliers.memoize;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
+import static java.util.Objects.requireNonNull;
 
 import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
@@ -68,9 +66,9 @@ import java.util.concurrent.TimeUnit;
 
   AsyncCompleter(final Executor executor, final ExceptionPolicy policy, final ExecutorCompletionServiceFactory completionServiceFactory,
     CompletionServiceDecorator completionServiceDecorator) {
-    this.executor = notNull("executor", executor);
-    this.policy = notNull("policy", policy);
-    this.completionServiceFactory = notNull("completionServiceFactory", completionServiceFactory);
+    this.executor = requireNonNull(executor, "executor");
+    this.policy = requireNonNull(policy, "policy");
+    this.completionServiceFactory = requireNonNull(completionServiceFactory, "completionServiceFactory");
     this.completionServiceDecorator = completionServiceDecorator;
   }
 
@@ -123,7 +121,7 @@ import java.util.concurrent.TimeUnit;
     // each iteration doesn't resubmit the jobs
     final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<>(apply, accessor)::apply));
     final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler()::apply);
-    return filter(transform(handled, Functions.<T> fromSupplier()::apply), notNull());
+    return filter(transform(handled, Functions.<T> fromSupplier()::apply), x -> x != null);
   }
 
   /**
@@ -141,7 +139,7 @@ import java.util.concurrent.TimeUnit;
      * @param executor
      */
     public Builder(@NotNull final Executor executor) {
-      this.executor = notNull("executor", executor);
+      this.executor = requireNonNull(executor, "executor");
     }
 
     /**
@@ -158,7 +156,7 @@ import java.util.concurrent.TimeUnit;
     }
 
     public Builder completionServiceFactory(final ExecutorCompletionServiceFactory completionServiceFactory) {
-      this.completionServiceFactory = notNull("completionServiceFactory", completionServiceFactory);
+      this.completionServiceFactory = requireNonNull(completionServiceFactory, "completionServiceFactory");
       return this;
     }
 
@@ -340,7 +338,9 @@ import java.util.concurrent.TimeUnit;
     }
 
     Future<T> check(Future<T> f) {
-      isTrue("Expected the future to be in the list of registered futures", futures.remove(f));
+      if(!futures.remove(f)){
+        throw new IllegalArgumentException("Expected the future to be in the list of registered futures");
+      }
       return f;
     }
 

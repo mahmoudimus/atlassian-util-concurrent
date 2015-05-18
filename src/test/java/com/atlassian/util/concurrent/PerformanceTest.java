@@ -1,6 +1,6 @@
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -303,7 +303,7 @@ class LockingReference<V> {
    * @param value the new value.
    */
   public void set(final V value) {
-    notNull("value", value);
+    requireNonNull(value, "value");
     lock.lock();
     try {
       ref = value;
@@ -416,7 +416,7 @@ class PhasedBlockingReference<V> {
    * @param value the new value.
    */
   public void set(final V value) {
-    notNull("value", value);
+    requireNonNull(value, "value");
     internalSet(value);
   }
 

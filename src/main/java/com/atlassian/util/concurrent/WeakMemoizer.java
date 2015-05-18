@@ -16,7 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
 import net.jcip.annotations.ThreadSafe;
 
 import java.lang.ref.ReferenceQueue;
@@ -24,6 +23,8 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * {@link WeakMemoizer} caches the result of another function. The result is
@@ -50,14 +51,13 @@ import java.util.concurrent.ConcurrentMap;
   /**
    * Construct a new {@link WeakMemoizer} instance.
    * 
-   * @param initialCapacity how large the internal map should be initially.
    * @param delegate for creating the initial values.
    * @throws IllegalArgumentException if the initial capacity of elements is
    * negative.
    */
   WeakMemoizer(final @NotNull Function<K, V> delegate) {
-    this.map = new ConcurrentHashMap<K, MappedReference<K, V>>();
-    this.delegate = notNull("delegate", delegate);
+    this.map = new ConcurrentHashMap<>();
+    this.delegate = requireNonNull(delegate, "delegate");
   }
 
   /**
@@ -68,7 +68,7 @@ import java.util.concurrent.ConcurrentMap;
    */
   public V get(final K descriptor) {
     expungeStaleEntries();
-    notNull("descriptor", descriptor);
+    requireNonNull(descriptor, "descriptor");
     while (true) {
       final MappedReference<K, V> reference = map.get(descriptor);
       if (reference != null) {
@@ -106,8 +106,8 @@ import java.util.concurrent.ConcurrentMap;
     private final K key;
 
     public MappedReference(final K key, final V value, final ReferenceQueue<? super V> q) {
-      super(notNull("value", value), q);
-      this.key = notNull("key", key);
+      super(requireNonNull(value, "value"), q);
+      this.key = requireNonNull(key, "key");
     }
 
     final K getDescriptor() {

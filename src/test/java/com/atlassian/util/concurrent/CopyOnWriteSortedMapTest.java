@@ -68,19 +68,19 @@ public class CopyOnWriteSortedMapTest {
     assertEquals(3, map.size());
   }
 
-  @Test(expected = IllegalArgumentException.class) public void mapNullConstructor() {
+  @Test(expected = NullPointerException.class) public void mapNullConstructor() {
     CopyOnWriteSortedMap.newTreeMap((Map<?, ?>) null);
   }
 
-  @Test(expected = IllegalArgumentException.class) public void comparatorNullConstructor() {
+  @Test(expected = NullPointerException.class) public void comparatorNullConstructor() {
     CopyOnWriteSortedMap.newTreeMap((Comparator<String>) null);
   }
 
-  @Test(expected = IllegalArgumentException.class) public void mapNullComparatorConstructor() {
+  @Test(expected = NullPointerException.class) public void mapNullComparatorConstructor() {
     CopyOnWriteSortedMap.newTreeMap(null, new StringComparator());
   }
 
-  @Test(expected = IllegalArgumentException.class) public void mapComparatorNullConstructor() {
+  @Test(expected = NullPointerException.class) public void mapComparatorNullConstructor() {
     CopyOnWriteSortedMap.newTreeMap(Collections.emptyMap(), null);
   }
 

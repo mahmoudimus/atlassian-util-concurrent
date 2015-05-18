@@ -56,7 +56,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
  * underlying Map implementations
  * <p>
  * There are supplied implementations for the common j.u.c {@link Map}
- * implementations via the {@link CopyOnWriteMaps} static {@link Builder}.
+ * implementations via the {@link CopyOnWriteMap} static {@link Builder}.
  * <p>
  * Collection views of the keys, values and entries are optionally
  * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views

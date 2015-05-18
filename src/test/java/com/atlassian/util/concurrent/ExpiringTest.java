@@ -1,15 +1,12 @@
 package com.atlassian.util.concurrent;
 
-import static com.google.common.base.Predicates.alwaysFalse;
-import static com.google.common.base.Predicates.alwaysTrue;
-import static java.lang.Integer.valueOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.junit.Test;
 
-import com.google.common.base.Predicate;
+import static java.lang.Integer.valueOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class ExpiringTest {
   @Test public void expiring() {

@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent.atomic;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.function.Function;
 
@@ -42,7 +42,7 @@ public abstract class AtomicReferenceUpdater<T> implements Function<T, T> {
   private final AtomicReference<T> reference;
 
   public AtomicReferenceUpdater(final AtomicReference<T> reference) {
-    this.reference = notNull("reference", reference);
+    this.reference = requireNonNull(reference, "reference");
   }
 
   /**

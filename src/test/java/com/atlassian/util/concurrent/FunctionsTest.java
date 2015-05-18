@@ -19,7 +19,7 @@ public class FunctionsTest {
     assertEquals(Integer.valueOf(1), supplier.get());
   }
 
-  @Test(expected = IllegalArgumentException.class) public void fromSupplierNotNull() {
+  @Test(expected = NullPointerException.class) public void fromSupplierNotNull() {
     Functions.fromSupplier(null);
   }
 

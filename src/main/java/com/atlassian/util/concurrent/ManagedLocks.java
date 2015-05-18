@@ -16,10 +16,10 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.atlassian.util.concurrent.Functions.fromSupplier;
 import static com.atlassian.util.concurrent.ManagedLocks.ManagedFactory.managedFactory;
 import static com.atlassian.util.concurrent.WeakMemoizer.weakMemoizer;
+import static java.util.Objects.requireNonNull;
 
 import com.atlassian.util.concurrent.ManagedLock.ReadWrite;
 
@@ -147,7 +147,7 @@ public class ManagedLocks {
    */
   public static @NotNull <T, D> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(
     final @NotNull Function<T, D> stripeFunction, final @NotNull Supplier<ReadWriteLock> lockFactory) {
-    notNull("stripeFunction", stripeFunction);
+    requireNonNull(stripeFunction, "stripeFunction");
     final Function<D, ReadWrite> readWriteManagedLockFactory = fromSupplier(managedReadWriteLockFactory(lockFactory));
     final WeakMemoizer<D, ManagedLock.ReadWrite> locks = weakMemoizer(readWriteManagedLockFactory);
     return input -> locks.get(stripeFunction.get(input));
@@ -204,7 +204,7 @@ public class ManagedLocks {
    * @return lock factory
    */
   static @NotNull Supplier<ManagedLock> managedLockFactory(final @NotNull Supplier<Lock> supplier) {
-    notNull("supplier", supplier);
+    requireNonNull(supplier, "supplier");
     return () -> new ManagedLockImpl(supplier.get());
   }
 
@@ -216,7 +216,7 @@ public class ManagedLocks {
    */
   static @NotNull Supplier<ManagedLock.ReadWrite> managedReadWriteLockFactory(
     final @NotNull Supplier<ReadWriteLock> supplier) {
-    notNull("supplier", supplier);
+    requireNonNull(supplier, "supplier");
     return () -> new ReadWriteManagedLock(supplier.get());
   }
 
@@ -228,7 +228,7 @@ public class ManagedLocks {
     private final ManagedLock write;
 
     ReadWriteManagedLock(final ReadWriteLock lock) {
-      notNull("lock", lock);
+      requireNonNull(lock, "lock");
       read = new ManagedLockImpl(lock.readLock());
       write = new ManagedLockImpl(lock.writeLock());
     }
@@ -251,8 +251,8 @@ public class ManagedLocks {
     private final Function<T, D> stripeFunction;
 
     ManagedFactory(final Function<D, ManagedLock> lockResolver, final Function<T, D> stripeFunction) {
-      this.lockResolver = notNull("lockResolver", lockResolver);
-      this.stripeFunction = notNull("stripeFunction", stripeFunction);
+      this.lockResolver = requireNonNull(lockResolver, "lockResolver");
+      this.stripeFunction = requireNonNull(stripeFunction, "stripeFunction");
     }
 
     public ManagedLock get(final T descriptor) {
@@ -269,7 +269,7 @@ public class ManagedLocks {
     private final Lock lock;
 
     ManagedLockImpl(final @NotNull Lock lock) {
-      this.lock = notNull("lock", lock);
+      this.lock = requireNonNull(lock, "lock");
     }
 
     public <R> R withLock(final Supplier<R> supplier) {

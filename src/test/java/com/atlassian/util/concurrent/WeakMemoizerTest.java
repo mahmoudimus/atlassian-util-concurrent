@@ -33,11 +33,11 @@ public class WeakMemoizerTest {
     assertNotNull(ref.get());
   }
 
-  @Test(expected = IllegalArgumentException.class) public void referenceNullDescriptor() throws Exception {
+  @Test(expected = NullPointerException.class) public void referenceNullDescriptor() throws Exception {
     new MappedReference<String, String>(null, "value", new ReferenceQueue<>());
   }
 
-  @Test(expected = IllegalArgumentException.class) public void referenceNullValue() throws Exception {
+  @Test(expected = NullPointerException.class) public void referenceNullValue() throws Exception {
     new MappedReference<String, String>("ref", null, new ReferenceQueue<>());
   }
 
