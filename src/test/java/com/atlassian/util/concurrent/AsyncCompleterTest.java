@@ -1,6 +1,7 @@
 package com.atlassian.util.concurrent;
 
 import static com.atlassian.util.concurrent.Promises.forFuture;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -9,9 +10,7 @@ import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -38,7 +37,7 @@ public class AsyncCompleterTest {
         first.get().run();
       }
     }).build();
-    final Iterator<Integer> queued = queue.invokeAll(ImmutableList.of(callable(1), callable(2))).iterator();
+    final Iterator<Integer> queued = queue.invokeAll(asList(callable(1), callable(2))).iterator();
     assertEquals(2, queued.next().intValue());
     assertEquals(1, queued.next().intValue());
     assertFalse(queued.hasNext());
@@ -46,7 +45,7 @@ public class AsyncCompleterTest {
 
   @Test public void order() {
     final AsyncCompleter completion = new AsyncCompleter.Builder(new CallerExecutor()).build();
-    final Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2))).iterator();
+    final Iterator<Integer> queued = completion.invokeAll(asList(callable(1), callable(2))).iterator();
     assertEquals(1, queued.next().intValue());
     assertEquals(2, queued.next().intValue());
     assertFalse(queued.hasNext());
@@ -58,7 +57,7 @@ public class AsyncCompleterTest {
       count.getAndIncrement();
       command.run();
     }).build();
-    final Iterable<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1)));
+    final Iterable<Integer> queued = completion.invokeAll(asList(callable(1)));
     assertEquals(1, queued.iterator().next().intValue());
     assertEquals(1, queued.iterator().next().intValue());
     assertEquals(1, queued.iterator().next().intValue());
@@ -67,7 +66,7 @@ public class AsyncCompleterTest {
 
   @Test public void nullLastFiltered() {
     final AsyncCompleter completion = new AsyncCompleter.Builder(new CallerExecutor()).build();
-    final ImmutableList<Callable<Integer>> input = ImmutableList.of(callable(1), callable((Integer) null));
+    final List<Callable<Integer>> input = asList(callable(1), callable((Integer) null));
     final Iterator<Integer> queued = completion.invokeAll(input).iterator();
     assertEquals(1, queued.next().intValue());
     assertFalse(queued.hasNext());
@@ -75,16 +74,16 @@ public class AsyncCompleterTest {
 
   @Test public void nullFirstFiltered() {
     final AsyncCompleter completion = new AsyncCompleter.Builder(new CallerExecutor()).build();
-    final ImmutableList<Callable<Integer>> input = ImmutableList.of(callable((Integer) null), callable(2));
+    final List<Callable<Integer>> input = asList(callable((Integer) null), callable(2));
     final Iterator<Integer> queued = completion.invokeAll(input).iterator();
     assertEquals(2, queued.next().intValue());
     assertFalse(queued.hasNext());
   }
 
   @Test public void limitedExecute() {
-    final List<Runnable> jobs = Lists.newArrayList();
+    final List<Runnable> jobs = new ArrayList<>();
     final AsyncCompleter completion = new AsyncCompleter.Builder(jobs::add).handleExceptions(Policies.THROW).limitParallelExecutionTo(1);
-    final Iterable<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2), callable(3)));
+    final Iterable<Integer> queued = completion.invokeAll(asList(callable(1), callable(2), callable(3)));
 
     final Iterator<Integer> iterator = queued.iterator();
     assertEquals(1, jobs.size());
@@ -105,13 +104,13 @@ public class AsyncCompleterTest {
 
   @Test public void callableCompletedBeforeTimeout() {
     Callable<Integer> callable = () -> 1;
-    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(ImmutableList.of(callable), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
+    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(asList(callable), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
   }
 
   @Test(expected = RuntimeTimeoutException.class) public void callableTimedOutBeforeCompleting() {
     final CountDownLatch latch = new CountDownLatch(1);
     try {
-      new AsyncCompleter.Builder(new NaiveExecutor()).build().invokeAll(ImmutableList.of(() -> {
+      new AsyncCompleter.Builder(new NaiveExecutor()).build().invokeAll(asList(() -> {
         latch.await();
         return 1;
       }), 1, TimeUnit.NANOSECONDS).iterator().next();
@@ -123,7 +122,7 @@ public class AsyncCompleterTest {
   @Test public void invocationRegistersWithAccessor() throws Exception {
     final AsyncCompleter completion = new AsyncCompleter.Builder(new CallerExecutor()).build();
     final AtomicReference<Future<String>> ref = new AtomicReference<Future<String>>();
-    completion.invokeAllTasks(ImmutableList.of(callable("blah!")), new AsyncCompleter.Accessor<String>() {
+    completion.invokeAllTasks(asList(callable("blah!")), new AsyncCompleter.Accessor<String>() {
       @Override public String apply(final CompletionService<String> input) {
         try {
           return input.poll().get();
@@ -155,7 +154,7 @@ public class AsyncCompleterTest {
     final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor())
       .completionServiceFactory(new CancellingCompletionServiceFactory()).checkCompletionServiceFutureIdentity().build();
 
-    Iterator<Integer> queued = completion.invokeAll(ImmutableList.of(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
+    Iterator<Integer> queued = completion.invokeAll(asList(callable(1), callable(2)), 1, TimeUnit.MINUTES).iterator();
     assertEquals(1, queued.next().intValue());
     assertEquals(2, queued.next().intValue());
   }
