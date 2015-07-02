@@ -44,7 +44,7 @@ public class ExpiringTest {
   }
 
   @Test(expected = AssertionError.class) public void detectsProgramErrorInfiniteLoopProtection() {
-    Integer integer = new Expiring<>(new Counter(), () -> x -> false).get();
+    new Expiring<>(new Counter(), () -> x -> false).get();
   }
 
   @Test(expected = UnsupportedOperationException.class) public void deadGet() {

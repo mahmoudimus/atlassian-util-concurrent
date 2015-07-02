@@ -33,7 +33,7 @@ import static java.util.Objects.requireNonNull;
   private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
 
   public ConcurrentOperationMapImpl() {
-    this(CallerRunsFuture::new);
+    this(CallerRunsFuture<R>::new);
   }
 
   ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {

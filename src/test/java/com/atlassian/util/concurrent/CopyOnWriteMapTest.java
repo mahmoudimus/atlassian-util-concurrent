@@ -684,7 +684,7 @@ public class CopyOnWriteMapTest {
 class MapBuilder<K, V> {
   private final Map<K, V> map = new HashMap<K, V>();
 
-  static <S> Map<S, S> build(final S... elements) {
+  static <S> Map<S, S> build(@SuppressWarnings("unchecked") final S... elements) {
     if (elements.length % 2 != 0) {
       throw new IllegalArgumentException("must have even number of elements: " + elements.length);
     }

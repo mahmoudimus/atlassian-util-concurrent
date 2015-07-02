@@ -3,16 +3,13 @@ package com.atlassian.util.concurrent;
 import static java.lang.Integer.valueOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Test;
-
 import java.util.function.Supplier;
+
+import org.junit.Test;
 
 public class LazyTest {
   @Test public void strong() throws Exception {
