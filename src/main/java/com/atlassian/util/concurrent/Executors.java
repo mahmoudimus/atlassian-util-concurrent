@@ -2,6 +2,7 @@ package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 import com.google.common.util.concurrent.SettableFuture;
 

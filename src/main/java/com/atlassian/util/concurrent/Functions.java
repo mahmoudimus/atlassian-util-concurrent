@@ -16,12 +16,15 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 public final class Functions {
   /**
    * Get a function that uses the Supplier as a factory for all inputs.
-   * 
+   *
    * @param <D> the key type, ignored
    * @param <R> the result type
    * @param supplier called for all inputs
@@ -35,17 +38,17 @@ public final class Functions {
     private final Supplier<R> supplier;
 
     FromSupplier(final Supplier<R> supplier) {
-      this.supplier = notNull("supplier", supplier);
+      this.supplier = requireNonNull(supplier, "supplier");
     }
 
-    public R get(final D input) {
+    public R apply(final D input) {
       return supplier.get();
     }
   };
 
   /**
    * Get the value from a supplier.
-   * 
+   *
    * @param <T> the type returned, note the Supplier can be covariant.
    * @return a function that extracts the value from a supplier
    */
@@ -57,22 +60,6 @@ public final class Functions {
     java.util.function.Function<java.util.function.Supplier<? extends T>, T> {
     public T apply(final java.util.function.Supplier<? extends T> supplier) {
       return supplier.get();
-    }
-  }
-
-  /**
-   * Get a function that always returns the input.
-   * 
-   * @param <T> the type of the input and the output for the function.
-   * @return the identity function.
-   */
-  public static <T> Function<T, T> identity() {
-    return new Identity<T>();
-  }
-
-  private static class Identity<T> implements Function<T, T> {
-    public T get(final T input) {
-      return input;
     }
   }
 
@@ -113,7 +100,7 @@ public final class Functions {
     private final java.util.function.Supplier<T> delegate;
 
     IgnoreAndReturnNull(final java.util.function.Supplier<T> delegate) {
-      this.delegate = notNull("delegate", delegate);
+      this.delegate = requireNonNull(delegate, "delegate");
     }
 
     public T get() {
@@ -127,7 +114,7 @@ public final class Functions {
 
   /**
    * Map to a google-collections Function.
-   * 
+   *
    * @param <T> input type
    * @param <R> output type
    * @param function the function to map
@@ -145,7 +132,7 @@ public final class Functions {
     }
 
     public R apply(final T from) {
-      return delegate.get(from);
+      return delegate.apply(from);
     };
   }
 

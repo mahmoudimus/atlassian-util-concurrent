@@ -1,6 +1,7 @@
 package com.atlassian.util.concurrent;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * Simple Integer supplier that counts how many times it was called and returns

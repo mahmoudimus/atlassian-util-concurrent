@@ -16,7 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
 import net.jcip.annotations.ThreadSafe;
 
 import java.lang.ref.ReferenceQueue;
@@ -24,6 +23,9 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * {@link WeakMemoizer} caches the result of another function. The result is
@@ -40,7 +42,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 @ThreadSafe final class WeakMemoizer<K, V> implements Function<K, V> {
   static <K, V> WeakMemoizer<K, V> weakMemoizer(final Function<K, V> delegate) {
-    return new WeakMemoizer<K, V>(delegate);
+    return new WeakMemoizer<>(delegate);
   }
 
   private final ConcurrentMap<K, MappedReference<K, V>> map;
@@ -50,14 +52,13 @@ import java.util.concurrent.ConcurrentMap;
   /**
    * Construct a new {@link WeakMemoizer} instance.
    * 
-   * @param initialCapacity how large the internal map should be initially.
    * @param delegate for creating the initial values.
    * @throws IllegalArgumentException if the initial capacity of elements is
    * negative.
    */
   WeakMemoizer(final @NotNull Function<K, V> delegate) {
-    this.map = new ConcurrentHashMap<K, MappedReference<K, V>>();
-    this.delegate = notNull("delegate", delegate);
+    this.map = new ConcurrentHashMap<>();
+    this.delegate = requireNonNull(delegate, "delegate");
   }
 
   /**
@@ -66,9 +67,9 @@ import java.util.concurrent.ConcurrentMap;
    * @param descriptor must not be null
    * @return descriptor lock
    */
-  public V get(final K descriptor) {
+  public V apply(final K descriptor) {
     expungeStaleEntries();
-    notNull("descriptor", descriptor);
+    requireNonNull(descriptor, "descriptor");
     while (true) {
       final MappedReference<K, V> reference = map.get(descriptor);
       if (reference != null) {
@@ -78,7 +79,7 @@ import java.util.concurrent.ConcurrentMap;
         }
         map.remove(descriptor, reference);
       }
-      map.putIfAbsent(descriptor, new MappedReference<K, V>(descriptor, delegate.get(descriptor), queue));
+      map.putIfAbsent(descriptor, new MappedReference<>(descriptor, delegate.apply(descriptor), queue));
     }
   }
 
@@ -106,8 +107,8 @@ import java.util.concurrent.ConcurrentMap;
     private final K key;
 
     public MappedReference(final K key, final V value, final ReferenceQueue<? super V> q) {
-      super(notNull("value", value), q);
-      this.key = notNull("key", key);
+      super(requireNonNull(value, "value"), q);
+      this.key = requireNonNull(key, "key");
     }
 
     final K getDescriptor() {

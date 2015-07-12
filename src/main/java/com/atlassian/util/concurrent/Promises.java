@@ -22,7 +22,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.google.common.annotations.Beta;
+
 import java.util.function.Function;
+
 import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -45,7 +47,7 @@ import com.google.common.util.concurrent.SettableFuture;
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
    */
-  public static <A> Promise<List<A>> when(Promise<? extends A>... promises) {
+  public static <A> Promise<List<A>> when(@SuppressWarnings("unchecked") Promise<? extends A>... promises) {
     return when(asList(promises));
   }
 

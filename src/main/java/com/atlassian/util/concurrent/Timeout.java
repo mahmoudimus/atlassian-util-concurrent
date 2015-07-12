@@ -20,6 +20,7 @@ import net.jcip.annotations.Immutable;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 /**
  * Automatically calculates elapsed time from when it is created. Useful when
@@ -79,11 +80,7 @@ import java.util.concurrent.TimeoutException;
    * @since 2.2
    */
   public static Supplier<Timeout> timeoutFactory(final long time, final TimeUnit unit, final TimeSupplier supplier) {
-    return new Supplier<Timeout>() {
-      @Override public Timeout get() {
-        return new Timeout(time, unit, supplier);
-      }
-    };
+    return () -> new Timeout(time, unit, supplier);
   }
 
   //

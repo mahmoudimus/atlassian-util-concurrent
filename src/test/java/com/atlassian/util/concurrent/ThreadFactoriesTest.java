@@ -71,11 +71,11 @@ public class ThreadFactoriesTest {
     assertEquals("the one!", throwable.getMessage());
   }
 
-  @Test(expected = IllegalArgumentException.class) public void nullName() {
+  @Test(expected = NullPointerException.class) public void nullName() {
     namedThreadFactory(null);
   }
 
-  @Test(expected = IllegalArgumentException.class) public void nullType() {
+  @Test(expected = NullPointerException.class) public void nullType() {
     namedThreadFactory(this.getClass().getName(), null);
   }
 

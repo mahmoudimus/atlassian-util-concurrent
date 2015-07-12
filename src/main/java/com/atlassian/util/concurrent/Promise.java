@@ -20,7 +20,6 @@ import java.util.concurrent.Future;
 import com.google.common.annotations.Beta;
 import java.util.function.Function;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 /**

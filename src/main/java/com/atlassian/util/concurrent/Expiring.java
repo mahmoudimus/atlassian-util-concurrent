@@ -1,10 +1,11 @@
 package com.atlassian.util.concurrent;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.atlassian.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.base.Predicate;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * A Reference that can expire based on some strategy.
@@ -23,8 +24,8 @@ final class Expiring<T> implements Supplier<T> {
   private final Supplier<Predicate<Void>> strategy;
 
   Expiring(final Supplier<T> factory, final Supplier<Predicate<Void>> strategy) {
-    this.factory = checkNotNull(factory);
-    this.strategy = checkNotNull(strategy);
+    this.factory = requireNonNull(factory);
+    this.strategy = requireNonNull(strategy);
   }
 
   @Override public T get() {
@@ -59,10 +60,10 @@ final class Expiring<T> implements Supplier<T> {
    * Lazily computes the value so the construction is cheap and fast.
    */
   final class Value extends LazyReference<T> implements Alive<T> {
-    final Predicate<Void> alive = checkNotNull(strategy.get());
+    final Predicate<Void> alive = requireNonNull(strategy.get());
 
     @Override public boolean alive() {
-      return alive.apply(null);
+      return alive.test(null);
     }
 
     @Override public T create() {

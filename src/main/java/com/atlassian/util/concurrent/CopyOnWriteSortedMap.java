@@ -16,8 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,6 +27,8 @@ import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * A thread-safe variant of {@link SortedMap} in which all mutative operations
@@ -173,7 +173,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
    */
   public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map) {
     final Builder<K, V> builder = builder();
-    notNull("map", map);
+    requireNonNull(map, "map");
     return builder.addAll(map).newTreeMap();
   }
 
@@ -188,7 +188,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
    */
   public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Comparator<? super K> comparator) {
     final Builder<K, V> builder = builder();
-    notNull("comparator", comparator);
+    requireNonNull(comparator, "comparator");
     return builder.ordering(comparator).newTreeMap();
   }
 
@@ -205,8 +205,8 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   public static <K, V> CopyOnWriteSortedMap<K, V> newTreeMap(final @NotNull Map<? extends K, ? extends V> map,
     final @NotNull Comparator<? super K> comparator) {
     final Builder<K, V> builder = builder();
-    notNull("comparator", comparator);
-    notNull("map", map);
+    requireNonNull(comparator, "comparator");
+    requireNonNull(map, "map");
     return builder.ordering(comparator).addAll(map).newTreeMap();
   }
 
@@ -281,7 +281,7 @@ import com.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
 
   private static <K, V> CopyOnWriteSortedMap<K, V> comparedTreeMap(final Map<? extends K, ? extends V> map, final Type viewType,
     final Comparator<? super K> comparator) {
-    notNull("comparator", comparator);
+    requireNonNull(comparator, "comparator");
     return new CopyOnWriteSortedMap<K, V>(map, viewType) {
       private static final long serialVersionUID = -7243810284130497340L;
 

@@ -3,11 +3,11 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static com.atlassian.util.concurrent.Timeout.timeoutFactory;
 import static com.atlassian.util.concurrent.Timeout.TimeSuppliers.NANOS;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.base.Predicate;
+import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Factory for creating lazily populated references.
@@ -57,6 +57,23 @@ public final class Lazy {
     return new Expiring<T>(factory, () -> new TimeToIdle(timeoutFactory(time, unit, NANOS)));
   }
 
+  /**
+   * Returns a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
+   *
+   * @param supplier that creates the value that will be held by the {@link ResettableLazyReference}.
+   * @param <T> the type of the contained element.
+   * @return a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
+   * 
+   * @since 3.0
+   */
+  public static <T> ResettableLazyReference<T> resettable(final Supplier<T> supplier) {
+    return new ResettableLazyReference<T>() {
+      @Override protected T create() throws Exception {
+        return supplier.get();
+      }
+    };
+  }
+
   //
   // inners
   //
@@ -69,7 +86,7 @@ public final class Lazy {
     volatile Supplier<T> supplier;
 
     Strong(final Supplier<T> supplier) {
-      this.supplier = checkNotNull(supplier);
+      this.supplier = requireNonNull(supplier);
     }
 
     @Override protected T create() throws Exception {
@@ -91,7 +108,7 @@ public final class Lazy {
       this.timeout = timeout;
     }
 
-    @Override public boolean apply(final Void input) {
+    @Override public boolean test(final Void input) {
       return !timeout.isExpired();
     }
   }
@@ -105,11 +122,11 @@ public final class Lazy {
     private final Supplier<Timeout> timeout;
 
     TimeToIdle(final Supplier<Timeout> timeout) {
-      this.timeout = checkNotNull(timeout);
+      this.timeout = requireNonNull(timeout);
       lastAccess = timeout.get();
     }
 
-    @Override public boolean apply(final Void input) {
+    @Override public boolean test(final Void input) {
       final boolean alive = !lastAccess.isExpired();
       if (alive) {
         lastAccess = timeout.get();

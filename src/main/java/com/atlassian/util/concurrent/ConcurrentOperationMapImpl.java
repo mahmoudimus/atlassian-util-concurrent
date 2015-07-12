@@ -23,6 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.function.Function;
+
+import static java.util.Objects.requireNonNull;
 
 @ThreadSafe public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 
@@ -30,17 +33,17 @@ import java.util.concurrent.FutureTask;
   private final Function<Callable<R>, CallerRunsFuture<R>> futureFactory;
 
   public ConcurrentOperationMapImpl() {
-    this(CallerRunsFuture::new);
+    this(CallerRunsFuture<R>::new);
   }
 
   ConcurrentOperationMapImpl(final Function<Callable<R>, CallerRunsFuture<R>> futureFactory) {
-    this.futureFactory = Assertions.notNull("futureFactory", futureFactory);
+    this.futureFactory = requireNonNull(futureFactory, "futureFactory");
   }
 
   public final R runOperation(final K key, final Callable<R> operation) throws ExecutionException {
     CallerRunsFuture<R> future = map.get(key);
     while (future == null) {
-      map.putIfAbsent(key, futureFactory.get(operation));
+      map.putIfAbsent(key, futureFactory.apply(operation));
       future = map.get(key);
     }
     try {

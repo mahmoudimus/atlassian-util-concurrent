@@ -1,6 +1,5 @@
 package com.atlassian.util.concurrent;
 
-import static com.google.common.base.Functions.toStringFunction;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -33,12 +32,12 @@ public class PromiseTest {
 
   @Test public void foldPromiseGood() {
     Promise<Integer> promise = Promises.promise(3);
-    assertThat(promise.fold(getThrowableMessage, toStringFunction()::apply).claim(), is("3"));
+    assertThat(promise.fold(getThrowableMessage, Object::toString).claim(), is("3"));
   }
 
   @Test public void foldPromiseBad() {
     Promise<Integer> promise = Promises.rejected(new RuntimeException("Oh my!"));
-    assertThat(promise.fold(getThrowableMessage, toStringFunction()::apply).claim(), is("Oh my!"));
+    assertThat(promise.fold(getThrowableMessage, Object::toString).claim(), is("Oh my!"));
   }
 
   @Test public void foldPromiseGoodWithError() {

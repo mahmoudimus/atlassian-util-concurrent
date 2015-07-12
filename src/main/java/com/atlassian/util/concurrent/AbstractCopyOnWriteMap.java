@@ -16,9 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
-import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
@@ -31,6 +28,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Abstract base class for COW {@link Map} implementations that delegate to an
@@ -58,8 +59,8 @@ import java.util.concurrent.locks.ReentrantLock;
    * @param viewType for writable or read-only key, value and entrySet views
    */
   protected <N extends Map<? extends K, ? extends V>> AbstractCopyOnWriteMap(final N map, final View.Type viewType) {
-    this.delegate = notNull("delegate", copy(notNull("map", map)));
-    this.view = notNull("viewType", viewType).get(this);
+    this.delegate = requireNonNull(copy(requireNonNull(map, "map")), "delegate");
+    this.view = requireNonNull(viewType, "viewType").get(this);
   }
 
   /**

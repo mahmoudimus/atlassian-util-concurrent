@@ -1,6 +1,6 @@
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.ExecutionException;
 
@@ -11,10 +11,10 @@ public class RuntimeExecutionException extends RuntimeException {
   private static final long serialVersionUID = 1573022712345306212L;
 
   public RuntimeExecutionException(final ExecutionException cause) {
-    super(notNull("cause", cause));
+    super(requireNonNull(cause, "cause"));
   }
 
   public RuntimeExecutionException(final String message, final ExecutionException cause) {
-    super(message, notNull("cause", cause));
+    super(message, requireNonNull(cause, "cause"));
   }
 }

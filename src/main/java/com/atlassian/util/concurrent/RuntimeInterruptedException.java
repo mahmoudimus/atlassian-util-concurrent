@@ -16,7 +16,7 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Convenience class for re-throwing {@link InterruptedException}.
@@ -26,11 +26,11 @@ public class RuntimeInterruptedException extends RuntimeException {
   private static final long serialVersionUID = -5025209597479375477L;
 
   public RuntimeInterruptedException(final InterruptedException cause) {
-    super(notNull("cause", cause));
+    super(requireNonNull(cause, "cause"));
   }
 
   public RuntimeInterruptedException(final String message, final InterruptedException cause) {
-    super(message, notNull("cause", cause));
+    super(message, requireNonNull(cause, "cause"));
   }
 
   @Override public InterruptedException getCause() {

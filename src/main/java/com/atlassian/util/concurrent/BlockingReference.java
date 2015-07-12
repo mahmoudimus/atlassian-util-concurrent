@@ -16,7 +16,6 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.BlockingQueue;
@@ -25,6 +24,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * A Reference with queue semantics where the current reference may be retrieved
@@ -279,7 +280,7 @@ import java.util.concurrent.locks.Condition;
    * @param value the new value.
    */
   public final void set(@NotNull final V value) {
-    notNull("value", value);
+    requireNonNull(value, "value");
     internalSet(value);
   }
 

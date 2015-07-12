@@ -16,10 +16,9 @@
 
 package com.atlassian.util.concurrent;
 
-import static com.atlassian.util.concurrent.Assertions.notNull;
 import static com.atlassian.util.concurrent.Functions.fromSupplier;
-import static com.atlassian.util.concurrent.ManagedLocks.ManagedFactory.managedFactory;
 import static com.atlassian.util.concurrent.WeakMemoizer.weakMemoizer;
+import static java.util.Objects.requireNonNull;
 
 import com.atlassian.util.concurrent.ManagedLock.ReadWrite;
 
@@ -28,6 +27,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Static factory for producing {@link ManagedLock} and {@link ReadWrite}
@@ -98,7 +99,7 @@ public class ManagedLocks {
   public static @NotNull <T, D> Function<T, ManagedLock> weakManagedLockFactory(
     final @NotNull Function<T, D> stripeFunction, final @NotNull Supplier<Lock> lockFactory) {
     final Function<D, ManagedLock> lockFunction = fromSupplier(managedLockFactory(lockFactory));
-    return managedFactory(weakMemoizer(lockFunction), stripeFunction);
+    return ManagedFactory.<T, D>managedFactory(weakMemoizer(lockFunction), stripeFunction);
   }
 
   /**
@@ -119,14 +120,14 @@ public class ManagedLocks {
   /**
    * Convenience method that calls
    * {@link ManagedLocks#weakManagedLockFactory(Function)} using the
-   * {@link Functions#identity() identity function} for striping, essentially
+   * {@link Function#identity() identity function} for striping, essentially
    * meaning that unique input will have its own lock.
    * 
    * @param <T> the type of the thing used to look up locks
    * @see #weakManagedLockFactory(Function, Supplier)
    */
   public static @NotNull <T> Function<T, ManagedLock> weakManagedLockFactory() {
-    return weakManagedLockFactory(Functions.<T> identity());
+    return weakManagedLockFactory(Function.<T> identity());
   }
 
   /**
@@ -147,10 +148,10 @@ public class ManagedLocks {
    */
   public static @NotNull <T, D> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(
     final @NotNull Function<T, D> stripeFunction, final @NotNull Supplier<ReadWriteLock> lockFactory) {
-    notNull("stripeFunction", stripeFunction);
+    requireNonNull(stripeFunction, "stripeFunction");
     final Function<D, ReadWrite> readWriteManagedLockFactory = fromSupplier(managedReadWriteLockFactory(lockFactory));
     final WeakMemoizer<D, ManagedLock.ReadWrite> locks = weakMemoizer(readWriteManagedLockFactory);
-    return input -> locks.get(stripeFunction.get(input));
+    return input -> locks.apply(stripeFunction.apply(input));
   }
 
   /**
@@ -172,7 +173,7 @@ public class ManagedLocks {
   /**
    * A convenience method for calling
    * {@link #weakReadWriteManagedLockFactory(Function)} that uses the
-   * {@link Functions#identity() identity function} for striping, essentially
+   * {@link Function#identity() identity function} for striping, essentially
    * meaning that unique input will have its own lock.
    * 
    * @param <T> the type of the thing used to look up locks
@@ -181,7 +182,7 @@ public class ManagedLocks {
    * that stores created instances with weak references.
    */
   public static @NotNull <T> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory() {
-    return weakReadWriteManagedLockFactory(Functions.<T> identity());
+    return weakReadWriteManagedLockFactory(Function.<T> identity());
   }
 
   /**
@@ -204,7 +205,7 @@ public class ManagedLocks {
    * @return lock factory
    */
   static @NotNull Supplier<ManagedLock> managedLockFactory(final @NotNull Supplier<Lock> supplier) {
-    notNull("supplier", supplier);
+    requireNonNull(supplier, "supplier");
     return () -> new ManagedLockImpl(supplier.get());
   }
 
@@ -216,7 +217,7 @@ public class ManagedLocks {
    */
   static @NotNull Supplier<ManagedLock.ReadWrite> managedReadWriteLockFactory(
     final @NotNull Supplier<ReadWriteLock> supplier) {
-    notNull("supplier", supplier);
+    requireNonNull(supplier, "supplier");
     return () -> new ReadWriteManagedLock(supplier.get());
   }
 
@@ -228,7 +229,7 @@ public class ManagedLocks {
     private final ManagedLock write;
 
     ReadWriteManagedLock(final ReadWriteLock lock) {
-      notNull("lock", lock);
+      requireNonNull(lock, "lock");
       read = new ManagedLockImpl(lock.readLock());
       write = new ManagedLockImpl(lock.writeLock());
     }
@@ -243,7 +244,7 @@ public class ManagedLocks {
   }
 
   static class ManagedFactory<T, D> implements Function<T, ManagedLock> {
-    static final <T, D> ManagedFactory<T, D> managedFactory(final Function<D, ManagedLock> lockResolver, final Function<T, D> stripeFunction) {
+    static <T, D> ManagedFactory<T, D> managedFactory(final Function<D, ManagedLock> lockResolver, final Function<T, D> stripeFunction) {
       return new ManagedFactory<>(lockResolver, stripeFunction);
     }
 
@@ -251,12 +252,12 @@ public class ManagedLocks {
     private final Function<T, D> stripeFunction;
 
     ManagedFactory(final Function<D, ManagedLock> lockResolver, final Function<T, D> stripeFunction) {
-      this.lockResolver = notNull("lockResolver", lockResolver);
-      this.stripeFunction = notNull("stripeFunction", stripeFunction);
+      this.lockResolver = requireNonNull(lockResolver, "lockResolver");
+      this.stripeFunction = requireNonNull(stripeFunction, "stripeFunction");
     }
 
-    public ManagedLock get(final T descriptor) {
-      return lockResolver.get(stripeFunction.get(descriptor));
+    public ManagedLock apply(final T descriptor) {
+      return lockResolver.apply(stripeFunction.apply(descriptor));
     }
   }
 
@@ -269,7 +270,7 @@ public class ManagedLocks {
     private final Lock lock;
 
     ManagedLockImpl(final @NotNull Lock lock) {
-      this.lock = notNull("lock", lock);
+      this.lock = requireNonNull(lock, "lock");
     }
 
     public <R> R withLock(final Supplier<R> supplier) {

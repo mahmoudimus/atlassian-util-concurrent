@@ -95,7 +95,6 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    * the new value and return that instead. If the old value argument does not
    * match, ignore both and just return the current value.
    * 
-   * @param <T> the object type.
    * @param oldValue to check the current value against (reference equality
    * check only)
    * @param newValue the new value to set it to

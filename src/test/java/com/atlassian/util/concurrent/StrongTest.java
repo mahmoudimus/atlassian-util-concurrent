@@ -6,6 +6,8 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+import java.util.function.Supplier;
+
 public class StrongTest {
   @Test public void lazilyPopulated() throws Exception {
     final Counter counter = new Counter();
