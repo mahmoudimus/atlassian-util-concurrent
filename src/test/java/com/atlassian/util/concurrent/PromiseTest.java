@@ -7,16 +7,15 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import java.util.function.Function;
-import com.google.common.util.concurrent.SettableFuture;
 
 public class PromiseTest {
   Function<Throwable, String> getThrowableMessage = Throwable::getMessage;
 
   @Test public void flatMapPromise() {
-    final SettableFuture<String> fOne = SettableFuture.<String> create();
-    final SettableFuture<Integer> fTwo = SettableFuture.<Integer> create();
-    final Promise<String> pOne = Promises.forListenableFuture(fOne);
-    final Promise<Integer> pTwo = pOne.flatMap(input -> Promises.forListenableFuture(fTwo));
+    final Promises.AsynchronousEffect<String> fOne = Promises.newAsynchronousEffect();
+    final Promises.AsynchronousEffect<Integer> fTwo = Promises.newAsynchronousEffect();
+    final Promise<String> pOne = Promises.forEffect(fOne);
+    final Promise<Integer> pTwo = pOne.flatMap(input -> Promises.forEffect(fTwo));
 
     assertThat(pOne.isDone(), is(false));
     assertThat(pTwo.isDone(), is(false));
@@ -50,10 +49,8 @@ public class PromiseTest {
   @Test public void foldPromiseBadWithError() {
     Promise<Integer> promise = Promises.promise(4);
     final FailEffect failEffect = new FailEffect();
-    promise.fold(new Function<Throwable, String>() {
-      public String apply(Throwable input) {
-        throw new RuntimeException(input);
-      }
+    promise.fold(t -> {
+      throw new RuntimeException(t);
     }, i -> {
       throw new RuntimeException("I lied!");
     }).fail(failEffect);
@@ -62,14 +59,9 @@ public class PromiseTest {
   }
 
   @Test public void failCanTransformException() {
-    final SettableFuture<String> future = SettableFuture.<String> create();
-    final Promise<String> promise = Promises.forListenableFuture(future).map(input -> "Ok").recover(new Function<Throwable, String>() {
-      @Override public String apply(Throwable input) {
-        return input.getMessage();
-      }
-    });
-    future.setException(new RuntimeException("Some message"));
-    assertThat(promise.claim(), is("Some message"));
+    final Promises.AsynchronousEffect<String> future = Promises.newAsynchronousEffect();
+    final Promise<String> promise = Promises.forEffect(future).map(input -> "Ok").recover(Throwable::getMessage);
+    future.exception(new RuntimeException("Some message"));
     assertThat(promise.claim(), is("Some message"));
   }
 

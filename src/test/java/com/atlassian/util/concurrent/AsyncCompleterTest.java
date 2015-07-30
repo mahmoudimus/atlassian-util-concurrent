@@ -161,24 +161,26 @@ public class AsyncCompleterTest {
 
   private static class CancellingCompletionServiceFactory implements AsyncCompleter.ExecutorCompletionServiceFactory {
     @Override public <T> java.util.function.Function<Executor, CompletionService<T>> create() {
-      return e -> new BadCompletionService<T>(e);
+      return BadCompletionService::new;
     }
   }
 
   private static class BadCompletionService<T> implements CompletionService<T> {
 
     final ExecutorCompletionService<T> delegate;
+    final Executor executor;
 
     public BadCompletionService(final Executor e) {
+      executor = e;
       delegate = new ExecutorCompletionService<T>(e);
     }
 
     @Override public Future<T> submit(final Callable<T> callable) {
-      return forFuture(delegate.submit(callable));
+      return forFuture(delegate.submit(callable), executor);
     }
 
     @Override public Future<T> submit(Runnable runnable, T result) {
-      return forFuture(delegate.submit(runnable, result));
+      return forFuture(delegate.submit(runnable, result), executor);
     }
 
     @Override public Future<T> take() throws InterruptedException {

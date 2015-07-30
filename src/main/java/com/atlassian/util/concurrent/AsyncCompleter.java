@@ -25,7 +25,9 @@ import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -41,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -90,7 +93,7 @@ import java.util.stream.StreamSupport;
    * return, excluding any null values.
    */
   public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables) {
-    return invokeAllTasks(callables, new BlockingAccessor<T>());
+    return invokeAllTasks(callables, new BlockingAccessor<>());
   }
 
   /**
@@ -108,7 +111,7 @@ import java.util.stream.StreamSupport;
    * @since 2.1
    */
   public <T> Iterable<T> invokeAll(final Iterable<? extends Callable<T>> callables, final long time, final TimeUnit unit) {
-    return invokeAllTasks(callables, new TimeoutAccessor<T>(getNanosTimeout(time, unit)));
+    return invokeAllTasks(callables, new TimeoutAccessor<>(getNanosTimeout(time, unit)));
   }
 
   /**
@@ -119,13 +122,23 @@ import java.util.stream.StreamSupport;
     final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(executor));
     // we must copy the resulting Iterable<Supplier> so
     // each iteration doesn't resubmit the jobs
-    List<Supplier<T>> lazyAsyncSuppliers = StreamSupport.stream(callables.spliterator(), false).
-      map(new AsyncCompletionFunction<>(apply, accessor)::apply).collect(Collectors.toList());
+    final List<Supplier<T>> lazyAsyncSuppliers = StreamSupport.stream(callables.spliterator(), false).
+      map(new AsyncCompletionFunction<>(apply, accessor)).collect(Collectors.toList());
 
-    return lazyAsyncSuppliers.stream().
-            map(policy.<T> handler()::apply).
-            map(Functions.<T> fromSupplier()::apply).
-            filter(x -> x != null).collect(Collectors.toList());
+    return new Iterable<T>() {
+      private Stream<T> newStream() {
+        return lazyAsyncSuppliers.stream().
+                map(policy.<T> handler()).
+                map(Functions.<T> fromSupplier())
+                .filter(x -> x != null);
+      }
+      @Override public Iterator<T> iterator() {
+        return newStream().iterator();
+      }
+      @Override public Spliterator<T> spliterator() {
+        return newStream().spliterator();
+      }
+    };
   }
 
   /**
@@ -240,7 +253,7 @@ import java.util.stream.StreamSupport;
 
   static final class TimeoutAccessor<T> implements Accessor<T> {
     private final Timeout timeout;
-    private final Collection<Future<T>> futures = new ConcurrentLinkedQueue<Future<T>>();
+    private final Collection<Future<T>> futures = new ConcurrentLinkedQueue<>();
 
     TimeoutAccessor(final Timeout timeout) {
       this.timeout = timeout;
@@ -290,20 +303,20 @@ import java.util.stream.StreamSupport;
 
   static final class DefaultExecutorCompletionServiceFactory implements ExecutorCompletionServiceFactory {
     public <T> Function<Executor, CompletionService<T>> create() {
-      return new ExecutorCompletionServiceFunction<T>();
+      return new ExecutorCompletionServiceFunction<>();
     }
   }
 
   static final class ExecutorCompletionServiceFunction<T> implements Function<Executor, CompletionService<T>> {
     public CompletionService<T> apply(final Executor executor) {
-      return new ExecutorCompletionService<T>(executor);
+      return new ExecutorCompletionService<>(executor);
     }
   }
 
   interface CompletionServiceDecorator {
     <T> CompletionService<T> apply(CompletionService<T> acc);
 
-    static enum Identity implements CompletionServiceDecorator {
+    enum Identity implements CompletionServiceDecorator {
       INSTANCE;
       @Override public <T> CompletionService<T> apply(CompletionService<T> acc) {
         return acc;
@@ -347,11 +360,11 @@ import java.util.stream.StreamSupport;
       return f;
     }
 
-    public Future<T> submit(Callable<T> task) {
+    public @Nonnull Future<T> submit(@Nonnull final Callable<T> task) {
       return add(delegate.submit(task));
     }
 
-    public Future<T> submit(Runnable task, T result) {
+    public @Nonnull Future<T> submit(@Nonnull final Runnable task, final T result) {
       return add(delegate.submit(task, result));
     }
 
@@ -363,7 +376,7 @@ import java.util.stream.StreamSupport;
       return check(delegate.poll());
     }
 
-    public Future<T> poll(long timeout, TimeUnit unit) throws InterruptedException {
+    public Future<T> poll(final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
       return check(delegate.poll(timeout, unit));
     }
   }

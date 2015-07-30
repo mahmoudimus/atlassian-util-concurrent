@@ -52,13 +52,13 @@ public final class Functions {
    * @param <T> the type returned, note the Supplier can be covariant.
    * @return a function that extracts the value from a supplier
    */
-  static <T> java.util.function.Function<java.util.function.Supplier<? extends T>, T> fromSupplier() {
+  static <T> Function<Supplier<? extends T>, T> fromSupplier() {
     return new ValueExtractor<>();
   }
 
   private static class ValueExtractor<T> implements
-    java.util.function.Function<java.util.function.Supplier<? extends T>, T> {
-    public T apply(final java.util.function.Supplier<? extends T> supplier) {
+    Function<Supplier<? extends T>, T> {
+    public T apply(final Supplier<? extends T> supplier) {
       return supplier.get();
     }
   }
@@ -85,21 +85,21 @@ public final class Functions {
    * @param <T> the result type
    * @return a Function that transforms an exception into a null
    */
-  static <T> java.util.function.Function<java.util.function.Supplier<T>, java.util.function.Supplier<T>> ignoreExceptions() {
-    return new ExceptionIgnorer<T>();
+  static <T> Function<Supplier<T>, Supplier<T>> ignoreExceptions() {
+    return new ExceptionIgnorer<>();
   }
 
   static class ExceptionIgnorer<T> implements
-    java.util.function.Function<java.util.function.Supplier<T>, java.util.function.Supplier<T>> {
-    public java.util.function.Supplier<T> apply(final java.util.function.Supplier<T> from) {
+    Function<Supplier<T>, Supplier<T>> {
+    public Supplier<T> apply(final Supplier<T> from) {
       return new IgnoreAndReturnNull<>(from);
     }
   }
 
-  static class IgnoreAndReturnNull<T> implements java.util.function.Supplier<T> {
-    private final java.util.function.Supplier<T> delegate;
+  static class IgnoreAndReturnNull<T> implements Supplier<T> {
+    private final Supplier<T> delegate;
 
-    IgnoreAndReturnNull(final java.util.function.Supplier<T> delegate) {
+    IgnoreAndReturnNull(final Supplier<T> delegate) {
       this.delegate = requireNonNull(delegate, "delegate");
     }
 
@@ -120,11 +120,11 @@ public final class Functions {
    * @param function the function to map
    * @return the mapped function.
    */
-  public static <T, R> java.util.function.Function<T, R> toGoogleFunction(final Function<T, R> function) {
+  public static <T, R> Function<T, R> toGoogleFunction(final Function<T, R> function) {
     return new ToGoogleAdapter<>(function);
   }
 
-  static class ToGoogleAdapter<T, R> implements java.util.function.Function<T, R> {
+  static class ToGoogleAdapter<T, R> implements Function<T, R> {
     private final Function<T, R> delegate;
 
     ToGoogleAdapter(final Function<T, R> delegate) {

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 import org.junit.Test;
 
@@ -29,12 +28,12 @@ public class ExecutorSubmitterTest {
   }
 
   @Test public void submitSupplierGetResult() throws Exception {
-    assertThat(Executors.submitter(new CallerExecutor()).submit((Supplier<String>) () -> "fred!").get(), is("fred!"));
+    assertThat(Executors.submitter(new CallerExecutor()).submitSupplier(() -> "fred!").get(), is("fred!"));
   }
 
   @Test(expected = ExecutorSubmitterException.class) public void submitSupplierGetException() throws Throwable {
     try {
-      Executors.submitter(new CallerExecutor()).submit((Supplier<String>) () -> {
+      Executors.submitter(new CallerExecutor()).submitSupplier(() -> {
         throw new ExecutorSubmitterException();
       }).get();
     } catch (ExecutionException e) {

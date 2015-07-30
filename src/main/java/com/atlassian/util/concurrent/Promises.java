@@ -48,11 +48,11 @@ public final class Promises {
     } else {
       final CompletableFuture<B> aCompletableFuture = new CompletableFuture<>();
       promise.then(callback(aCompletableFuture::complete,
-        (Throwable t) -> {
+        t -> {
           if (promise.isCancelled() && (!(t instanceof CancellationException))) {
             aCompletableFuture.completeExceptionally(new CancellationException(t.getMessage()));
           } else {
-            aCompletableFuture.completeExceptionally(t);
+            aCompletableFuture.completeExceptionally(getRealException(t));
           }
         }));
       return aCompletableFuture;
@@ -60,19 +60,25 @@ public final class Promises {
   }
 
   public @SafeVarargs static <A> Promise<List<A>> when(Promise<? extends A> promise, Promise<? extends A>... promises) {
-    final Stream<CompletableFuture<? extends A>> futures =
-            Stream.concat(Stream.of(Promises.toCompletableFuture(promise)), Stream.of(promises).map(Promises::toCompletableFuture));
+    final List<CompletableFuture<? extends A>> futures =
+      Stream.concat(
+        Stream.of(Promises.toCompletableFuture(promise)), Stream.of(promises).map(Promises::toCompletableFuture)
+      ).collect(Collectors.toList());
 
-    final CompletableFuture<?> allFutures = CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
+    final CompletableFuture<?> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     // short-circuit: eagerly cancel the futures if any of the leaves fail. Do not wait for the others.
     futures.forEach(cf -> cf.whenComplete((a, t) -> {
         if (t != null) futures.forEach(f -> f.cancel(true));
       }));
 
     final CompletableCompletionStage<List<A>>  ccs = factory.createCompletionStage();
-    allFutures.thenRun(() ->
-      ccs.doComplete(futures.map(CompletableFuture::join).collect(Collectors.toList()))
-    );
+    allFutures.whenComplete((a, t) -> {
+      if (t == null) {
+        ccs.doComplete(futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+      } else {
+        ccs.completeExceptionally(t);
+      }
+    });
     // if the returning promise is cancelled, eagerly cancel the futures.
     ccs.whenComplete((a, t) -> {
       if (t instanceof CancellationException) futures.forEach(f -> f.cancel(true));
@@ -247,9 +253,7 @@ public final class Promises {
 
     @Override public Promise<A> done(final Effect<? super A> e) {
       final BiConsumer<A, Throwable> action = (a, t) -> {
-        if (a != null) {
-          e.apply(a);
-        }
+        e.apply(a);
       };
       if (executor == null) {
         future.whenComplete(action);
@@ -303,14 +307,18 @@ public final class Promises {
     }
 
     @Override public Promise<A> recover(final Function<Throwable, ? extends A> handleThrowable) {
-      return forCompletionStage(future.exceptionally(handleThrowable));
+      return forCompletionStage(future.exceptionally(handleThrowable.compose(Promises::getRealException)));
     }
 
     @Override public <B> Promise<B> fold(final Function<Throwable, ? extends B> ft,
                                          final Function<? super A, ? extends B> fa) {
       final BiFunction<A, Throwable, B> fn = (a, t) -> {
         if (t == null) {
-          return fa.apply(a);
+          try {
+            return fa.apply(a);
+          } catch (final Throwable t2) {
+            return ft.apply(t2);
+          }
         }
         return ft.apply(getRealException(t));
       };
@@ -342,13 +350,6 @@ public final class Promises {
       return future.get(timeout, unit);
     }
 
-    private static Throwable getRealException(@Nonnull final Throwable t) {
-      if (t instanceof CompletionException) {
-        return t.getCause();
-      }
-      return t;
-    }
-
     private CompletableFuture<A> toCompletableFuture(final CompletionStage<A> completionStage, final Executor executor) {
       try {
         return completionStage.toCompletableFuture();
@@ -377,6 +378,13 @@ public final class Promises {
     return new AsynchronousEffect<>();
   }
 
+  private static Throwable getRealException(@Nonnull final Throwable t) {
+    if (t instanceof CompletionException) {
+      return t.getCause();
+    }
+    return t;
+  }
+
   private static final CompletionStageFactory factory = new CompletionStageFactory(null);
 
   public static final class AsynchronousEffect<A> {
@@ -385,7 +393,7 @@ public final class Promises {
 
     AsynchronousEffect() {};
 
-    public void apply(final A result) {
+    public void set(final A result) {
       simpleCompletionStage.complete(result);
     }
     public void exception(final Throwable t) {

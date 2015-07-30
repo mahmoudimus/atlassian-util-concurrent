@@ -95,7 +95,7 @@ public interface Promise<A> extends Future<A> {
    * Registers a FutureCallback to handle both success and failure (exception)
    * cases. May not be executed in the same thread as the caller.
    * <p>
-   * See {@link Promises#futureCallback(Effect, Effect)}
+   * See {@link Promises#callback(Effect, Effect)}
    * {@link Promises#onSuccessDo(Effect)} and
    * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
    * {@link Effect} into a {@link BiConsumer}
@@ -109,11 +109,7 @@ public interface Promise<A> extends Future<A> {
    * Transforms this {@link Promise} from one type to another by way of a
    * transformation function.
    * <p>
-   * Note: This is designed for cases in which the transformation is fast and
-   * lightweight, as the method is performed on the same thread as the thing
-   * producing this promise. For more details see the note on
-   * {@link com.google.common.util.concurrent.Futures#transform(Future, com.google.common.base.Function)}.
-   * 
+   *
    * @param function The transformation function
    * @return A new promise resulting from the transformation
    */
