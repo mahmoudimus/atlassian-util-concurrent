@@ -37,5 +37,5 @@ public interface ExecutorSubmitter extends Executor {
    * execution
    * @throws NullPointerException if the task is null
    */
-  <T> Promise<T> submit(Supplier<T> task);
+  <T> Promise<T> submitSupplier(Supplier<T> task);
 }

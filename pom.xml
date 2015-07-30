@@ -90,10 +90,9 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.guava-osgi</groupId>
-            <artifactId>guava-osgi</artifactId>
-            <version>${guava.osgi.version}</version>
-            <scope>provided</scope>
+            <groupId>net.javacrumbs.completion-stage</groupId>
+            <artifactId>completion-stage</artifactId>
+            <version>0.0.6</version>
         </dependency>
 
         <!-- Test dependencies -->

@@ -17,10 +17,8 @@ package com.atlassian.util.concurrent;
 
 import java.util.concurrent.Future;
 
-import com.google.common.annotations.Beta;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * A promise that presents a nicer interface to {@link Future}. It can be
@@ -66,7 +64,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * 
  * @since 2.4
  */
-@Beta public interface Promise<A> extends ListenableFuture<A> {
+public interface Promise<A> extends Future<A> {
   /**
    * Blocks the thread waiting for a result. Exceptions are thrown as runtime
    * exceptions.
@@ -100,12 +98,12 @@ import com.google.common.util.concurrent.ListenableFuture;
    * See {@link Promises#futureCallback(Effect, Effect)}
    * {@link Promises#onSuccessDo(Effect)} and
    * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
-   * {@link Effect} into a {@link FutureCallback}
+   * {@link Effect} into a {@link BiConsumer}
    * 
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<A> then(FutureCallback<? super A> callback);
+  Promise<A> then(Callback<? super A> callback);
 
   /**
    * Transforms this {@link Promise} from one type to another by way of a
@@ -154,4 +152,9 @@ import com.google.common.util.concurrent.ListenableFuture;
    * promise will not throw an exception (unless handleThrowable itself threw).
    */
   <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
+
+  interface Callback<A> {
+    void onSuccess(A result);
+    void onFailure(Throwable t);
+  }
 }

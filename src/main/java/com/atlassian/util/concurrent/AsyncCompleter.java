@@ -19,15 +19,13 @@ package com.atlassian.util.concurrent;
 import static com.atlassian.util.concurrent.Executors.limited;
 import static com.atlassian.util.concurrent.Suppliers.memoize;
 import static com.atlassian.util.concurrent.Timeout.getNanosTimeout;
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.transform;
 import static java.util.Objects.requireNonNull;
 
 import com.atlassian.util.concurrent.ExceptionPolicy.Policies;
 
 import net.jcip.annotations.ThreadSafe;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -42,6 +40,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Convenient encapsulation of {@link CompletionService} usage that allows a
@@ -119,9 +119,13 @@ import java.util.concurrent.TimeUnit;
     final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(executor));
     // we must copy the resulting Iterable<Supplier> so
     // each iteration doesn't resubmit the jobs
-    final Iterable<Supplier<T>> lazyAsyncSuppliers = copyOf(transform(callables, new AsyncCompletionFunction<>(apply, accessor)::apply));
-    final Iterable<Supplier<T>> handled = transform(lazyAsyncSuppliers, policy.<T> handler()::apply);
-    return filter(transform(handled, Functions.<T> fromSupplier()::apply), x -> x != null);
+    List<Supplier<T>> lazyAsyncSuppliers = StreamSupport.stream(callables.spliterator(), false).
+      map(new AsyncCompletionFunction<>(apply, accessor)::apply).collect(Collectors.toList());
+
+    return lazyAsyncSuppliers.stream().
+            map(policy.<T> handler()::apply).
+            map(Functions.<T> fromSupplier()::apply).
+            filter(x -> x != null).collect(Collectors.toList());
   }
 
   /**
@@ -143,8 +147,7 @@ import java.util.concurrent.TimeUnit;
     }
 
     /**
-     * Ignore exceptions thrown by any {@link com.google.common.util.concurrent.Callables}, note will cause nulls
-     * in the resulting iterable!
+     * Ignore exceptions thrown, note will cause nulls in the resulting iterable!
      */
     public Builder ignoreExceptions() {
       return handleExceptions(Policies.IGNORE_EXCEPTIONS);
