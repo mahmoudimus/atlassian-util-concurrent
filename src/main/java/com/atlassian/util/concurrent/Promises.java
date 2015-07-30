@@ -1,8 +1,5 @@
 package com.atlassian.util.concurrent;
 
-import net.javacrumbs.completionstage.CompletableCompletionStage;
-import net.javacrumbs.completionstage.CompletionStageFactory;
-
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
@@ -65,25 +62,13 @@ public final class Promises {
         Stream.of(Promises.toCompletableFuture(promise)), Stream.of(promises).map(Promises::toCompletableFuture)
       ).collect(Collectors.toList());
 
-    final CompletableFuture<?> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+    final CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     // short-circuit: eagerly cancel the futures if any of the leaves fail. Do not wait for the others.
     futures.forEach(cf -> cf.whenComplete((a, t) -> {
         if (t != null) futures.forEach(f -> f.cancel(true));
       }));
-
-    final CompletableCompletionStage<List<A>>  ccs = factory.createCompletionStage();
-    allFutures.whenComplete((a, t) -> {
-      if (t == null) {
-        ccs.doComplete(futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
-      } else {
-        ccs.completeExceptionally(t);
-      }
-    });
-    // if the returning promise is cancelled, eagerly cancel the futures.
-    ccs.whenComplete((a, t) -> {
-      if (t instanceof CancellationException) futures.forEach(f -> f.cancel(true));
-    });
-    return Promises.forCompletionStage(ccs);
+    final Function<Void, List<A>> gatherValues = o -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+    return Promises.forCompletionStage(allFutures.thenApply(gatherValues));
   }
 
   /**
@@ -375,7 +360,18 @@ public final class Promises {
   }
 
   public static <A> AsynchronousEffect<A> newAsynchronousEffect() {
-    return new AsynchronousEffect<>();
+    return new AsynchronousEffect<A>() {
+      private final CompletableFuture<A> completionStage = new CompletableFuture<>();
+      public void set(final A result) {
+        completionStage.complete(result);
+      }
+      public void exception(@Nonnull final Throwable t) {
+        completionStage.completeExceptionally(t);
+      }
+      public @Nonnull CompletionStage<A> getCompletionStage() {
+        return completionStage;
+      }
+    };
   }
 
   private static Throwable getRealException(@Nonnull final Throwable t) {
@@ -385,22 +381,9 @@ public final class Promises {
     return t;
   }
 
-  private static final CompletionStageFactory factory = new CompletionStageFactory(null);
-
-  public static final class AsynchronousEffect<A> {
-    private final CompletableCompletionStage<A> simpleCompletionStage =
-            factory.createCompletionStage();
-
-    AsynchronousEffect() {};
-
-    public void set(final A result) {
-      simpleCompletionStage.complete(result);
-    }
-    public void exception(final Throwable t) {
-      simpleCompletionStage.completeExceptionally(t);
-    }
-    CompletionStage<A> getCompletionStage() {
-      return simpleCompletionStage;
-    }
+  public interface AsynchronousEffect<A> {
+    void set(A result);
+    void exception(@Nonnull Throwable t);
+    @Nonnull CompletionStage<A> getCompletionStage();
   }
 }

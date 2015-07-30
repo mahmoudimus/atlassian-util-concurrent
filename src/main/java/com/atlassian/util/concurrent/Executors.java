@@ -4,9 +4,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
-import net.javacrumbs.completionstage.CompletableCompletionStage;
-import net.javacrumbs.completionstage.CompletionStageFactory;
-
 import javax.annotation.Nonnull;
 
 public final class Executors {
@@ -34,11 +31,9 @@ public final class Executors {
 
   static class DefaultSubmitter implements ExecutorSubmitter {
     private final Executor executor;
-    private final CompletionStageFactory completionStageFactory;
 
     DefaultSubmitter(final Executor executor) {
       this.executor = executor;
-      this.completionStageFactory = new CompletionStageFactory(executor);
     }
 
     @Override public void execute(@Nonnull final Runnable command) {
@@ -57,7 +52,7 @@ public final class Executors {
 
     class CallableRunner<T> implements Runnable, Supplier<Promise<T>> {
       final Callable<T> task;
-      final CompletableCompletionStage<T> future = completionStageFactory.createCompletionStage();
+      final Promises.AsynchronousEffect<T> future = Promises.newAsynchronousEffect();
 
       CallableRunner(Callable<T> task) {
         this.task = task;
@@ -65,14 +60,14 @@ public final class Executors {
 
       @Override public void run() {
         try {
-          future.complete(task.call());
+          future.set(task.call());
         } catch (Exception ex) {
-          future.completeExceptionally(ex);
+          future.exception(ex);
         }
       }
 
       @Override public Promise<T> get() {
-        return Promises.forCompletionStage(future);
+        return Promises.forEffect(future);
       }
     }
   }
