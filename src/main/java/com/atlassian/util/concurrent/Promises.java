@@ -1,8 +1,24 @@
+/**
+ * Copyright 2015 Atlassian Pty Ltd
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.atlassian.util.concurrent;
 
-import javax.annotation.Nonnull;
+import javax.annotation.*;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -14,30 +30,57 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class Promises {
 
   private Promises() {}
 
+  /**
+   * @param effect an {@link AsynchronousEffect} used as the precedent of the returned Promise.
+   * @param <A> type of the successful value.
+   * @return a new {@link Promise} that will be fulfilled with the same result that the AsynchronousEffect has.
+   */
   public static <A> Promise<A> forEffect(@Nonnull final AsynchronousEffect<A> effect) {
     Objects.requireNonNull(effect, "AsynchronousEffect");
-    return new OfStage<>(effect.getCompletionStage(), null);
+    return new OfStage<>(effect.getCompletionStage(), Optional.empty());
   }
 
+  /**
+   * @param future a {@link CompletionStage} used as the precedent of the returned Promise.
+   * @param <A> type of the successful value.
+   * @return a new {@link Promise} that will be fulfilled with the same result that the CompletionStage has.
+   */
   public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> future) {
     Objects.requireNonNull(future, "CompletionStage");
-    return new OfStage<>(future, null);
+    return new OfStage<>(future, Optional.empty());
   }
 
-  public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> future, @Nonnull final Executor executor) {
+  /**
+   * @param future a {@link CompletionStage} used as the precedent of the returned Promise.
+   * @param <A> type of the successful value.
+   * @param executor to be called to run callbacks and transformations attached to the returned Promise. If None,
+   *                 they will be executed on the caller thread.
+   * @return a new {@link Promise} that will be fulfilled with the same result that the CompletionStage has.
+   */
+  public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> future,
+                                                  @Nonnull final Optional<Executor> executor) {
     Objects.requireNonNull(future, "CompletionStage");
     Objects.requireNonNull(executor, "Executor");
     return new OfStage<>(future, executor);
   }
 
+  /**
+   *
+   * @param promise a {@link Promise} used as the precedent of the returned CompletableFuture.
+   * @param <B> any super type of A that may be inferred.
+   * @param <A> type of the successful value.
+   * @return a new {@link CompletableFuture} that will be fulfilled with the same result that the Promise has.
+   */
   public static <B, A extends B> CompletableFuture<B> toCompletableFuture(@Nonnull final Promise<A> promise) {
     if (promise instanceof OfStage) {
       //shortcut
@@ -56,17 +99,46 @@ public final class Promises {
     }
   }
 
-  public @SafeVarargs static <A> Promise<List<A>> when(Promise<? extends A> promise, Promise<? extends A>... promises) {
+  /**
+   * Returns a new {@link Promise} representing the status of a list of other
+   * promises.
+   *
+   * @param promises The promises that the new promise should track
+   * @return The new, aggregate promise
+   */
+  public @SafeVarargs static <A> Promise<List<A>> when(@Nonnull final Promise<? extends A>... promises) {
+    return when(Stream.of(promises));
+  }
+
+  /**
+   * Returns a new {@link Promise} representing the status of a list of other
+   * promises. More generally this is known as {code}sequence{code} as both List
+   * and Promise are traversable monads.
+   *
+   * @param promises The promises that the new promise should track
+   * @return The new, aggregate promise
+   */
+  public static <A> Promise<List<A>> when(@Nonnull final Iterable<? extends Promise<? extends A>> promises) {
+    return when(StreamSupport.stream(promises.spliterator(), false).map(Function.identity()));
+  }
+
+  /**
+   * Returns a new {@link Promise} representing the status of a stream of other
+   * promises.
+   *
+   * @param promises The promises that the new promise should track
+   * @return The new, aggregate promise
+   */
+
+  public static <A> Promise<List<A>> when(@Nonnull final Stream<? extends Promise<? extends A>> promises) {
     final List<CompletableFuture<? extends A>> futures =
-      Stream.concat(
-        Stream.of(Promises.toCompletableFuture(promise)), Stream.of(promises).map(Promises::toCompletableFuture)
-      ).collect(Collectors.toList());
+            promises.map(Promises::toCompletableFuture).collect(Collectors.toList());
 
     final CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     // short-circuit: eagerly cancel the futures if any of the leaves fail. Do not wait for the others.
     futures.forEach(cf -> cf.whenComplete((a, t) -> {
-        if (t != null) futures.forEach(f -> f.cancel(true));
-      }));
+      if (t != null) futures.forEach(f -> f.cancel(true));
+    }));
     final Function<Void, List<A>> gatherValues = o -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
     return Promises.forCompletionStage(allFutures.thenApply(gatherValues));
   }
@@ -79,11 +151,11 @@ public final class Promises {
    * @since 2.7
    */
   public static <A> Function<A, Promise<A>> toPromise() {
-    return new ToPromise<A>();
+    return new ToPromise<>();
   }
 
   static class ToPromise<A> implements Function<A, Promise<A>> {
-    @Override public Promise<A> apply(A a) {
+    @Override public Promise<A> apply(final A a) {
       return promise(a);
     }
   }
@@ -96,7 +168,7 @@ public final class Promises {
    * @param value The value for which a promise should be created
    * @return The new promise
    */
-  public static <A> Promise<A> toResolvedPromise(A value) {
+  public static <A> Promise<A> toResolvedPromise(final A value) {
     return promise(value);
   }
 
@@ -106,7 +178,7 @@ public final class Promises {
    * @param value The value for which a promise should be created
    * @return The new promise
    */
-  public static <A> Promise<A> promise(A value) {
+  public static <A> Promise<A> promise(final A value) {
     final CompletableFuture<A> future = new CompletableFuture<>();
     future.complete(value);
     return Promises.forCompletionStage(future);
@@ -115,12 +187,12 @@ public final class Promises {
    * Creates a new, rejected promise from the given {@link Throwable} and result
    * type.
    *
-   * @param throwable The throwable
+   * @param t The throwable
    * @return The new promise
    */
-  public static <A> Promise<A> rejected(final Throwable throwable) {
+  public static <A> Promise<A> rejected(@Nonnull final Throwable t) {
     final CompletableFuture<A> future = new CompletableFuture<>();
-    future.completeExceptionally(throwable);
+    future.completeExceptionally(t);
     return Promises.forCompletionStage(future);
   }
 
@@ -132,7 +204,7 @@ public final class Promises {
    * @param t The throwable
    * @return The new promise
    */
-  public static <A> Promise<A> toRejectedPromise(Throwable t) {
+  public static <A> Promise<A> toRejectedPromise(@Nonnull final Throwable t) {
     return rejected(t);
   }
 
@@ -142,7 +214,8 @@ public final class Promises {
    * @param future The future delegate for the new promise
    * @return The new promise
    */
-  public static <A> Promise<A> forFuture(Future<A> future, Executor executor) {
+  public static <A> Promise<A> forFuture(@Nonnull final Future<A> future,
+                                         @Nonnull final Executor executor) {
     final CompletableFuture<A> newFuture = new CompletableFuture<>();
     executor.execute(() -> {
       try {
@@ -160,7 +233,7 @@ public final class Promises {
         future.cancel(true);
       }
     });
-    return forCompletionStage(newFuture, executor);
+    return forCompletionStage(newFuture, Optional.of(executor));
   }
 
 
@@ -171,10 +244,11 @@ public final class Promises {
    * @param failure To run if the Future fails
    * @return The composed futureCallback
    */
-  public static <A> Promise.Callback<A> callback(final Effect<? super A> success, final Effect<Throwable> failure) {
+  public static <A> Promise.Callback<A> callback(@Nonnull final Effect<? super A> success,
+                                                 @Nonnull final Effect<Throwable> failure) {
     return new Promise.Callback<A>() {
-      public void onSuccess(A result) { success.apply(result); }
-      public void onFailure(Throwable t) { failure.apply(t); }
+      public void onSuccess(final A result) { success.apply(result); }
+      public void onFailure(@Nonnull final Throwable t) { failure.apply(t); }
     };
   }
 
@@ -185,8 +259,8 @@ public final class Promises {
    * @param effect To be passed the produced value if it happens
    * @return The FutureCallback with a no-op onFailure
    */
-  public static <A> Promise.Callback<A> onSuccessDo(final Effect<? super A> effect) {
-    return callback(effect, Effects.<Throwable> noop());
+  public static <A> Promise.Callback<A> onSuccessDo(@Nonnull final Effect<? super A> effect) {
+    return callback(effect, Effects.noop());
   }
 
   /**
@@ -196,17 +270,17 @@ public final class Promises {
    * @param effect To be passed an exception if it happens
    * @return The FutureCallback with a no-op onSuccess
    */
-  public static <A> Promise.Callback<A> onFailureDo(final Effect<Throwable> effect) {
+  public static <A> Promise.Callback<A> onFailureDo(@Nonnull final Effect<Throwable> effect) {
     return callback(Effects.<A> noop(), effect);
   }
 
   static final class OfStage<A> implements Promise<A> {
 
     private final CompletableFuture<A> future;
-    private final Executor executor;
+    private final Optional<Executor> executor;
 
-    public OfStage(final CompletionStage<A> delegate, final Executor ex) {
-      future = toCompletableFuture(delegate, ex);
+    public OfStage(@Nonnull final CompletionStage<A> delegate, @Nonnull final Optional<Executor> ex) {
+      future = buildCompletableFuture(delegate, ex);
       executor = ex;
     }
 
@@ -237,45 +311,16 @@ public final class Promises {
     }
 
     @Override public Promise<A> done(final Effect<? super A> e) {
-      final BiConsumer<A, Throwable> action = (a, t) -> {
-        e.apply(a);
-      };
-      if (executor == null) {
-        future.whenComplete(action);
-      } else {
-        future.whenCompleteAsync(action, executor);
-      }
-      return this;
+      return then(onSuccessDo(e));
     }
 
     @Override public Promise<A> fail(final Effect<Throwable> e) {
-      final BiConsumer<A, Throwable> action = (a, t) -> {
-        if (t != null) {
-            e.apply(getRealException(t));
-          }
-       };
-      if (executor == null) {
-        future.whenComplete(action);
-      } else {
-        future.whenCompleteAsync(action, executor);
-      }
-      return this;
+      return then(onFailureDo(e));
     }
 
     @Override public Promise<A> then(final Callback<? super A> callback) {
-      final BiConsumer<A, Throwable> action = (a, t) -> {
-        if (t == null) {
-          callback.onSuccess(a);
-        } else {
-          callback.onFailure(getRealException(t));
-        }
-      };
-      if (executor == null) {
-        future.whenComplete(action);
-      } else {
-        future.whenCompleteAsync(action, executor);
-      }
-      return this;
+      return this.newPromise(future::whenComplete, future::whenCompleteAsync).apply(
+              biConsumer(callback::onSuccess, callback::onFailure));
     }
 
     @Override public <B> Promise<B> map(final Function<? super A, ? extends B> function) {
@@ -283,12 +328,8 @@ public final class Promises {
     }
 
     @Override public <B> Promise<B> flatMap(final Function<? super A, ? extends Promise<? extends B>> f) {
-      final java.util.function.Function<A, ? extends CompletionStage<B>> fn = a -> Promises.toCompletableFuture(f.apply(a));
-      if (executor == null) {
-        return forCompletionStage(future.thenCompose(fn));
-      } else {
-        return forCompletionStage(future.thenComposeAsync(fn, executor));
-      }
+      final Function<A, CompletableFuture<B>> fn = a -> Promises.toCompletableFuture(f.apply(a));
+      return this.<Function<A, ? extends CompletionStage<B>>, B>newPromise(future::thenCompose, future::thenComposeAsync).apply(fn);
     }
 
     @Override public Promise<A> recover(final Function<Throwable, ? extends A> handleThrowable) {
@@ -297,21 +338,14 @@ public final class Promises {
 
     @Override public <B> Promise<B> fold(final Function<Throwable, ? extends B> ft,
                                          final Function<? super A, ? extends B> fa) {
-      final BiFunction<A, Throwable, B> fn = (a, t) -> {
-        if (t == null) {
-          try {
-            return fa.apply(a);
-          } catch (final Throwable t2) {
-            return ft.apply(t2);
-          }
+      final Function<? super A, ? extends B> fn = a -> {
+        try {
+          return fa.apply(a);
+        } catch (final Throwable t) {
+          return ft.apply(t);
         }
-        return ft.apply(getRealException(t));
       };
-      if (executor == null) {
-        return forCompletionStage(future.handle(fn));
-      } else {
-        return forCompletionStage(future.handleAsync(fn, executor));
-      }
+      return this.<BiFunction<A, Throwable, B>, B>newPromise(future::handle, future::handleAsync).apply(biFunction(fn, ft));
     }
 
     @Override public boolean cancel(final boolean mayInterruptIfRunning) {
@@ -335,24 +369,29 @@ public final class Promises {
       return future.get(timeout, unit);
     }
 
-    private CompletableFuture<A> toCompletableFuture(final CompletionStage<A> completionStage, final Executor executor) {
+    private <I, O> Function<I, Promise<O>> newPromise(final Function<I, CompletionStage<O>> f1,
+                                                      final BiFunction<I, Executor, CompletionStage<O>> f2) {
+      return i -> {
+        if (executor.isPresent()) {
+          return forCompletionStage(f2.apply(i, executor.get()));
+        } else {
+          return forCompletionStage(f1.apply(i));
+        }
+      };
+    }
+
+    private CompletableFuture<A> buildCompletableFuture(final CompletionStage<A> completionStage,
+                                                     final Optional<Executor> executor) {
       try {
         return completionStage.toCompletableFuture();
-      } catch (UnsupportedOperationException uoe) {
+      } catch (final UnsupportedOperationException uoe) {
         final CompletableFuture<A> aCompletableFuture = new CompletableFuture<>();
 
-        BiConsumer<A, Throwable> action = (a, t) -> {
-          if (t == null) {
-            aCompletableFuture.complete(a);
-          } else {
-            // If t is instance of CancellationException, aCompletableFuture will be set as cancelled.
-            aCompletableFuture.completeExceptionally(getRealException(t));
-          }
-        };
-        if (executor == null) {
-          completionStage.whenComplete(action);
+        BiConsumer<A, Throwable> action = biConsumer(aCompletableFuture::complete, aCompletableFuture::completeExceptionally);
+        if (executor.isPresent()) {
+          completionStage.whenCompleteAsync(action, executor.get());
         } else {
-          completionStage.whenCompleteAsync(action, executor);
+          completionStage.whenComplete(action);
         }
         return aCompletableFuture;
       }
@@ -381,6 +420,32 @@ public final class Promises {
     return t;
   }
 
+  private static <A, B> BiFunction<A, Throwable, B> biFunction(final Function<? super A, ? extends B> f,
+                                                               final Function<Throwable, ? extends B> ft) {
+    return (a, t) -> {
+      if (t == null) {
+        return f.apply(a);
+      } else {
+        return ft.apply(getRealException(t));
+      }
+    };
+  }
+
+  private static <A> BiConsumer<A, Throwable> biConsumer(final Consumer<? super A> c, final Consumer<Throwable> ct) {
+    return (a, t) -> {
+      if (t == null) {
+        c.accept(a);
+      } else {
+        ct.accept(getRealException(t));
+      }
+    };
+  }
+
+
+  /**
+   * A callback-styled effect that can be completed with a successful value or a failed exception.
+   * @param <A> type of the successful value.
+   */
   public interface AsynchronousEffect<A> {
     void set(A result);
     void exception(@Nonnull Throwable t);

@@ -15,6 +15,7 @@
  */
 package com.atlassian.util.concurrent;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Future;
 
 import java.util.function.BiConsumer;
@@ -149,8 +150,12 @@ public interface Promise<A> extends Future<A> {
    */
   <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 
+  /**
+   * Callback interface to be called after a promise is fulfilled.
+   * @param <A> type of the successful value.
+   */
   interface Callback<A> {
-    void onSuccess(A result);
-    void onFailure(Throwable t);
+    void onSuccess(A value);
+    void onFailure(@Nonnull Throwable t);
   }
 }

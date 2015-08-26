@@ -22,7 +22,7 @@ package com.atlassian.util.concurrent;
  * 
  * @since 2.4
  */
-public interface Effect<A> {
+public @FunctionalInterface interface Effect<A> {
   /**
    * Perform the side-effect.
    */
@@ -33,7 +33,7 @@ public interface Effect<A> {
    * 
    * @param <A> the type of thing to supply to the effect.
    */
-  public interface Applicant<A> {
+  interface Applicant<A> {
     /**
      * Perform the given side-effect for each contained element.
      */

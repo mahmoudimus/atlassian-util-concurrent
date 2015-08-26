@@ -2,6 +2,7 @@ package com.atlassian.util.concurrent;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
@@ -54,7 +55,7 @@ public class PromiseTest {
     }, i -> {
       throw new RuntimeException("I lied!");
     }).fail(failEffect);
-
+    assertNotNull(failEffect.throwable.getCause());
     assertThat(failEffect.throwable.getCause().getMessage(), is("I lied!"));
   }
 

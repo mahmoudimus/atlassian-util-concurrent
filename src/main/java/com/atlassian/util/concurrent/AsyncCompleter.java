@@ -127,9 +127,9 @@ import java.util.stream.StreamSupport;
 
     return new Iterable<T>() {
       private Stream<T> newStream() {
-        return lazyAsyncSuppliers.stream().
-                map(policy.<T> handler()).
-                map(Functions.<T> fromSupplier())
+        return lazyAsyncSuppliers.stream()
+                .map(policy.<T> handler())
+                .map(Functions.<T> fromSupplier())
                 .filter(x -> x != null);
       }
       @Override public Iterator<T> iterator() {
