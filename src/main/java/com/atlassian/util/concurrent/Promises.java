@@ -44,6 +44,7 @@ public final class Promises {
    * @param effect an {@link AsynchronousEffect} used as the precedent of the returned Promise.
    * @param <A> type of the successful value.
    * @return a new {@link Promise} that will be fulfilled with the same result that the AsynchronousEffect has.
+   * Cancelling this Promise will have no consequence on the code used to complete the effect.
    */
   public static <A> Promise<A> forEffect(@Nonnull final AsynchronousEffect<A> effect) {
     Objects.requireNonNull(effect, "AsynchronousEffect");
@@ -51,27 +52,31 @@ public final class Promises {
   }
 
   /**
-   * @param future a {@link CompletionStage} used as the precedent of the returned Promise.
+   * @param stage a {@link CompletionStage} used as the precedent of the returned Promise.
    * @param <A> type of the successful value.
    * @return a new {@link Promise} that will be fulfilled with the same result that the CompletionStage has.
+   * If it implements {@link CompletionStage#toCompletableFuture()} then cancelling this Promise will
+   * cancel that CompletableFuture.
    */
-  public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> future) {
-    Objects.requireNonNull(future, "CompletionStage");
-    return new OfStage<>(future, Optional.empty());
+  public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> stage) {
+    Objects.requireNonNull(stage, "CompletionStage");
+    return new OfStage<>(stage, Optional.empty());
   }
 
   /**
-   * @param future a {@link CompletionStage} used as the precedent of the returned Promise.
+   * @param stage a {@link CompletionStage} used as the precedent of the returned Promise.
    * @param <A> type of the successful value.
    * @param executor to be called to run callbacks and transformations attached to the returned Promise. If None,
    *                 they will be executed on the caller thread.
    * @return a new {@link Promise} that will be fulfilled with the same result that the CompletionStage has.
+   * If it implements {@link CompletionStage#toCompletableFuture()} then cancelling this Promise will
+   * cancel that CompletableFuture.
    */
-  public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> future,
+  public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> stage,
                                                   @Nonnull final Optional<Executor> executor) {
-    Objects.requireNonNull(future, "CompletionStage");
+    Objects.requireNonNull(stage, "CompletionStage");
     Objects.requireNonNull(executor, "Executor");
-    return new OfStage<>(future, executor);
+    return new OfStage<>(stage, executor);
   }
 
   /**
@@ -238,17 +243,30 @@ public final class Promises {
 
 
   /**
-   * Create a {@link Promise.Callback} by composing two Effects.
+   * Create a {@link Promise.Callback} by composing two {@link Effect}.
    *
    * @param success To run if the Future is successful
    * @param failure To run if the Future fails
-   * @return The composed futureCallback
+   * @return The composed Callback
    */
   public static <A> Promise.Callback<A> callback(@Nonnull final Effect<? super A> success,
                                                  @Nonnull final Effect<Throwable> failure) {
     return new Promise.Callback<A>() {
       public void onSuccess(final A result) { success.apply(result); }
       public void onFailure(@Nonnull final Throwable t) { failure.apply(t); }
+    };
+  }
+
+  /**
+   * Create a {@link Promise.Callback} that will delegate to an {@link AsynchronousEffect}.
+   *
+   * @param effect To fulfill
+   * @return a Callback that transmits values.
+   */
+  public static <A> Promise.Callback<A> callback(@Nonnull final AsynchronousEffect<? super A> effect) {
+    return new Promise.Callback<A>() {
+      public void onSuccess(final A result) { effect.set(result); }
+      public void onFailure(@Nonnull final Throwable t) { effect.exception(t); }
     };
   }
 
@@ -381,7 +399,7 @@ public final class Promises {
     }
 
     private CompletableFuture<A> buildCompletableFuture(final CompletionStage<A> completionStage,
-                                                     final Optional<Executor> executor) {
+                                                        final Optional<Executor> executor) {
       try {
         return completionStage.toCompletableFuture();
       } catch (final UnsupportedOperationException uoe) {

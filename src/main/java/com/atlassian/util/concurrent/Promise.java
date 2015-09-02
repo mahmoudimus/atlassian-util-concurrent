@@ -62,7 +62,10 @@ import java.util.function.Function;
  * <p>
  * Note that there are a number of handy utility functions for creating
  * <code>Promise</code> objects on the {@link Promises} companion.
- * 
+ * <p>
+ * Cancelling a Promise that hasn't yet been completed will do it with a
+ * {@link java.util.concurrent.CancellationException} and that will propagate to
+ * dependent Promises. But cancelling a dependent Promise will not cancel the original one.
  * @since 2.4
  */
 public interface Promise<A> extends Future<A> {
