@@ -26,7 +26,7 @@ public final class Lazy {
    * @return a supplier
    */
   public static <T> Supplier<T> supplier(final Supplier<T> factory) {
-    return new Strong<T>(factory);
+    return new Strong<>(factory);
   }
 
   /**
@@ -40,7 +40,7 @@ public final class Lazy {
    * @return a supplier
    */
   public static <T> Supplier<T> timeToLive(final Supplier<T> factory, final long time, final TimeUnit unit) {
-    return new Expiring<T>(factory, () -> new TimeToLive(getNanosTimeout(time, unit)));
+    return new Expiring<>(factory, () -> new TimeToLive(getNanosTimeout(time, unit)));
   }
 
   /**
@@ -54,7 +54,7 @@ public final class Lazy {
    * @return a supplier
    */
   public static <T> Supplier<T> timeToIdle(final Supplier<T> factory, final long time, final TimeUnit unit) {
-    return new Expiring<T>(factory, () -> new TimeToIdle(timeoutFactory(time, unit, NANOS)));
+    return new Expiring<>(factory, () -> new TimeToIdle(timeoutFactory(time, unit, NANOS)));
   }
 
   /**

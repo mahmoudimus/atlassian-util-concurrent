@@ -31,6 +31,7 @@ public final class Functions {
    * @return the function
    */
   public static <D, R> Function<D, R> fromSupplier(final @NotNull Supplier<R> supplier) {
+    requireNonNull(supplier, "supplier");
     return d -> supplier.get();
   }
 
