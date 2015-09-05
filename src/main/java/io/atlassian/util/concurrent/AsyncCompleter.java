@@ -238,7 +238,7 @@ import java.util.stream.StreamSupport;
     public Supplier<T> apply(final Callable<T> task) {
       accessor.register(completionService.submit(task));
       // never call get twice as it gets a new element from the queue
-      return memoize(nextCompleteItem.get());
+      return memoize(nextCompleteItem::get);
     }
   }
 
