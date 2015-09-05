@@ -107,7 +107,7 @@ public class AsyncCompleterTest {
     assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(asList(callable), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
   }
 
-  @Test(expected = RuntimeTimeoutException.class) public void callableTimedOutBeforeCompleting() {
+  @Test(expected = LazyReference.InitializationException.class) public void callableTimedOutBeforeCompleting() {
     final CountDownLatch latch = new CountDownLatch(1);
     try {
       new AsyncCompleter.Builder(new NaiveExecutor()).build().invokeAll(asList(() -> {
@@ -150,7 +150,7 @@ public class AsyncCompleterTest {
    * to ensure that we complain bitterly inside atlassian-util-concurrent if
    * this happens
    */
-  @Test(expected = IllegalArgumentException.class) public void errorWhenGivenBadCompletionService() {
+  @Test(expected = LazyReference.InitializationException.class) public void errorWhenGivenBadCompletionService() {
     final AsyncCompleter completion = new AsyncCompleter.Builder(new NaiveExecutor())
       .completionServiceFactory(new CancellingCompletionServiceFactory()).checkCompletionServiceFutureIdentity().build();
 

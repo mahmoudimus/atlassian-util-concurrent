@@ -17,6 +17,8 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org/).
 - replaced Guava's Supplier, Function, etc with Java 8 equivalents.
 - replace Promise based on Guava's asynchronous classes (ListenableFuture, FutureCallback) with a Promise based on Java 8's CompletableFuture.
 - LazyReference no longer extends com.google.common.base.Supplier.
+- AsyncCompleter now relies on Lazy#supplier to memoize results internally. This changes any exceptions generated when capturing the initial value to
+be wrapped by LazyReference.InitializationException instead of directly thrown
 
 ### Removed
 - Dependency on Guava library.

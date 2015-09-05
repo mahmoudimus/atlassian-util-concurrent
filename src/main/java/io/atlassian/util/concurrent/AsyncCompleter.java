@@ -17,6 +17,7 @@
 package io.atlassian.util.concurrent;
 
 import static io.atlassian.util.concurrent.Executors.limited;
+import static io.atlassian.util.concurrent.Lazy.supplier;
 import static io.atlassian.util.concurrent.Suppliers.memoize;
 import static io.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static java.util.Objects.requireNonNull;
@@ -238,7 +239,7 @@ import java.util.stream.StreamSupport;
     public Supplier<T> apply(final Callable<T> task) {
       accessor.register(completionService.submit(task));
       // never call get twice as it gets a new element from the queue
-      return memoize(nextCompleteItem::get);
+      return supplier(nextCompleteItem::get);
     }
   }
 

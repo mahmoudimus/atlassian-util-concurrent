@@ -69,45 +69,6 @@ public final class Suppliers {
     }
   }
 
-
-  /**
-   * Build a supplier that stores it's value on during the first call to {@link Supplier#get}. Any repeated calls to
-   * get will return the same value. The resulting supplier is thread safe.
-   *
-   * @param s base supplier to memoize
-   * @param <A> return type of the base supplier
-   * @return a memoized supplier
-   */
-  static <A> Supplier<A> memoize(Supplier<A> s) {
-    return s instanceof MemoizedSupplier ? s : new MemoizedSupplier<>(s);
-  }
-
-  static class MemoizedSupplier<A> implements java.util.function.Supplier<A> {
-
-    Supplier<A> s;
-    // guards the visibility of value across threads
-    volatile boolean initialized = false;
-    A value;
-
-    public MemoizedSupplier(java.util.function.Supplier<A> s){
-      Objects.requireNonNull(s);
-      this.s = s;
-    }
-    @Override
-    public A get() {
-      if(!initialized){
-        synchronized (this){
-          if(!initialized){
-            value = s.get();
-            initialized = true;
-            return value;
-          }
-        }
-      }
-      return value;
-    }
-  }
-
   // /CLOVER:OFF
   private Suppliers() {
     throw new AssertionError("cannot instantiate!");
