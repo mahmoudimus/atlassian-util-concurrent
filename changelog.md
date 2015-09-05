@@ -12,10 +12,11 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org/).
 - Documentation on Promise cancellations.
 
 ### Changed
+- Base package changed from com to io to facilitate compatibility.
 - code formatting to comply to java 8 style.
-- methods that were overloaded to accept both a Callable and a Supplier have been changed to receive only one or the other, so that lambdas compile unambiguously.
-- replaced Guava's Supplier, Function, etc with Java 8 equivalents.
-- replace Promise based on Guava's asynchronous classes (ListenableFuture, FutureCallback) with a Promise based on Java 8's CompletableFuture.
+- Methods that were overloaded to accept both a Callable and a Supplier have been changed to receive only one or the other, so that lambdas compile unambiguously.
+- Replaced Guava's Supplier, Function, etc with Java 8 equivalents.
+- Replace Promise based on Guava's asynchronous classes (ListenableFuture, FutureCallback) with a Promise based on Java 8's CompletableFuture.
 - LazyReference no longer extends com.google.common.base.Supplier.
 - AsyncCompleter now relies on Lazy#supplier to memoize results internally. This changes any exceptions generated when capturing the initial value to
 be wrapped by LazyReference.InitializationException instead of directly thrown
