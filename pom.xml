@@ -89,12 +89,6 @@
             <version>1.0</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>com.googlecode.guava-osgi</groupId>
-            <artifactId>guava-osgi</artifactId>
-            <version>${guava.osgi.version}</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

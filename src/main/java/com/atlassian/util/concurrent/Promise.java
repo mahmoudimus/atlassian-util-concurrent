@@ -15,12 +15,11 @@
  */
 package com.atlassian.util.concurrent;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Future;
 
-import com.google.common.annotations.Beta;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * A promise that presents a nicer interface to {@link Future}. It can be
@@ -63,10 +62,13 @@ import com.google.common.util.concurrent.ListenableFuture;
  * <p>
  * Note that there are a number of handy utility functions for creating
  * <code>Promise</code> objects on the {@link Promises} companion.
- * 
+ * <p>
+ * Cancelling a Promise that hasn't yet been completed will do it with a
+ * {@link java.util.concurrent.CancellationException} and that will propagate to
+ * dependent Promises. But cancelling a dependent Promise will not cancel the original one.
  * @since 2.4
  */
-@Beta public interface Promise<A> extends ListenableFuture<A> {
+public interface Promise<A> extends Future<A> {
   /**
    * Blocks the thread waiting for a result. Exceptions are thrown as runtime
    * exceptions.
@@ -97,25 +99,21 @@ import com.google.common.util.concurrent.ListenableFuture;
    * Registers a FutureCallback to handle both success and failure (exception)
    * cases. May not be executed in the same thread as the caller.
    * <p>
-   * See {@link Promises#futureCallback(Effect, Effect)}
+   * See {@link Promises#callback(Effect, Effect)}
    * {@link Promises#onSuccessDo(Effect)} and
    * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
-   * {@link Effect} into a {@link FutureCallback}
+   * {@link Effect} into a {@link BiConsumer}
    * 
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<A> then(FutureCallback<? super A> callback);
+  Promise<A> then(Callback<? super A> callback);
 
   /**
    * Transforms this {@link Promise} from one type to another by way of a
    * transformation function.
    * <p>
-   * Note: This is designed for cases in which the transformation is fast and
-   * lightweight, as the method is performed on the same thread as the thing
-   * producing this promise. For more details see the note on
-   * {@link com.google.common.util.concurrent.Futures#transform(Future, com.google.common.base.Function)}.
-   * 
+   *
    * @param function The transformation function
    * @return A new promise resulting from the transformation
    */
@@ -154,4 +152,13 @@ import com.google.common.util.concurrent.ListenableFuture;
    * promise will not throw an exception (unless handleThrowable itself threw).
    */
   <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
+
+  /**
+   * Callback interface to be called after a promise is fulfilled.
+   * @param <A> type of the successful value.
+   */
+  interface Callback<A> {
+    void onSuccess(A value);
+    void onFailure(@Nonnull Throwable t);
+  }
 }

@@ -4,7 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
-import com.google.common.util.concurrent.SettableFuture;
+import javax.annotation.Nonnull;
 
 public final class Executors {
   /**
@@ -32,11 +32,11 @@ public final class Executors {
   static class DefaultSubmitter implements ExecutorSubmitter {
     private final Executor executor;
 
-    DefaultSubmitter(Executor executor) {
+    DefaultSubmitter(final Executor executor) {
       this.executor = executor;
     }
 
-    @Override public void execute(Runnable command) {
+    @Override public void execute(@Nonnull final Runnable command) {
       executor.execute(command);
     }
 
@@ -46,13 +46,13 @@ public final class Executors {
       return runner.get();
     }
 
-    @Override public <T> Promise<T> submit(Supplier<T> supplier) {
+    @Override public <T> Promise<T> submitSupplier(final Supplier<T> supplier) {
       return submit(Suppliers.toCallable(supplier));
     }
 
-    static class CallableRunner<T> implements Runnable, Supplier<Promise<T>> {
+    class CallableRunner<T> implements Runnable, Supplier<Promise<T>> {
       final Callable<T> task;
-      final SettableFuture<T> future = SettableFuture.create();
+      final Promises.AsynchronousEffect<T> future = Promises.newAsynchronousEffect();
 
       CallableRunner(Callable<T> task) {
         this.task = task;
@@ -62,12 +62,12 @@ public final class Executors {
         try {
           future.set(task.call());
         } catch (Exception ex) {
-          future.setException(ex);
+          future.exception(ex);
         }
       }
 
       @Override public Promise<T> get() {
-        return Promises.forListenableFuture(future);
+        return Promises.forEffect(future);
       }
     }
   }
