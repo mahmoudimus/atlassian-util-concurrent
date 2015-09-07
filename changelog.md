@@ -20,6 +20,7 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org/).
 - LazyReference no longer extends com.google.common.base.Supplier.
 - AsyncCompleter now relies on Lazy#supplier to memoize results internally. This changes any exceptions generated when capturing the initial value to
 be wrapped by LazyReference.InitializationException instead of directly thrown
+- Promises#forFuture now takes an explicit executor parameter.
 
 ### Removed
 - Dependency on Guava library.

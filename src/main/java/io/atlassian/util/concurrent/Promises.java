@@ -214,9 +214,13 @@ public final class Promises {
   }
 
   /**
+   *
+   /**
    * Creates a promise from the given future.
    *
    * @param future The future delegate for the new promise
+   * @param executor an executor where a task will run that waits for the future to complete
+   * @param <A> possible future value type
    * @return The new promise
    */
   public static <A> Promise<A> forFuture(@Nonnull final Future<A> future,
