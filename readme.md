@@ -19,7 +19,7 @@ Issues are tracked [here](https://bitbucket.org/atlassian/atlassian-util-concurr
 
 ## Getting atlassian-util-concurrent
 
-Add fugue as a dependency to your pom.xml:
+Add atlassian-util-concurrent as a dependency to your pom.xml:
 
     <dependencies>
         ...
@@ -31,9 +31,9 @@ Add fugue as a dependency to your pom.xml:
         ...
     </dependencies>
 
-For Gradle add fugue as a dependency to your `dependencies` section:
+For Gradle add atlassian-util-concurrent as a dependency to your `dependencies` section:
 
-    compile 'io.atlassian.fugue:fugue:3.0.0'
+    compile 'io.atlassian.util.concurrent:atlassian-util-concurrent:4.0.0'
 
 ## Contributors
 
