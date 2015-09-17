@@ -15,7 +15,8 @@
  */
 package io.atlassian.util.concurrent;
 
-import javax.annotation.*;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -151,35 +152,6 @@ public final class Promises {
   /**
    * Creates a new, resolved promise for the specified concrete value.
    *
-   * @return The new promise
-   *
-   * @since 2.7
-   */
-  public static <A> Function<A, Promise<A>> toPromise() {
-    return new ToPromise<>();
-  }
-
-  static class ToPromise<A> implements Function<A, Promise<A>> {
-    @Override public Promise<A> apply(final A a) {
-      return promise(a);
-    }
-  }
-
-  /**
-   * Creates a new, resolved promise for the specified concrete value.
-   * <p>
-   * Synonym for {@link #promise(Object)}.
-   *
-   * @param value The value for which a promise should be created
-   * @return The new promise
-   */
-  public static <A> Promise<A> toResolvedPromise(final A value) {
-    return promise(value);
-  }
-
-  /**
-   * Creates a new, resolved promise for the specified concrete value.
-   *
    * @param value The value for which a promise should be created
    * @return The new promise
    */
@@ -199,18 +171,6 @@ public final class Promises {
     final CompletableFuture<A> future = new CompletableFuture<>();
     future.completeExceptionally(t);
     return Promises.forCompletionStage(future);
-  }
-
-  /**
-   * Creates a new, rejected promise from the given Throwable and result type.
-   * <p>
-   * Synonym for {@link #rejected(Throwable)}
-   *
-   * @param t The throwable
-   * @return The new promise
-   */
-  public static <A> Promise<A> toRejectedPromise(@Nonnull final Throwable t) {
-    return rejected(t);
   }
 
   /**
@@ -247,17 +207,17 @@ public final class Promises {
 
 
   /**
-   * Create a {@link Promise.Callback} by composing two {@link Effect}.
+   * Create a {@link Promise.Callback} by composing two {@link Consumer}.
    *
    * @param success To run if the Future is successful
    * @param failure To run if the Future fails
    * @return The composed Callback
    */
-  public static <A> Promise.Callback<A> callback(@Nonnull final Effect<? super A> success,
-                                                 @Nonnull final Effect<Throwable> failure) {
+  public static <A> Promise.Callback<A> callback(@Nonnull final Consumer<? super A> success,
+                                                 @Nonnull final Consumer<Throwable> failure) {
     return new Promise.Callback<A>() {
-      public void onSuccess(final A result) { success.apply(result); }
-      public void onFailure(@Nonnull final Throwable t) { failure.apply(t); }
+      public void onSuccess(final A result) { success.accept(result); }
+      public void onFailure(@Nonnull final Throwable t) { failure.accept(t); }
     };
   }
 
@@ -281,8 +241,8 @@ public final class Promises {
    * @param effect To be passed the produced value if it happens
    * @return The FutureCallback with a no-op onFailure
    */
-  public static <A> Promise.Callback<A> onSuccessDo(@Nonnull final Effect<? super A> effect) {
-    return callback(effect, Effects.noop());
+  public static <A> Promise.Callback<A> onSuccessDo(@Nonnull final Consumer<? super A> effect) {
+    return callback(effect, t -> {});
   }
 
   /**
@@ -292,8 +252,8 @@ public final class Promises {
    * @param effect To be passed an exception if it happens
    * @return The FutureCallback with a no-op onSuccess
    */
-  public static <A> Promise.Callback<A> onFailureDo(@Nonnull final Effect<Throwable> effect) {
-    return callback(Effects.<A> noop(), effect);
+  public static <A> Promise.Callback<A> onFailureDo(@Nonnull final Consumer<Throwable> effect) {
+    return callback(a -> {}, effect);
   }
 
   static final class OfStage<A> implements Promise<A> {
@@ -332,11 +292,11 @@ public final class Promises {
       }
     }
 
-    @Override public Promise<A> done(final Effect<? super A> e) {
+    @Override public Promise<A> done(final Consumer<? super A> e) {
       return then(onSuccessDo(e));
     }
 
-    @Override public Promise<A> fail(final Effect<Throwable> e) {
+    @Override public Promise<A> fail(final Consumer<Throwable> e) {
       return then(onFailureDo(e));
     }
 
@@ -468,9 +428,14 @@ public final class Promises {
    * A callback-styled effect that can be completed with a successful value or a failed exception.
    * @param <A> type of the successful value.
    */
+  @ThreadSafe
   public interface AsynchronousEffect<A> {
     void set(A result);
     void exception(@Nonnull Throwable t);
+
+    /**
+     * @return a {@link CompletionStage} that will be fulfilled when this effect is set.
+     */
     @Nonnull CompletionStage<A> getCompletionStage();
   }
 }

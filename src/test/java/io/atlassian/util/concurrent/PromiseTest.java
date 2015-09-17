@@ -7,6 +7,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PromiseTest {
@@ -76,10 +77,10 @@ public class PromiseTest {
     assertThat(promise.recover(getThrowableMessage).claim(), is("Oh Noes!!!"));
   }
 
-  private static class FailEffect implements Effect<Throwable> {
+  private static class FailEffect implements Consumer<Throwable> {
     Throwable throwable;
 
-    public void apply(Throwable throwable) {
+    public void accept(Throwable throwable) {
       this.throwable = throwable;
     }
   }

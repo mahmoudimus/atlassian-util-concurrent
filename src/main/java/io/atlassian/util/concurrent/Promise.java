@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.Future;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -84,7 +85,7 @@ public interface Promise<A> extends Future<A> {
    * @param e The effect to perform with the result
    * @return This object for chaining
    */
-  Promise<A> done(Effect<? super A> e);
+  Promise<A> done(Consumer<? super A> e);
 
   /**
    * Registers a callback to be called when an exception is thrown. May not be
@@ -93,16 +94,16 @@ public interface Promise<A> extends Future<A> {
    * @param e The effect to perform with the throwable
    * @return This object for chaining
    */
-  Promise<A> fail(Effect<Throwable> e);
+  Promise<A> fail(Consumer<Throwable> e);
 
   /**
    * Registers a FutureCallback to handle both success and failure (exception)
    * cases. May not be executed in the same thread as the caller.
    * <p>
-   * See {@link Promises#callback(Effect, Effect)}
-   * {@link Promises#onSuccessDo(Effect)} and
-   * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
-   * {@link Effect} into a {@link BiConsumer}
+   * See {@link Promises#callback(Consumer, Consumer)}
+   * {@link Promises#onSuccessDo(Consumer)} and
+   * {@link Promises#onFailureDo(Consumer)} for easy ways of turning an
+   * {@link Consumer} into a {@link BiConsumer}
    * 
    * @param callback The future callback
    * @return This object for chaining
