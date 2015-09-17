@@ -292,16 +292,15 @@ public final class Promises {
     }
 
     @Override public Promise<A> done(final Consumer<? super A> e) {
-      return then(onSuccessDo(e));
+      return then(e, t -> {});
     }
 
     @Override public Promise<A> fail(final Consumer<Throwable> e) {
-      return then(onFailureDo(e));
+      return then(a -> {}, e);
     }
 
     @Override public Promise<A> then(final Callback<? super A> callback) {
-      return this.newPromise(future::whenComplete, future::whenCompleteAsync).apply(
-              biConsumer(callback::onSuccess, callback::onFailure));
+      return then(callback::onSuccess, callback::onFailure);
     }
 
     @Override public <B> Promise<B> map(final Function<? super A, ? extends B> function) {
@@ -349,6 +348,12 @@ public final class Promises {
             TimeoutException {
       return future.get(timeout, unit);
     }
+
+    private Promise<A> then(final Consumer<? super A> onSuccess, final Consumer<Throwable> onFailure) {
+      return this.newPromise(future::whenComplete, future::whenCompleteAsync).apply(
+              biConsumer(onSuccess, onFailure));
+    }
+
 
     private <I, O> Function<I, Promise<O>> newPromise(final Function<I, CompletionStage<O>> f1,
                                                       final BiFunction<I, Executor, CompletionStage<O>> f2) {
