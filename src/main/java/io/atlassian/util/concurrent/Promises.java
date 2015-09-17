@@ -160,6 +160,7 @@ public final class Promises {
     future.complete(value);
     return Promises.forCompletionStage(future);
   }
+
   /**
    * Creates a new, rejected promise from the given {@link Throwable} and result
    * type.
@@ -173,8 +174,6 @@ public final class Promises {
     return Promises.forCompletionStage(future);
   }
 
-  /**
-   *
    /**
    * Creates a promise from the given future.
    *
