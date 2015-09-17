@@ -52,7 +52,7 @@ public final class Executors {
 
     class CallableRunner<T> implements Runnable, Supplier<Promise<T>> {
       final Callable<T> task;
-      final Promises.AsynchronousEffect<T> future = Promises.newAsynchronousEffect();
+      final Promises.SettablePromise<T> promise = Promises.settablePromise();
 
       CallableRunner(Callable<T> task) {
         this.task = task;
@@ -60,14 +60,14 @@ public final class Executors {
 
       @Override public void run() {
         try {
-          future.set(task.call());
+          promise.set(task.call());
         } catch (Exception ex) {
-          future.exception(ex);
+          promise.exception(ex);
         }
       }
 
       @Override public Promise<T> get() {
-        return Promises.forEffect(future);
+        return promise;
       }
     }
   }

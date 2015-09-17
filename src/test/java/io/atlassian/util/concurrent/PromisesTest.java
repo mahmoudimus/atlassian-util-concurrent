@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 
-import static io.atlassian.util.concurrent.Promises.callback;
+import static io.atlassian.util.concurrent.Promises.compose;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
   @Mock private Consumer<Object> done;
   @Mock private Consumer<Throwable> fail;
-  @Mock private Promise.Callback<Object> futureCallback;
+  @Mock private Promise.TryConsumer<Object> futureConsumer;
 
   @Test
   public void promiseValue() {
@@ -43,13 +43,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(promise.isCancelled(), is(false));
     assertThat(promise.claim(), is(instance));
 
-    promise.then(callback(done, fail));
+    promise.then(compose(done, fail));
     verify(done).accept(instance);
     verifyZeroInteractions(fail);
 
-    promise.then(futureCallback);
-    verify(futureCallback).onSuccess(instance);
-    verifyNoMoreInteractions(futureCallback);
+    promise.then(futureConsumer);
+    verify(futureConsumer).accept(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -67,13 +67,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
       assertSame(instance, e.getCause());
     }
 
-    promise.then(callback(done, fail));
+    promise.then(compose(done, fail));
     verifyZeroInteractions(done);
     verify(fail).accept(instance);
 
-    promise.then(futureCallback);
-    verify(futureCallback).onFailure(instance);
-    verifyNoMoreInteractions(futureCallback);
+    promise.then(futureConsumer);
+    verify(futureConsumer).fail(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -82,8 +82,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<Object> promise = Promises.forCompletionStage(completableFuture);
 
     // register call backs
-    promise.then(callback(done, fail));
-    promise.then(futureCallback);
+    promise.then(compose(done, fail));
+    promise.then(futureConsumer);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -98,8 +98,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verify(done).accept(instance);
     verifyZeroInteractions(fail);
 
-    verify(futureCallback).onSuccess(instance);
-    verifyNoMoreInteractions(futureCallback);
+    verify(futureConsumer).accept(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -108,8 +108,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<Object> promise = Promises.forCompletionStage(completableFuture);
 
     // register call backs
-    promise.then(callback(done, fail));
-    promise.then(futureCallback);
+    promise.then(compose(done, fail));
+    promise.then(futureConsumer);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -128,8 +128,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyZeroInteractions(done);
     verify(fail).accept(instance);
 
-    verify(futureCallback).onFailure(instance);
-    verifyNoMoreInteractions(futureCallback);
+    verify(futureConsumer).fail(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -156,7 +156,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
     @SuppressWarnings("unchecked")
     final Consumer<SomeObject> someObjectCallback = mock(Consumer.class);
-    transformedPromise.then(callback(someObjectCallback, fail));
+    transformedPromise.then(compose(someObjectCallback, fail));
 
     assertThat(transformedPromise.claim().object, is(instance));
     verify(someObjectCallback).accept(argThat(new SomeObjectMatcher(instance)));
@@ -191,7 +191,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
     @SuppressWarnings("unchecked")
     final Consumer<SomeObject> someObjectCallback = mock(Consumer.class);
-    transformedPromise.then(callback(someObjectCallback, fail));
+    transformedPromise.then(compose(someObjectCallback, fail));
 
     try {
       transformedPromise.claim();
@@ -224,7 +224,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Consumer<List<Object>> doneCallback = mock(Consumer.class);
-    seq.then(callback(doneCallback, fail));
+    seq.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -280,7 +280,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Consumer<List<Object>> doneCallback = mock(Consumer.class);
-    sequenced.then(callback(doneCallback, fail));
+    sequenced.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -341,7 +341,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Consumer<List<Object>> doneCallback = mock(Consumer.class);
-    seq.then(callback(doneCallback, fail));
+    seq.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -397,7 +397,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
     final Consumer<List<Object>> doneCallback = mock(Consumer.class);
-    sequenced.then(callback(doneCallback, fail));
+    sequenced.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -446,7 +446,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
   }
 
   @Test
-  public void doneAddsFutureCallback() {
+  public void doneAddsFuturecompose() {
     final AtomicReference<String> ref = new AtomicReference<>();
     final CompletableFuture<String> f = new CompletableFuture<>();
     Promise<String> p = Promises.forCompletionStage(f);
@@ -458,7 +458,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
   }
 
   @Test
-  public void failAddsFutureCallback() {
+  public void failAddsFuturecompose() {
     final AtomicReference<Throwable> ref = new AtomicReference<>();
     final CompletableFuture<String> f = new CompletableFuture<>();
     Promise<String> p = Promises.forCompletionStage(f);
