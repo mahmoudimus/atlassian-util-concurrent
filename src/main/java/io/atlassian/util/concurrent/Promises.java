@@ -160,8 +160,22 @@ public final class Promises {
   /**
    * Creates a new, resolved promise for the specified concrete value.
    *
+   * @return The new promise
+   *
+   * @since 2.7
+   *
+   * @Deprecated use {@link Promises#promise(Object)} as a method reference.
+   */
+  public @Deprecated static <A> Function<A, Promise<A>> toPromise() {
+   return Promises::promise;
+  }
+
+  /**
+   * Creates a new, resolved promise for the specified concrete value.
+   *
    * @param value The value for which a promise should be created
    * @return The new promise
+   *
    */
   public static <A> Promise<A> promise(final A value) {
     final CompletableFuture<A> future = new CompletableFuture<>();
@@ -230,7 +244,7 @@ public final class Promises {
 
   static class OfStage<A> implements Promise<A> {
 
-    protected final CompletableFuture<A> future;
+    private final CompletableFuture<A> future;
     private final Optional<Executor> executor;
 
     public OfStage(@Nonnull final CompletionStage<A> delegate, @Nonnull final Optional<Executor> ex) {
@@ -358,14 +372,19 @@ public final class Promises {
   }
 
   static class Settable<A> extends OfStage<A> implements SettablePromise<A> {
+    private final CompletableFuture<A> completableFuture;
     public Settable(@Nonnull final Optional<Executor> ex) {
-      super(new CompletableFuture<>(), ex);
+      this(new CompletableFuture<>(), ex);
+    }
+    private Settable(@Nonnull final CompletableFuture<A> cf, @Nonnull final Optional<Executor> ex) {
+      super(cf, ex);
+      completableFuture = cf;
     }
     public void set(final A result) {
-      future.complete(result);
+      completableFuture.complete(result);
     }
     public void exception(@Nonnull final Throwable t) {
-      future.completeExceptionally(t);
+      completableFuture.completeExceptionally(t);
     }
   }
 
