@@ -51,10 +51,7 @@ import static java.util.Objects.requireNonNull;
  * This implementation has been optimized for SRSW performance with
  * {@link #set(Object)}/{@link #take()} pairs.
  * <p>
- * Prometheus contains a similar construct called an <a href
- * "http://prometheus.codehaus.org/javadoc/main/org/codehaus/prometheus/references/AwaitableReference.html"
- * >AwaitableReference</a>. This class is more explicit in that it handles
- * take/get separately.
+ * This class is explicit in that it handles take/get separately.
  *
  * @param <V> the value type
  * @see BlockingQueue

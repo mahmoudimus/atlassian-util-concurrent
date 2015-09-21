@@ -23,7 +23,7 @@ import net.jcip.annotations.ThreadSafe;
 
 /**
  * This will allow you to submit an operation, encapsulated by a
- * {@link java.util.concurrent.Callable}, and keyed by an Object <K>, such that
+ * {@link java.util.concurrent.Callable}, and keyed by an Object {@literal <K>}, such that
  * the result of the Callable will be available to any concurrent callers with
  * the same Object key. The result of the Callable is discarded after the
  * operation has succeeded.
@@ -41,7 +41,7 @@ import net.jcip.annotations.ThreadSafe;
  */
 @ThreadSafe public interface ConcurrentOperationMap<K, R> {
   /**
-   * The operation <R> will be keyed on the name <K>.
+   * The operation {@literal <R>} will be keyed on the name {@literal <K>}.
    *
    * @param key the key, like any map key this should be an immutable object
    * that correctly implements {@link java.lang.Object#hashCode()} and

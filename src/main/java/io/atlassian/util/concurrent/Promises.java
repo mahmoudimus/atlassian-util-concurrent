@@ -182,7 +182,7 @@ public final class Promises {
    * @return The new promise
    * @since 2.7
    *
-   * @Deprecated use {@link Promises#promise(Object)} as a method reference.
+   * @deprecated use {@link Promises#promise(Object)} as a method reference.
    */
   public @Deprecated static <A> Function<A, Promise<A>> toPromise() {
     return Promises::promise;

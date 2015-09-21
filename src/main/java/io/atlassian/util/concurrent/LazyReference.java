@@ -38,7 +38,6 @@ import java.util.function.Supplier;
  * object this reference will hold.
  * <p>
  * For instance:
- * <p>
  *
  * <pre>
  * final LazyReference&lt;MyObject&gt; ref = new LazyReference() {

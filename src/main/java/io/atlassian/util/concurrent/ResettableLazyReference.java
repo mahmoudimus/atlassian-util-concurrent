@@ -34,7 +34,6 @@ import net.jcip.annotations.ThreadSafe;
  * object this reference will hold.
  * <p>
  * For instance:
- * <p>
  *
  * <pre>
  * final ResettableLazyReference&lt;MyObject&gt; ref = new ResettableLazyReference() {

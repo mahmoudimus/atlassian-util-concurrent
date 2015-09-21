@@ -154,7 +154,7 @@ import static java.util.Objects.requireNonNull;
     /**
      * Create a Builder with the supplied Executor
      * 
-     * @param executor
+     * @param executor executor to use with the constructed completer
      */
     public Builder(@NotNull final Executor executor) {
       this.executor = requireNonNull(executor, "executor");

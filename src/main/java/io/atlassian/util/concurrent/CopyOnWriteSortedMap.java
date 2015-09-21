@@ -61,7 +61,7 @@ import static java.util.Objects.requireNonNull;
  * {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap.Builder}.
  * <p>
  * Collection views of the keys, values and entries are optionally
- * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
+ * {@link View.Type#LIVE live} or {@link View.Type#STABLE stable}. Live views
  * are modifiable will cause a copy if a modifying method is called on them.
  * Methods on these will reflect the current state of the collection, although
  * iterators will be snapshot style. If the collection views are stable they are
@@ -160,7 +160,7 @@ import static java.util.Objects.requireNonNull;
    * where the underlying map instances are {@link java.util.TreeMap} and the
    * sort uses the key's natural order.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @return a {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap}.
    */
@@ -174,7 +174,7 @@ import static java.util.Objects.requireNonNull;
    * where the underlying map instances are {@link java.util.TreeMap}, the sort
    * uses the key's natural order and the initial values are supplied.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @param map the map to use as the initial values.
    * @param <K> a K key type.
@@ -191,7 +191,7 @@ import static java.util.Objects.requireNonNull;
    * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap}
    * where the underlying map instances are {@link java.util.TreeMap}.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @param comparator the Comparator to use for ordering the keys. Note, should
    * be serializable if this map is to be serialized.
@@ -210,7 +210,7 @@ import static java.util.Objects.requireNonNull;
    * where the underlying map instances are {@link java.util.TreeMap}, the sort
    * uses the key's natural order and the initial values are supplied.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @param map to use as the initial values.
    * @param comparator for ordering.
@@ -290,8 +290,8 @@ import static java.util.Objects.requireNonNull;
   /**
    * Naturally ordered TreeMap based.
    * 
-   * @param <K>
-   * @param <V>
+   * @param <K> key type
+   * @param <V> value type
    */
   private static final class Tree<K, V> extends CopyOnWriteSortedMap<K, V> {
     private static final long serialVersionUID = 8015823768891873357L;

@@ -60,7 +60,7 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
  * static {@link io.atlassian.util.concurrent.CopyOnWriteMap.Builder}.
  * <p>
  * Collection views of the keys, values and entries are optionally
- * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
+ * {@link View.Type#LIVE live} or {@link View.Type#STABLE stable}. Live views
  * are modifiable will cause a copy if a modifying method is called on them.
  * Methods on these will reflect the current state of the collection, although
  * iterators will be snapshot style. If the collection views are stable they are
@@ -144,7 +144,7 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
    * Creates a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with an
    * underlying {@link java.util.HashMap}.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
    */
@@ -158,7 +158,7 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
    * underlying {@link java.util.HashMap} using the supplied map as the initial
    * values.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @param map a {@link java.util.Map} object.
    * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
@@ -173,7 +173,7 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
    * underlying {@link java.util.LinkedHashMap}. Iterators for this map will be
    * return elements in insertion order.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
    */
@@ -188,7 +188,7 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
    * initial values. Iterators for this map will be return elements in insertion
    * order.
    * <p>
-   * This map has {@link View.Type.STABLE stable} views.
+   * This map has {@link View.Type#STABLE stable} views.
    *
    * @param map a {@link java.util.Map} object.
    * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.

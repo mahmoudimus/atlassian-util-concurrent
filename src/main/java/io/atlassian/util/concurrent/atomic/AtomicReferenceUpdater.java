@@ -32,9 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * current value, computing the update and then setting it if it hasn't changed
  * in the meantime.
  * <p>
- * This is an abstract class that has a {@link #get(Object) factory template
- * method} to implement the new value creation.
- * <p>
  *
  * @param <T> the type of the reference.
  * @since 0.0.12

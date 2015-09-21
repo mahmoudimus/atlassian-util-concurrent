@@ -31,12 +31,11 @@ import java.util.function.Function;
  * some operation on the value (an A) you can use {@link #map(Function)} to turn
  * this into a Promise of some other type. Let's say you get back a
  * <code>Person</code> and you really only need their surname:
- * <p>
  *
  * <pre>
  * public Promise&lt;String&gt; fetchSurname(PersonId id) {
  *   Promise&lt;Person&gt; promise asyncClient.fetchPerson(id);
- *   return promise.map(new Function&ltPerson, String&gt;() {
+ *   return promise.map(new Function&lt;Person, String&gt;() {
  *     public String apply(Person p) {
  *       return p.surname();
  *     }
@@ -52,7 +51,7 @@ import java.util.function.Function;
  * <pre>
  * public Promise&lt;Address&gt; fetchAddress(PersonId id) {
  *   Promise&lt;Person&gt; promise asyncClient.fetchPerson(id);
- *   return promise.flatMap(new Function&ltPerson, Promise&lt;Address&gt;&gt;() {
+ *   return promise.flatMap(new Function&lt;Person, Promise&lt;Address&gt;&gt;() {
  *     public Promise&lt;Address&gt; apply(Person p) {
  *       return asyncClient.fetchAddress(p.addressId());
  *     }
