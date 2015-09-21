@@ -39,3 +39,4 @@ be wrapped by LazyReference.InitializationException instead of directly thrown
 - Supplier class removed and replaced with Java 8 java.util.function.Supplier.
 - Suppliers#toGoogleSupplier removed as part of removing Guava dependency.
 - Suppliers#fromGoogleSupplier removed as part of removing Guava dependency.
+- Effect removed to be replaced by java.util.function.Consumer.
