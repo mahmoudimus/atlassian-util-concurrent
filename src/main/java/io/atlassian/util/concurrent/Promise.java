@@ -18,11 +18,10 @@ package io.atlassian.util.concurrent;
 import javax.annotation.Nonnull;
 import java.util.concurrent.Future;
 
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * A promise that presents a nicer interface to {@link Future}. It can be
+ * A promise that presents a nicer interface to {@link java.util.concurrent.Future}. It can be
  * claimed without needing to catch checked exceptions, and it may be mapped to
  * new types of Promise via the {@link #map(Function)} and
  * {@link #flatMap(Function)} methods.
@@ -32,7 +31,7 @@ import java.util.function.Function;
  * this into a Promise of some other type. Let's say you get back a
  * <code>Person</code> and you really only need their surname:
  * <p>
- * 
+ *
  * <pre>
  * public Promise&lt;String&gt; fetchSurname(PersonId id) {
  *   Promise&lt;Person&gt; promise asyncClient.fetchPerson(id);
@@ -48,7 +47,7 @@ import java.util.function.Function;
  * can use {@link #flatMap(Function)} to turn this into a Promise of some other
  * type. Let's say you get back a <code>Person</code> and you really only need
  * to perform a further query to get their address:
- * 
+ *
  * <pre>
  * public Promise&lt;Address&gt; fetchAddress(PersonId id) {
  *   Promise&lt;Person&gt; promise asyncClient.fetchPerson(id);
@@ -61,18 +60,19 @@ import java.util.function.Function;
  * </pre>
  * <p>
  * Note that there are a number of handy utility functions for creating
- * <code>Promise</code> objects on the {@link Promises} companion.
+ * <code>Promise</code> objects on the {@link io.atlassian.util.concurrent.Promises} companion.
  * <p>
  * Cancelling a Promise that hasn't yet been completed will do it with a
  * {@link java.util.concurrent.CancellationException} and that will propagate to
  * dependent Promises. But cancelling a dependent Promise will not cancel the original one.
+ *
  * @since 2.4
  */
 public interface Promise<A> extends Future<A> {
   /**
    * Blocks the thread waiting for a result. Exceptions are thrown as runtime
    * exceptions.
-   * 
+   *
    * @return The promised object
    */
   A claim();
@@ -80,7 +80,7 @@ public interface Promise<A> extends Future<A> {
   /**
    * Registers a callback to be called when the promised object is available.
    * May not be executed in the same thread as the caller.
-   * 
+   *
    * @param e The effect to perform with the result
    * @return This object for chaining
    */
@@ -89,7 +89,7 @@ public interface Promise<A> extends Future<A> {
   /**
    * Registers a callback to be called when an exception is thrown. May not be
    * executed in the same thread as the caller.
-   * 
+   *
    * @param e The effect to perform with the throwable
    * @return This object for chaining
    */
@@ -99,23 +99,24 @@ public interface Promise<A> extends Future<A> {
    * Registers a FutureCallback to handle both success and failure (exception)
    * cases. May not be executed in the same thread as the caller.
    * <p>
-   * See {@link Promises#callback(Effect, Effect)}
-   * {@link Promises#onSuccessDo(Effect)} and
-   * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
-   * {@link Effect} into a {@link BiConsumer}
-   * 
+   * See {@link io.atlassian.util.concurrent.Promises#callback(Effect, Effect)}
+   * {@link io.atlassian.util.concurrent.Promises#onSuccessDo(Effect)} and
+   * {@link io.atlassian.util.concurrent.Promises#onFailureDo(Effect)} for easy ways of turning an
+   * {@link io.atlassian.util.concurrent.Effect} into a {@link java.util.function.BiConsumer}
+   *
    * @param callback The future callback
    * @return This object for chaining
    */
   Promise<A> then(Callback<? super A> callback);
 
   /**
-   * Transforms this {@link Promise} from one type to another by way of a
+   * Transforms this {@link io.atlassian.util.concurrent.Promise} from one type to another by way of a
    * transformation function.
    * <p>
    *
    * @param function The transformation function
    * @return A new promise resulting from the transformation
+   * @param <B> a B.
    */
   <B> Promise<B> map(Function<? super A, ? extends B> function);
 
@@ -127,15 +128,16 @@ public interface Promise<A> extends Future<A> {
    * Note this is known as flatMap as it first maps to a
    * <code>Promise&lt;Promise&lt;A&gt;&gt;</code> and then flattens that out
    * into a single layer Promise.
-   * 
+   *
    * @param function The transformation function to a new Promise value
    * @return A new promise resulting from the transformation
+   * @param <B> a B.
    */
   <B> Promise<B> flatMap(Function<? super A, ? extends Promise<? extends B>> function);
 
   /**
    * Recover from an exception using the supplied exception strategy
-   * 
+   *
    * @param handleThrowable rehabilitate the exception with a value of type B
    * @return A new promise that will not throw an exception (unless
    * handleThrowable itself threw).
@@ -145,11 +147,12 @@ public interface Promise<A> extends Future<A> {
   /**
    * Transform this promise from one type to another, also providing a strategy
    * for dealing with any exceptions encountered.
-   * 
+   *
    * @param handleThrowable rehabilitate the exception with a value of type B
    * @param function mapping function
    * @return A new promise resulting from the catamorphic transformation. This
    * promise will not throw an exception (unless handleThrowable itself threw).
+   * @param <B> a B.
    */
   <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 

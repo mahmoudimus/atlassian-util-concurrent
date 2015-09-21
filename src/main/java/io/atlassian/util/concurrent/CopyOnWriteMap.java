@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.WeakHashMap;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
@@ -29,8 +27,8 @@ import net.jcip.annotations.ThreadSafe;
 import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
 
 /**
- * A thread-safe variant of {@link Map} in which all mutative operations (the
- * "destructive" operations described by {@link Map} put, remove and so on) are
+ * A thread-safe variant of {@link java.util.Map} in which all mutative operations (the
+ * "destructive" operations described by {@link java.util.Map} put, remove and so on) are
  * implemented by making a fresh copy of the underlying map.
  * <p>
  * This is ordinarily too costly, but may be <em>more</em> efficient than
@@ -45,18 +43,18 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
  * iterators will not reflect additions, removals, or changes to the list since
  * the iterator was created. Removing elements via these iterators is not
  * supported. The mutable operations on these collections (remove, retain etc.)
- * are supported but as with the {@link Map} interface, add and addAll are not
- * and throw {@link UnsupportedOperationException}.
+ * are supported but as with the {@link java.util.Map} interface, add and addAll are not
+ * and throw {@link java.lang.UnsupportedOperationException}.
  * <p>
  * The actual copy is performed by an abstract {@link #copy(Map)} method. The
  * method is responsible for the underlying Map implementation (for instance a
- * {@link HashMap}, {@link TreeMap}, {@link LinkedHashMap} etc.) and therefore
+ * {@link java.util.HashMap}, {@link java.util.TreeMap}, {@link java.util.LinkedHashMap} etc.) and therefore
  * the semantics of what this map will cope with as far as null keys and values,
  * iteration ordering etc. See the note below about suitable candidates for
  * underlying Map implementations
  * <p>
- * There are supplied implementations for the common j.u.c {@link Map}
- * implementations via the {@link CopyOnWriteMap} static {@link Builder}.
+ * There are supplied implementations for the common j.u.c {@link java.util.Map}
+ * implementations via the {@link io.atlassian.util.concurrent.CopyOnWriteMap} static {@link io.atlassian.util.concurrent.CopyOnWriteMap.Builder}.
  * <p>
  * Collection views of the keys, values and entries are optionally
  * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
@@ -69,10 +67,10 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
  * <strong>Please note</strong> that the thread-safety guarantees are limited to
  * the thread-safety of the non-mutative (non-destructive) operations of the
  * underlying map implementation. For instance some implementations such as
- * {@link WeakHashMap} and {@link LinkedHashMap} with access ordering are
+ * {@link java.util.WeakHashMap} and {@link java.util.LinkedHashMap} with access ordering are
  * actually structurally modified by the {@link #get(Object)} method and are
  * therefore not suitable candidates as delegates for this class.
- * 
+ *
  * @param <K> the key type
  * @param <V> the value type
  * @author Jed Wesley-Smith
@@ -81,8 +79,8 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   private static final long serialVersionUID = 7935514534647505917L;
 
   /**
-   * Get a {@link Builder} for a {@link CopyOnWriteMap} instance.
-   * 
+   * Get a {@link io.atlassian.util.concurrent.CopyOnWriteMap.Builder} for a {@link io.atlassian.util.concurrent.CopyOnWriteMap} instance.
+   *
    * @param <K> key type
    * @param <V> value type
    * @return a fresh builder
@@ -139,9 +137,11 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   }
 
   /**
-   * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}.
+   * Creates a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with an underlying {@link java.util.HashMap}.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
+   *
+   * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
    */
   public static <K, V> CopyOnWriteMap<K, V> newHashMap() {
     final Builder<K, V> builder = builder();
@@ -149,10 +149,13 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   }
 
   /**
-   * Creates a new {@link CopyOnWriteMap} with an underlying {@link HashMap}
+   * Creates a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with an underlying {@link java.util.HashMap}
    * using the supplied map as the initial values.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
+   *
+   * @param map a {@link java.util.Map} object.
+   * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
    */
   public static <K, V> CopyOnWriteMap<K, V> newHashMap(final Map<? extends K, ? extends V> map) {
     final Builder<K, V> builder = builder();
@@ -160,11 +163,13 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   }
 
   /**
-   * Creates a new {@link CopyOnWriteMap} with an underlying
-   * {@link LinkedHashMap}. Iterators for this map will be return elements in
+   * Creates a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with an underlying
+   * {@link java.util.LinkedHashMap}. Iterators for this map will be return elements in
    * insertion order.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
+   *
+   * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
    */
   public static <K, V> CopyOnWriteMap<K, V> newLinkedMap() {
     final Builder<K, V> builder = builder();
@@ -172,11 +177,14 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   }
 
   /**
-   * Creates a new {@link CopyOnWriteMap} with an underlying
-   * {@link LinkedHashMap} using the supplied map as the initial values.
+   * Creates a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with an underlying
+   * {@link java.util.LinkedHashMap} using the supplied map as the initial values.
    * Iterators for this map will be return elements in insertion order.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
+   *
+   * @param map a {@link java.util.Map} object.
+   * @return a {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
    */
   public static <K, V> CopyOnWriteMap<K, V> newLinkedMap(final Map<? extends K, ? extends V> map) {
     final Builder<K, V> builder = builder();
@@ -188,9 +196,9 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   //
 
   /**
-   * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the supplied {@link java.util.Map} to
    * initialize the values.
-   * 
+   *
    * @param map the initial map to initialize with
    * @deprecated since 0.0.12 use the versions that explicitly specify View.Type
    */
@@ -199,8 +207,8 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   }
 
   /**
-   * Create a new empty {@link CopyOnWriteMap}.
-   * 
+   * Create a new empty {@link io.atlassian.util.concurrent.CopyOnWriteMap}.
+   *
    * @deprecated since 0.0.12 use the versions that explicitly specify View.Type
    */
   @Deprecated protected CopyOnWriteMap() {
@@ -208,24 +216,28 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
   }
 
   /**
-   * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the supplied {@link java.util.Map} to
    * initialize the values. This map may be optionally modified using any of the
    * key, entry or value views
-   * 
+   *
    * @param map the initial map to initialize with
+   * @param viewType a View.Type.
    */
   protected CopyOnWriteMap(final Map<? extends K, ? extends V> map, final View.Type viewType) {
     super(map, viewType);
   }
 
   /**
-   * Create a new empty {@link CopyOnWriteMap}. This map may be optionally
+   * Create a new empty {@link io.atlassian.util.concurrent.CopyOnWriteMap}. This map may be optionally
    * modified using any of the key, entry or value views
+   *
+   * @param viewType a View.Type.
    */
   protected CopyOnWriteMap(final View.Type viewType) {
     super(Collections.<K, V> emptyMap(), viewType);
   }
 
+  /** {@inheritDoc} */
   @Override @GuardedBy("internal-lock") protected abstract <N extends Map<? extends K, ? extends V>> Map<K, V> copy(N map);
 
   //

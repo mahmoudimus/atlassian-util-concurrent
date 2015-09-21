@@ -19,20 +19,32 @@ package io.atlassian.util.concurrent;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Convenience class for re-throwing {@link InterruptedException}.
+ * Convenience class for re-throwing {@link java.lang.InterruptedException}.
  */
 public class RuntimeInterruptedException extends RuntimeException {
 
   private static final long serialVersionUID = -5025209597479375477L;
 
+  /**
+   * Constructor for RuntimeInterruptedException.
+   *
+   * @param cause a {@link java.lang.InterruptedException}.
+   */
   public RuntimeInterruptedException(final InterruptedException cause) {
     super(requireNonNull(cause, "cause"));
   }
 
+  /**
+   * Constructor for RuntimeInterruptedException.
+   *
+   * @param message a {@link java.lang.String}.
+   * @param cause a {@link java.lang.InterruptedException}.
+   */
   public RuntimeInterruptedException(final String message, final InterruptedException cause) {
     super(message, requireNonNull(cause, "cause"));
   }
 
+  /** {@inheritDoc} */
   @Override public InterruptedException getCause() {
     return (InterruptedException) super.getCause();
   }

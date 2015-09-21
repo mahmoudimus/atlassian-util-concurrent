@@ -22,8 +22,7 @@ import java.util.function.Function;
  * {@link java.util.concurrent.atomic.AtomicLong} with richer functionality.
  * This class implements commonly implemented patterns of use of compareAndSet
  * such as {@link #getOrSetAndGetIf(long, long)} and {@link #update(Function)}.
- * 
- * @inheritDoc
+ *
  * @since 0.0.12
  */
 public class AtomicLong extends java.util.concurrent.atomic.AtomicLong {
@@ -41,7 +40,7 @@ public class AtomicLong extends java.util.concurrent.atomic.AtomicLong {
 
   /**
    * Creates a new AtomicLong with the given initial value.
-   * 
+   *
    * @param initialValue the initial value
    */
   public AtomicLong(final long initialValue) {
@@ -56,7 +55,7 @@ public class AtomicLong extends java.util.concurrent.atomic.AtomicLong {
    * Check the current value and if it matches the old value argument, set it to
    * the new value and return that instead. If the old value argument does not
    * match, ignore both and just return the current value.
-   * 
+   *
    * @param oldValue to check the current value against
    * @param newValue the new value to set it to
    * @return the current reference value if it doesn't match oldValue or a newly
@@ -83,8 +82,9 @@ public class AtomicLong extends java.util.concurrent.atomic.AtomicLong {
    * Do the actual update. Calls the factory method with the old value to do the
    * update logic, then sets the value to that if it hasn't changed in the
    * meantime.
-   * 
+   *
    * @return the new updated value.
+   * @param newValueFactory a {@link java.util.function.Function} object.
    */
   public final long update(final Function<Long, Long> newValueFactory) {
     long oldValue, newValue;

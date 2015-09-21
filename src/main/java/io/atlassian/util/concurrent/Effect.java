@@ -17,9 +17,9 @@ package io.atlassian.util.concurrent;
 
 /**
  * Contains the a side-effect that may be applied
- * 
+ *
  * @param <A>
- * 
+ *
  * @since 2.4
  */
 @FunctionalInterface public interface Effect<A> {

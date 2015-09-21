@@ -24,7 +24,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * A {@link PhasedLatch} is a shared latch that resets after it is released and
+ * A {@link io.atlassian.util.concurrent.PhasedLatch} is a shared latch that resets after it is released and
  * can be reused. Potentially waiting threads can test the current phase before
  * performing an action. The action is then guarded by that phase and can await
  * that phase to be advanced via a call to {@link #release() release} the
@@ -48,20 +48,17 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * Await the current phase.
-   * 
-   * @throws InterruptedException if interrupted
+   *
+   * @throws java.lang.InterruptedException if interrupted
    */
   public final void await() throws InterruptedException {
     awaitPhase(getPhase());
   }
 
   /**
+   * {@inheritDoc}
+   *
    * Await the current phase for the specified period.
-   * 
-   * @param time the period of time
-   * @param unit of time to measure the period in
-   * @return true if the phase was passed, false otherwise
-   * @throws InterruptedException if interrupted
    */
   public final boolean await(final long time, final TimeUnit unit) throws InterruptedException {
     return sync.tryAcquireSharedNanos(getPhase(), unit.toNanos(time));
@@ -69,9 +66,9 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * Await the specified phase.
-   * 
+   *
    * @param phase the phase to wait for
-   * @throws InterruptedException if interrupted
+   * @throws java.lang.InterruptedException if interrupted
    */
   public final void awaitPhase(final int phase) throws InterruptedException {
     sync.acquireSharedInterruptibly(phase);
@@ -79,17 +76,22 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * Await the specified phase for the specified period.
-   * 
+   *
    * @param phase the phase to wait for
    * @param period the period of time to wait for, as specified by:
    * @param unit of time to measure the period in
    * @return true if the phase was passed, false otherwise
-   * @throws InterruptedException if interrupted
+   * @throws java.lang.InterruptedException if interrupted
    */
   public final boolean awaitPhase(final int phase, final long period, final TimeUnit unit) throws InterruptedException {
     return sync.tryAcquireSharedNanos(phase, unit.toNanos(period));
   }
 
+  /**
+   * Get the current phase of the latch.
+   *
+   * @return a int.
+   */
   public int getPhase() {
     return sync.getCurrentPhase();
   }
@@ -133,8 +135,8 @@ import net.jcip.annotations.ThreadSafe;
     /**
      * Has the current phase passed the waiting phase.
      * 
-     * @param current
-     * @param waitingFor
+     * @param current value of the current phase
+     * @param waitingFor value of the desired phase
      * @return true if current is greater than waiting
      */
     boolean isPassed(final int current, final int waitingFor) {

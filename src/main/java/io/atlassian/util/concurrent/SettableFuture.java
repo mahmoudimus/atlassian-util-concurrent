@@ -29,11 +29,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * {@link SettableFuture} is a {@link Future} implementation where the
+ * {@link io.atlassian.util.concurrent.SettableFuture} is a {@link java.util.concurrent.Future} implementation where the
  * responsibility for producing the result is external to the future instance,
- * unlike {@link FutureTask} where the future holds the operation (a
- * {@link Callable} or {@link Runnable} instance) and the first thread that
- * calls {@link FutureTask#run()} executes the operation.
+ * unlike {@link java.util.concurrent.FutureTask} where the future holds the operation (a
+ * {@link java.util.concurrent.Callable} or {@link java.lang.Runnable} instance) and the first thread that
+ * calls {@link java.util.concurrent.FutureTask#run()} executes the operation.
  * <p>
  * This is useful in situations where all the inputs may not be available at
  * construction time.
@@ -49,8 +49,9 @@ import java.util.concurrent.atomic.AtomicReference;
    * equals the first value otherwise an exception will be thrown. It also
    * cannot be set if this future has been cancelled or an exception has been
    * set.
-   * 
+   *
    * @param value the value to be set.
+   * @return a {@link io.atlassian.util.concurrent.SettableFuture} object.
    */
   public final SettableFuture<T> set(final T value) {
     setAndCheckValue(new ReferenceValue<T>(value));
@@ -66,19 +67,28 @@ import java.util.concurrent.atomic.AtomicReference;
    * exception will be thrown (as most exceptions do not implement equals this
    * effectively means the same reference). It also cannot be set if this future
    * has been cancelled or a a value has been set.
-   * 
-   * @param value the value to be set.
+   *
+   * @param throwable a {@link java.lang.Throwable}.
+   * @return a {@link io.atlassian.util.concurrent.SettableFuture}.
    */
   public final SettableFuture<T> setException(final Throwable throwable) {
     setAndCheckValue(new ThrowableValue<T>(throwable));
     return this;
   }
 
+  /**
+   * Get the value of the future. Blocking
+   *
+   * @return a T.
+   * @throws java.lang.InterruptedException if any.
+   * @throws java.util.concurrent.ExecutionException if any.
+   */
   public final T get() throws InterruptedException, ExecutionException {
     latch.await();
     return ref.get().get();
   }
 
+  /** {@inheritDoc} */
   public final T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
     if (!latch.await(timeout, unit)) {
       throw new TimedOutException(timeout, unit);
@@ -86,14 +96,17 @@ import java.util.concurrent.atomic.AtomicReference;
     return ref.get().get();
   }
 
+  /** {@inheritDoc} */
   public final boolean isDone() {
     return ref.get() != null;
   }
 
+  /** {@inheritDoc} */
   public final boolean isCancelled() {
     return isDone() && (ref.get() instanceof CancelledValue<?>);
   }
 
+  /** {@inheritDoc} */
   public final boolean cancel(final boolean mayInterruptIfRunning) {
     return setValue(new CancelledValue<T>()) == null;
   }
@@ -103,9 +116,8 @@ import java.util.concurrent.atomic.AtomicReference;
    * one we are setting.
    * 
    * @param value to set.
-   * @return the old value if set or null.
    */
-  private final void setAndCheckValue(final Value<T> value) {
+  private void setAndCheckValue(final Value<T> value) {
     final Value<T> oldValue = setValue(value);
     if ((oldValue != null) && !value.equals(oldValue)) {
       throw new IllegalStateException("cannot change value after it has been set");
@@ -118,7 +130,7 @@ import java.util.concurrent.atomic.AtomicReference;
    * @param value to set.
    * @return the old value if set or null.
    */
-  private final Value<T> setValue(final Value<T> value) {
+  private Value<T> setValue(final Value<T> value) {
     while (true) {
       final Value<T> oldValue = ref.get();
       if (oldValue != null) {

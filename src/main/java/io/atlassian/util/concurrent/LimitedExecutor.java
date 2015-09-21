@@ -54,6 +54,7 @@ import java.util.concurrent.ThreadPoolExecutor;
     semaphore = new Semaphore(limit);
   }
 
+  /** {@inheritDoc} */
   @Override public final void execute(final Runnable command) {
     if (semaphore.tryAcquire()) {
       try {

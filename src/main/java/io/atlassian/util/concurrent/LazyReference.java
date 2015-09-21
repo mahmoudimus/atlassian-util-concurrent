@@ -39,7 +39,7 @@ import java.util.function.Supplier;
  * <p>
  * For instance:
  * <p>
- * 
+ *
  * <pre>
  * final LazyReference&lt;MyObject&gt; ref = new LazyReference() {
  *   protected MyObject create() throws Exception {
@@ -48,26 +48,26 @@ import java.util.function.Supplier;
  *   }
  * };
  * </pre>
- * 
+ *
  * Then call {@link #get()} to get a reference to the referenced object:
- * 
+ *
  * <pre>
  * MyObject myLazyLoadedObject = ref.get()
  * </pre>
- * 
+ *
  * NOTE: Interruption policy is that if you want to be cancellable while waiting
  * for another thread to create the value, instead of calling {@link #get()}
  * call {@link #getInterruptibly()}. However, If your {@link #create()} method
- * is interrupted and throws an {@link InterruptedException}, it is treated as
+ * is interrupted and throws an {@link java.lang.InterruptedException}, it is treated as
  * an application exception and will be the causal exception inside the runtime
- * {@link InitializationException} that {@link #get()} or
+ * {@link io.atlassian.util.concurrent.LazyReference.InitializationException} that {@link #get()} or
  * {@link #getInterruptibly()} throws and your {@link #create()} will not be
  * called again.
  * <p>
- * This class is NOT {@link Serializable}.
+ * This class is NOT {@link java.io.Serializable}.
  * <p>
- * Implementation note. This class extends {@link WeakReference} as
- * {@link Reference} does not have a public constructor. WeakReference is
+ * Implementation note. This class extends {@link java.lang.ref.WeakReference} as
+ * {@link java.lang.ref.Reference} does not have a public constructor. WeakReference is
  * preferable as it does not have any members and therefore doesn't increase the
  * memory footprint. As we never pass a referent through to the super-class and
  * override {@link #get()}, the garbage collection semantics of WeakReference
@@ -80,30 +80,30 @@ import java.util.function.Supplier;
 
   private final Sync sync = new Sync();
 
+  /**
+   * <p>Constructor for LazyReference.</p>
+   */
   public LazyReference() {
     super(null);
   }
 
   /**
    * The object factory method, guaranteed to be called once and only once.
-   * 
+   *
    * @return the object that {@link #get()} and {@link #getInterruptibly()} will
    * return.
-   * @throws Exception if anything goes wrong, rethrown as an
+   * @throws java.lang.Exception if anything goes wrong, rethrown as an
    * InitializationException from {@link #get()} and {@link #getInterruptibly()}
    */
   protected abstract T create() throws Exception;
 
   /**
+   * {@inheritDoc}
+   *
    * Get the lazily loaded reference in a non-cancellable manner. If your
    * <code>create()</code> method throws an Exception calls to
    * <code>get()</code> will throw an InitializationException which wraps the
    * previously thrown exception.
-   * 
-   * @return the object that {@link #create()} created.
-   * @throws InitializationException if the {@link #create()} method throws an
-   * exception. The {@link InitializationException#getCause()} will contain the
-   * exception thrown by the {@link #create()} method
    */
   @Override public final T get() {
     boolean interrupted = false;
@@ -128,16 +128,16 @@ import java.util.function.Supplier;
    * <code>create()</code> method throws an Exception, calls to
    * <code>get()</code> will throw a RuntimeException which wraps the previously
    * thrown exception.
-   * 
+   *
    * @return the object that {@link #create()} created.
-   * @throws InitializationException if the {@link #create()} method throws an
-   * exception. The {@link InitializationException#getCause()} will contain the
+   * @throws io.atlassian.util.concurrent.LazyReference.InitializationException if the {@link #create()} method throws an
+   * exception. The {@link io.atlassian.util.concurrent.LazyReference.InitializationException#getCause()} will contain the
    * exception thrown by the {@link #create()} method
-   * @throws InterruptedException If the calling thread is Interrupted while
+   * @throws java.lang.InterruptedException If the calling thread is Interrupted while
    * waiting for another thread to create the value (if the creating thread is
-   * interrupted while blocking on something, the {@link InterruptedException}
+   * interrupted while blocking on something, the {@link java.lang.InterruptedException}
    * will be thrown as the causal exception of the
-   * {@link InitializationException} to everybody calling this method).
+   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException} to everybody calling this method).
    */
   public final T getInterruptibly() throws InterruptedException {
     if (!sync.isDone()) {
@@ -153,7 +153,7 @@ import java.util.function.Supplier;
 
   /**
    * Has the {@link #create()} reference been initialized.
-   * 
+   *
    * @return true if the task is complete
    */
   public final boolean isInitialized() {

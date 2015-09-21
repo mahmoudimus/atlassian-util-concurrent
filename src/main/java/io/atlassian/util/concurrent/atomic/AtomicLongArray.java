@@ -22,8 +22,7 @@ import java.util.function.Function;
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
  * {@link #getOrSetAndGetIf(int, long, long)} and {@link #update(int, Function)}.
- * 
- * @inheritDoc
+ *
  * @since 0.0.12
  */
 public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray {
@@ -36,7 +35,7 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
 
   /**
    * Creates a new AtomicLongArray of given length.
-   * 
+   *
    * @param length the length of the array
    */
   public AtomicLongArray(final int length) {
@@ -46,9 +45,9 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
   /**
    * Creates a new AtomicLongArray with the same length as, and all elements
    * copied from, the given array.
-   * 
+   *
    * @param initialValue the array to copy elements from
-   * @throws NullPointerException if array is null
+   * @throws java.lang.NullPointerException if array is null
    */
   public AtomicLongArray(final long[] initialValue) {
     super(initialValue);
@@ -62,7 +61,7 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
    * Check the current value and if it matches the old value argument, set it to
    * the new value and return that instead. If the old value argument does not
    * match, ignore both and just return the current value.
-   * 
+   *
    * @param index the array index
    * @param oldValue to check the current value against (reference equality
    * check only)
@@ -91,8 +90,10 @@ public class AtomicLongArray extends java.util.concurrent.atomic.AtomicLongArray
    * Do the actual update. Calls the factory method with the old value to do the
    * update logic, then sets the value to that if it hasn't changed in the
    * meantime.
-   * 
+   *
    * @return the new updated value.
+   * @param index a int.
+   * @param newValueFactory a {@link java.util.function.Function} object.
    */
   public final long update(final int index, final Function<Long, Long> newValueFactory) {
     long oldValue, newValue;

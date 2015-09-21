@@ -52,11 +52,12 @@ import static java.util.Objects.requireNonNull;
   private final View<K, V> view;
 
   /**
-   * Create a new {@link CopyOnWriteMap} with the supplied {@link Map} to
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the supplied {@link java.util.Map} to
    * initialize the values.
-   * 
+   *
    * @param map the initial map to initialize with
    * @param viewType for writable or read-only key, value and entrySet views
+   * @param <N> original map type.
    */
   protected <N extends Map<? extends K, ? extends V>> AbstractCopyOnWriteMap(final N map, final View.Type viewType) {
     this.delegate = requireNonNull(copy(requireNonNull(map, "map")), "delegate");
@@ -76,6 +77,9 @@ import static java.util.Objects.requireNonNull;
   // mutable operations
   //
 
+  /**
+   * Return a new copy containing no elements
+   */
   public final void clear() {
     lock.lock();
     try {
@@ -85,6 +89,7 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /** {@inheritDoc} */
   public final V remove(final Object key) {
     lock.lock();
     try {
@@ -103,6 +108,7 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /** {@inheritDoc} */
   public final boolean remove(final Object key, final Object value) {
     lock.lock();
     try {
@@ -119,6 +125,15 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /**
+   * Attempt to replace the value of the key with newValues so long as the key
+   * is still associated with old value
+   *
+   * @param key a K key to to define a new association for.
+   * @param oldValue if this value is still present replace it with newValue.
+   * @param newValue a V to add to the map.
+   * @return a boolean if the replacement is successful
+   */
   public final boolean replace(final K key, final V oldValue, final V newValue) {
     lock.lock();
     try {
@@ -134,6 +149,13 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /**
+   * Replace the value of the key if the key is present returning the value.
+   *
+   * @param key a K key.
+   * @param value a V value.
+   * @return a V if the key is present or null if it is not.
+   */
   public final V replace(final K key, final V value) {
     lock.lock();
     try {
@@ -151,6 +173,13 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /**
+   * Add this key and its value to the map
+   *
+   * @param key a K key.
+   * @param value a V value.
+   * @return a V value added.
+   */
   public final V put(final K key, final V value) {
     lock.lock();
     try {
@@ -165,6 +194,14 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /**
+   * If the key is not currently contained in the map add it.
+   * Returns the current value associated with the key whether or not the put succeeds.
+   *
+   * @param key a K key.
+   * @param value a V value.
+   * @return a V associated with the key, may or may not be the input value to this method.
+   */
   public final V putIfAbsent(final K key, final V value) {
     lock.lock();
     try {
@@ -182,6 +219,7 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /** {@inheritDoc} */
   public final void putAll(final Map<? extends K, ? extends V> t) {
     lock.lock();
     try {
@@ -193,6 +231,11 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /**
+   * Create a copy of the underlying map.
+   *
+   * @return a M map.
+   */
   protected M copy() {
     lock.lock();
     try {
@@ -202,6 +245,11 @@ import static java.util.Objects.requireNonNull;
     }
   }
 
+  /**
+   * Set the contained map
+   *
+   * @param map a M contained by this class.
+   */
   @GuardedBy("lock") protected final void set(final M map) {
     delegate = map;
   }
@@ -210,14 +258,17 @@ import static java.util.Objects.requireNonNull;
   // Collection views
   //
 
+  /** {@inheritDoc} */
   public final Set<Map.Entry<K, V>> entrySet() {
     return view.entrySet();
   }
 
+  /** {@inheritDoc} */
   public final Set<K> keySet() {
     return view.keySet();
   }
 
+  /** {@inheritDoc} */
   public final Collection<V> values() {
     return view.values();
   }
@@ -226,38 +277,51 @@ import static java.util.Objects.requireNonNull;
   // delegate operations
   //
 
+  /** {@inheritDoc} */
   public final boolean containsKey(final Object key) {
     return delegate.containsKey(key);
   }
 
+  /** {@inheritDoc} */
   public final boolean containsValue(final Object value) {
     return delegate.containsValue(value);
   }
 
+  /** {@inheritDoc} */
   public final V get(final Object key) {
     return delegate.get(key);
   }
 
+  /** {@inheritDoc} */
   public final boolean isEmpty() {
     return delegate.isEmpty();
   }
 
+  /** {@inheritDoc} */
   public final int size() {
     return delegate.size();
   }
 
+  /** {@inheritDoc} */
   @Override public final boolean equals(final Object o) {
     return delegate.equals(o);
   }
 
+  /** {@inheritDoc} */
   @Override public final int hashCode() {
     return delegate.hashCode();
   }
 
+  /**
+   * Return the internal delegate map.
+   *
+   * @return a M map.
+   */
   protected final M getDelegate() {
     return delegate;
   }
 
+  /** {@inheritDoc} */
   @Override public String toString() {
     return delegate.toString();
   }

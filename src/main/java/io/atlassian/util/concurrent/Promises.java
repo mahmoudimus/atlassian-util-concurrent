@@ -35,15 +35,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 public final class Promises {
 
   private Promises() {}
 
   /**
-   * @param effect an {@link AsynchronousEffect} used as the precedent of the returned Promise.
+   * <p>forEffect.</p>
+   *
+   * @param effect an {@link io.atlassian.util.concurrent.Promises.AsynchronousEffect} used as the precedent of the returned Promise.
    * @param <A> type of the successful value.
-   * @return a new {@link Promise} that will be fulfilled with the same result that the AsynchronousEffect has.
+   * @return a new {@link io.atlassian.util.concurrent.Promise} that will be fulfilled with the same result that the AsynchronousEffect has.
    * Cancelling this Promise will have no consequence on the code used to complete the effect.
    */
   public static <A> Promise<A> forEffect(@Nonnull final AsynchronousEffect<A> effect) {
@@ -52,10 +53,12 @@ public final class Promises {
   }
 
   /**
-   * @param stage a {@link CompletionStage} used as the precedent of the returned Promise.
+   * <p>forCompletionStage.</p>
+   *
+   * @param stage a {@link java.util.concurrent.CompletionStage} used as the precedent of the returned Promise.
    * @param <A> type of the successful value.
-   * @return a new {@link Promise} that will be fulfilled with the same result that the CompletionStage has.
-   * If it implements {@link CompletionStage#toCompletableFuture()} then cancelling this Promise will
+   * @return a new {@link io.atlassian.util.concurrent.Promise} that will be fulfilled with the same result that the CompletionStage has.
+   * If it implements {@link java.util.concurrent.CompletionStage#toCompletableFuture()} then cancelling this Promise will
    * cancel that CompletableFuture.
    */
   public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> stage) {
@@ -64,12 +67,14 @@ public final class Promises {
   }
 
   /**
-   * @param stage a {@link CompletionStage} used as the precedent of the returned Promise.
+   * <p>forCompletionStage.</p>
+   *
+   * @param stage a {@link java.util.concurrent.CompletionStage} used as the precedent of the returned Promise.
    * @param <A> type of the successful value.
    * @param executor to be called to run callbacks and transformations attached to the returned Promise. If None,
    *                 they will be executed on the caller thread.
-   * @return a new {@link Promise} that will be fulfilled with the same result that the CompletionStage has.
-   * If it implements {@link CompletionStage#toCompletableFuture()} then cancelling this Promise will
+   * @return a new {@link io.atlassian.util.concurrent.Promise} that will be fulfilled with the same result that the CompletionStage has.
+   * If it implements {@link java.util.concurrent.CompletionStage#toCompletableFuture()} then cancelling this Promise will
    * cancel that CompletableFuture.
    */
   public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> stage,
@@ -80,11 +85,11 @@ public final class Promises {
   }
 
   /**
+   * Return a completable future based on the input promise
    *
-   * @param promise a {@link Promise} used as the precedent of the returned CompletableFuture.
+   * @param promise a {@link io.atlassian.util.concurrent.Promise} used as the precedent of the returned CompletableFuture.
    * @param <B> any super type of A that may be inferred.
-   * @param <A> type of the successful value.
-   * @return a new {@link CompletableFuture} that will be fulfilled with the same result that the Promise has.
+   * @return a new {@link java.util.concurrent.CompletableFuture} that will be fulfilled with the same result that the Promise has.
    */
   public static <B, A extends B> CompletableFuture<B> toCompletableFuture(@Nonnull final Promise<A> promise) {
     if (promise instanceof OfStage) {
@@ -105,36 +110,38 @@ public final class Promises {
   }
 
   /**
-   * Returns a new {@link Promise} representing the status of a list of other
+   * Returns a new {@link io.atlassian.util.concurrent.Promise} representing the status of a list of other
    * promises.
    *
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
+   * @param <A> an A.
    */
   public @SafeVarargs static <A> Promise<List<A>> when(@Nonnull final Promise<? extends A>... promises) {
     return when(Stream.of(promises));
   }
 
   /**
-   * Returns a new {@link Promise} representing the status of a list of other
+   * Returns a new {@link io.atlassian.util.concurrent.Promise} representing the status of a list of other
    * promises. More generally this is known as {code}sequence{code} as both List
    * and Promise are traversable monads.
    *
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
+   * @param <A> an A.
    */
   public static <A> Promise<List<A>> when(@Nonnull final Iterable<? extends Promise<? extends A>> promises) {
     return when(StreamSupport.stream(promises.spliterator(), false).map(Function.identity()));
   }
 
   /**
-   * Returns a new {@link Promise} representing the status of a stream of other
+   * Returns a new {@link io.atlassian.util.concurrent.Promise} representing the status of a stream of other
    * promises.
    *
    * @param promises The promises that the new promise should track
    * @return The new, aggregate promise
+   * @param <A> an A.
    */
-
   public static <A> Promise<List<A>> when(@Nonnull final Stream<? extends Promise<? extends A>> promises) {
     final List<CompletableFuture<? extends A>> futures =
             promises.map(Promises::toCompletableFuture).collect(Collectors.toList());
@@ -152,8 +159,8 @@ public final class Promises {
    * Creates a new, resolved promise for the specified concrete value.
    *
    * @return The new promise
-   *
    * @since 2.7
+   * @param <A> an A.
    */
   public static <A> Function<A, Promise<A>> toPromise() {
     return new ToPromise<>();
@@ -172,6 +179,7 @@ public final class Promises {
    *
    * @param value The value for which a promise should be created
    * @return The new promise
+   * @param <A> an A.
    */
   public static <A> Promise<A> toResolvedPromise(final A value) {
     return promise(value);
@@ -182,6 +190,7 @@ public final class Promises {
    *
    * @param value The value for which a promise should be created
    * @return The new promise
+   * @param <A> an A.
    */
   public static <A> Promise<A> promise(final A value) {
     final CompletableFuture<A> future = new CompletableFuture<>();
@@ -189,11 +198,12 @@ public final class Promises {
     return Promises.forCompletionStage(future);
   }
   /**
-   * Creates a new, rejected promise from the given {@link Throwable} and result
+   * Creates a new, rejected promise from the given {@link java.lang.Throwable} and result
    * type.
    *
    * @param t The throwable
    * @return The new promise
+   * @param <A> an A.
    */
   public static <A> Promise<A> rejected(@Nonnull final Throwable t) {
     final CompletableFuture<A> future = new CompletableFuture<>();
@@ -208,14 +218,13 @@ public final class Promises {
    *
    * @param t The throwable
    * @return The new promise
+   * @param <A> an A.
    */
   public static <A> Promise<A> toRejectedPromise(@Nonnull final Throwable t) {
     return rejected(t);
   }
 
   /**
-   *
-   /**
    * Creates a promise from the given future.
    *
    * @param future The future delegate for the new promise
@@ -247,11 +256,12 @@ public final class Promises {
 
 
   /**
-   * Create a {@link Promise.Callback} by composing two {@link Effect}.
+   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} by composing two {@link io.atlassian.util.concurrent.Effect}.
    *
    * @param success To run if the Future is successful
    * @param failure To run if the Future fails
    * @return The composed Callback
+   * @param <A> an A.
    */
   public static <A> Promise.Callback<A> callback(@Nonnull final Effect<? super A> success,
                                                  @Nonnull final Effect<Throwable> failure) {
@@ -262,10 +272,11 @@ public final class Promises {
   }
 
   /**
-   * Create a {@link Promise.Callback} that will delegate to an {@link AsynchronousEffect}.
+   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} that will delegate to an {@link io.atlassian.util.concurrent.Promises.AsynchronousEffect}.
    *
    * @param effect To fulfill
    * @return a Callback that transmits values.
+   * @param <A> an A.
    */
   public static <A> Promise.Callback<A> callback(@Nonnull final AsynchronousEffect<? super A> effect) {
     return new Promise.Callback<A>() {
@@ -275,22 +286,24 @@ public final class Promises {
   }
 
   /**
-   * Create a {@link Promise.Callback} from an Effect to be run if there is a
+   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} from an Effect to be run if there is a
    * success.
    *
    * @param effect To be passed the produced value if it happens
    * @return The FutureCallback with a no-op onFailure
+   * @param <A> a A object.
    */
   public static <A> Promise.Callback<A> onSuccessDo(@Nonnull final Effect<? super A> effect) {
     return callback(effect, Effects.noop());
   }
 
   /**
-   * Create a {@link Promise.Callback} from an Effect to be run if there is a
+   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} from an Effect to be run if there is a
    * failure.
    *
    * @param effect To be passed an exception if it happens
    * @return The FutureCallback with a no-op onSuccess
+   * @param <A> a A object.
    */
   public static <A> Promise.Callback<A> onFailureDo(@Nonnull final Effect<Throwable> effect) {
     return callback(Effects.<A> noop(), effect);
@@ -420,6 +433,12 @@ public final class Promises {
     }
   }
 
+  /**
+   * Create a new Asynchronous Effect.
+   *
+   * @param <A> an A.
+   * @return a {@link io.atlassian.util.concurrent.Promises.AsynchronousEffect} object.
+   */
   public static <A> AsynchronousEffect<A> newAsynchronousEffect() {
     return new AsynchronousEffect<A>() {
       private final CompletableFuture<A> completionStage = new CompletableFuture<>();

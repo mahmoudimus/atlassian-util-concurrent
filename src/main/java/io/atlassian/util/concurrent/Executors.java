@@ -6,24 +6,32 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Executors utility class.
+ */
 public final class Executors {
   /**
-   * {@link Executor} that limits the number submitted jobs to a fixed upper
+   * {@link java.util.concurrent.Executor} that limits the number submitted jobs to a fixed upper
    * bound, by blocking the producer thread on submission.
-   * 
+   *
    * @since 2.6.1
    * @see LimitedExecutor for implementation details.
+   * @param delegate a {@link java.util.concurrent.Executor}.
+   * @param limit a int.
+   * @return a {@link java.util.concurrent.Executor}.
    */
   public static Executor limited(Executor delegate, int limit) {
     return new LimitedExecutor(delegate, limit);
   }
 
   /**
-   * {@link Executor} that limits the number submitted jobs to a fixed upper
+   * {@link java.util.concurrent.Executor} that limits the number submitted jobs to a fixed upper
    * bound, by blocking the producer thread on submission.
-   * 
+   *
    * @since 2.6.2
    * @see LimitedExecutor for implementation details.
+   * @param delegate a {@link java.util.concurrent.Executor}.
+   * @return a {@link io.atlassian.util.concurrent.ExecutorSubmitter}.
    */
   public static ExecutorSubmitter submitter(Executor delegate) {
     return new DefaultSubmitter(delegate);

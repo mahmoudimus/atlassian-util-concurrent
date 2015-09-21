@@ -28,6 +28,7 @@ final class Expiring<T> implements Supplier<T> {
     this.strategy = requireNonNull(strategy);
   }
 
+  /** {@inheritDoc} */
   @Override public T get() {
     int i = 0;
     while (true) {

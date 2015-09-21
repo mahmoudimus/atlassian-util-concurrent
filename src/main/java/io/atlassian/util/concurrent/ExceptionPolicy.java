@@ -7,13 +7,13 @@ import static java.util.function.Function.identity;
 
 /**
  * Represents an exception handling policy. Default implementations can be found
- * in {@link Policies}.
+ * in {@link io.atlassian.util.concurrent.ExceptionPolicy.Policies}.
  */
 public interface ExceptionPolicy {
 
   /**
    * Handle a supplier which may or may not throw an Exception.
-   * 
+   *
    * @param <T> the return type of the Supplier
    * @return the ExceptionPolicy handler
    */

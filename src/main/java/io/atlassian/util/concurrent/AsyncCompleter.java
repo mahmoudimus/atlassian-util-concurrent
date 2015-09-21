@@ -16,50 +16,46 @@
 
 package io.atlassian.util.concurrent;
 
-import static io.atlassian.util.concurrent.Executors.limited;
-import static io.atlassian.util.concurrent.Lazy.supplier;
-import static io.atlassian.util.concurrent.Suppliers.memoize;
-import static io.atlassian.util.concurrent.Timeout.getNanosTimeout;
-import static java.util.Objects.requireNonNull;
-
 import io.atlassian.util.concurrent.ExceptionPolicy.Policies;
-
 import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Spliterator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static io.atlassian.util.concurrent.Executors.limited;
+import static io.atlassian.util.concurrent.Lazy.supplier;
+import static io.atlassian.util.concurrent.Timeout.getNanosTimeout;
+import static java.util.Objects.requireNonNull;
+
 /**
- * Convenient encapsulation of {@link CompletionService} usage that allows a
- * collection of jobs to be issued to an {@link Executor} and return an
- * {@link Iterable} of the results that is in the order that the results return.
+ * Convenient encapsulation of {@link java.util.concurrent.CompletionService} usage that allows a
+ * collection of jobs to be issued to an {@link java.util.concurrent.Executor} and return an
+ * {@link java.lang.Iterable} of the results that is in the order that the results return.
  * <p>
- * Unlike {@link ExecutorService#invokeAll(java.util.Collection)}
+ * Unlike {@link java.util.concurrent.ExecutorService#invokeAll(java.util.Collection)}
  * {@link #invokeAll(Iterable)} here does not itself block, rather the
- * {@link Iterator#next()} calls to the returned {@link Iterable} will block the
+ * {@link java.util.Iterator#next()} calls to the returned {@link java.lang.Iterable} will block the
  * first time it is iterated. This allows the client to defer the reification of
  * the result until it is ready to use it.
  * <p>
- * To create an instance of this class, please use the supplied {@link Builder}.
- * 
+ * To create an instance of this class, please use the supplied {@link io.atlassian.util.concurrent.AsyncCompleter.Builder}.
+ *
  * @since 1.0
  */
 @ThreadSafe public final class AsyncCompleter {
@@ -77,17 +73,17 @@ import java.util.stream.StreamSupport;
   }
 
   /**
-   * Queue the {@link Callable jobs} on the contained {@link Executor} and
-   * return a lazily evaluated {@link Iterable} of the results in the order they
+   * Queue the {@link Callable jobs} on the contained {@link java.util.concurrent.Executor} and
+   * return a lazily evaluated {@link java.lang.Iterable} of the results in the order they
    * return in (fastest first).
    * <p>
    * Note that if any of the jobs return null then nulls WILL BE included in the
    * results. Similarly if an exception is thrown and exceptions are being
    * ignored then there will be a NULL result returned. If you want to filter
    * nulls this is trivial, but be aware that filtering of the results forces
-   * {@link Iterator#next()} to be called while calling
-   * {@link Iterator#hasNext()} (which may block).
-   * 
+   * {@link java.util.Iterator#next()} to be called while calling
+   * {@link java.util.Iterator#hasNext()} (which may block).
+   *
    * @param <T> the result type
    * @param callables the jobs to run
    * @return an Iterable that returns the results in the order in which they
@@ -100,14 +96,13 @@ import java.util.stream.StreamSupport;
   /**
    * Version of {@link #invokeAll(Iterable)} that supports a timeout. Any jobs
    * that are not complete by the timeout are interrupted and discarded.
-   * 
+   *
    * @param <T> the result type
    * @param callables the jobs to run
    * @param time the max time spent per job specified by:
    * @param unit the TimeUnit time is specified in
    * @return an Iterable that returns the results in the order in which they
    * return, excluding any null values.
-   * 
    * @see #invokeAll(Iterable)
    * @since 2.1
    */

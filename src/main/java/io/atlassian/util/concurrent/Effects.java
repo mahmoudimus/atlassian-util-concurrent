@@ -17,7 +17,7 @@ package io.atlassian.util.concurrent;
 
 /**
  * Useful Effect related static methods.
- * 
+ *
  * @since 2.4
  */
 public class Effects {

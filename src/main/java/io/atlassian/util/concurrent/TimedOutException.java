@@ -26,6 +26,12 @@ import java.util.concurrent.TimeoutException;
 public class TimedOutException extends TimeoutException {
   private static final long serialVersionUID = 2639693125779305458L;
 
+  /**
+   * Constructor for TimedOutException.
+   *
+   * @param time a long.
+   * @param unit a {@link java.util.concurrent.TimeUnit} object.
+   */
   public TimedOutException(final long time, final TimeUnit unit) {
     super("Timed out after: " + time + " " + unit);
   }

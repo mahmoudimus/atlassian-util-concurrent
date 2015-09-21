@@ -16,18 +16,17 @@
 
 package io.atlassian.util.concurrent;
 
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Useful {@link Supplier} implementations.
+ * Useful {@link java.util.function.Supplier} implementations.
  */
 public final class Suppliers {
   /**
-   * A {@link Supplier} that always returns the supplied source.
-   * 
+   * A {@link java.util.function.Supplier} that always returns the supplied source.
+   *
    * @param <T> the type
    * @param source the object that is always returned.
    * @return a supplier that always returns the supplied argument
@@ -37,9 +36,9 @@ public final class Suppliers {
   }
 
   /**
-   * A {@link Supplier} that asks the argument function for the result using the
+   * A {@link java.util.function.Supplier} that asks the argument function for the result using the
    * input argument.
-   * 
+   *
    * @param <D> the input type
    * @param <T> the result type
    * @param input used as the argument when calling the function.
@@ -51,7 +50,10 @@ public final class Suppliers {
   }
 
   /**
-   * Turn a {@link Supplier} into a {@link Callable}
+   * Turn a {@link java.util.function.Supplier} into a {@link java.util.concurrent.Callable}
+   *
+   * @param supplier a {@link java.util.function.Supplier}.
+   * @return a {@link java.util.concurrent.Callable}.
    */
   public static <T> Callable<T> toCallable(Supplier<T> supplier) {
     return new CallableAdapter<>(supplier);
