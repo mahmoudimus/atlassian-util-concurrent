@@ -7,8 +7,9 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org/).
 ### Added
 - Functional interface annotation to Effect interface
 - javax.annotation.Nonnull annotation in method arguments that aren't expected to be null.
-- Callback interface to be used on Promises (replaces Guava's FutureCallback).
-- AsynchronousEffect: An effect that can be completed with a successful value or a failed exception.
+- TryConsumer interface to be used on Promises (replaces Guava's FutureCallback).
+- Callback interface to be used to fulfill Promises.
+- SettablePromise: A promise that also extends Callback and so it provides fulfillment methods.
 - Documentation on Promise cancellations.
 
 ### Changed
@@ -21,7 +22,8 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org/).
 - AsyncCompleter now relies on Lazy#supplier to memoize results internally. This changes any exceptions generated when capturing the initial value to
 be wrapped by LazyReference.InitializationException instead of directly thrown
 - Promises#forFuture now takes an explicit executor parameter.
-
+- ExecutorSubmitter#submit returns Promises that, if cancelled, signals the executor to not run the computation if it hasn't yet started.
+  
 ### Removed
 - Dependency on Guava library.
 - Beta annotation from Promise and Promises.

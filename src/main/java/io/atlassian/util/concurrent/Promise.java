@@ -18,7 +18,7 @@ package io.atlassian.util.concurrent;
 import javax.annotation.Nonnull;
 import java.util.concurrent.Future;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -81,33 +81,30 @@ public interface Promise<A> extends Future<A> {
    * Registers a callback to be called when the promised object is available.
    * May not be executed in the same thread as the caller.
    * 
-   * @param e The effect to perform with the result
+   * @param c The consumer to call with the result
    * @return This object for chaining
    */
-  Promise<A> done(Effect<? super A> e);
+  Promise<A> done(Consumer<? super A> c);
 
   /**
    * Registers a callback to be called when an exception is thrown. May not be
    * executed in the same thread as the caller.
    * 
-   * @param e The effect to perform with the throwable
+   * @param c The consumer to call with the throwable
    * @return This object for chaining
    */
-  Promise<A> fail(Effect<Throwable> e);
+  Promise<A> fail(Consumer<Throwable> c);
 
   /**
-   * Registers a FutureCallback to handle both success and failure (exception)
+   * Registers a TryConsumer to handle both success and failure (exception)
    * cases. May not be executed in the same thread as the caller.
    * <p>
-   * See {@link Promises#callback(Effect, Effect)}
-   * {@link Promises#onSuccessDo(Effect)} and
-   * {@link Promises#onFailureDo(Effect)} for easy ways of turning an
-   * {@link Effect} into a {@link BiConsumer}
-   * 
+   * See {@link Promises#compose(Consumer, Consumer)}
+   *
    * @param callback The future callback
    * @return This object for chaining
    */
-  Promise<A> then(Callback<? super A> callback);
+  Promise<A> then(TryConsumer<? super A> callback);
 
   /**
    * Transforms this {@link Promise} from one type to another by way of a
@@ -154,11 +151,10 @@ public interface Promise<A> extends Future<A> {
   <B> Promise<B> fold(Function<Throwable, ? extends B> handleThrowable, Function<? super A, ? extends B> function);
 
   /**
-   * Callback interface to be called after a promise is fulfilled.
+   * Consumer interface to be called after a promise is fulfilled with a succesful value or a failure.
    * @param <A> type of the successful value.
    */
-  interface Callback<A> {
-    void onSuccess(A value);
-    void onFailure(@Nonnull Throwable t);
+  interface TryConsumer<A> extends Consumer<A> {
+    void fail(@Nonnull Throwable t);
   }
 }

@@ -1,5 +1,7 @@
 package io.atlassian.util.concurrent;
 
+import io.atlassian.util.concurrent.atomic.AtomicReference;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
@@ -50,26 +52,43 @@ public final class Executors {
       return submit(Suppliers.toCallable(supplier));
     }
 
-    class CallableRunner<T> implements Runnable, Supplier<Promise<T>> {
-      final Callable<T> task;
-      final Promises.AsynchronousEffect<T> future = Promises.newAsynchronousEffect();
+    static class CallableRunner<T> implements Runnable, Supplier<Promise<T>> {
 
-      CallableRunner(Callable<T> task) {
-        this.task = task;
+      enum State { WAITING, RUNNING, FINISHED }
+
+      final Callable<T> task;
+      final Promises.SettablePromise<T> promise = Promises.settablePromise();
+      final AtomicReference<State> state = new AtomicReference<>(State.WAITING);
+
+      CallableRunner(Callable<T> taskToRun) {
+        task = taskToRun;
+        promise.fail(t -> {
+          if (promise.isCancelled()) {
+            state.set(State.FINISHED);
+          }
+        });
       }
 
       @Override public void run() {
-        try {
-          future.set(task.call());
-        } catch (Exception ex) {
-          future.exception(ex);
+        if (state.compareAndSet(State.WAITING, State.RUNNING)) {
+          try {
+            final T value = task.call();
+            if (state.compareAndSet(State.RUNNING, State.FINISHED)) {
+              promise.set(value);
+            }
+          } catch (Exception ex) {
+            if (state.compareAndSet(State.RUNNING, State.FINISHED)) {
+              promise.exception(ex);
+            }
+          }
         }
       }
 
       @Override public Promise<T> get() {
-        return Promises.forEffect(future);
+        return promise;
       }
     }
+
   }
 
   // /CLOVER:OFF

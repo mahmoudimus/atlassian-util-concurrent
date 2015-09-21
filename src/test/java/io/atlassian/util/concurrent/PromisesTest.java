@@ -14,8 +14,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.function.Consumer;
 
-import static io.atlassian.util.concurrent.Promises.callback;
+import static io.atlassian.util.concurrent.Promises.compose;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -29,9 +30,9 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
 @RunWith(MockitoJUnitRunner.class) public class PromisesTest {
 
-  @Mock private Effect<Object> done;
-  @Mock private Effect<Throwable> fail;
-  @Mock private Promise.Callback<Object> futureCallback;
+  @Mock private Consumer<Object> done;
+  @Mock private Consumer<Throwable> fail;
+  @Mock private Promise.TryConsumer<Object> futureConsumer;
 
   @Test
   public void promiseValue() {
@@ -42,13 +43,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(promise.isCancelled(), is(false));
     assertThat(promise.claim(), is(instance));
 
-    promise.then(callback(done, fail));
-    verify(done).apply(instance);
+    promise.then(compose(done, fail));
+    verify(done).accept(instance);
     verifyZeroInteractions(fail);
 
-    promise.then(futureCallback);
-    verify(futureCallback).onSuccess(instance);
-    verifyNoMoreInteractions(futureCallback);
+    promise.then(futureConsumer);
+    verify(futureConsumer).accept(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -66,13 +67,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
       assertSame(instance, e.getCause());
     }
 
-    promise.then(callback(done, fail));
+    promise.then(compose(done, fail));
     verifyZeroInteractions(done);
-    verify(fail).apply(instance);
+    verify(fail).accept(instance);
 
-    promise.then(futureCallback);
-    verify(futureCallback).onFailure(instance);
-    verifyNoMoreInteractions(futureCallback);
+    promise.then(futureConsumer);
+    verify(futureConsumer).fail(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -81,8 +82,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<Object> promise = Promises.forCompletionStage(completableFuture);
 
     // register call backs
-    promise.then(callback(done, fail));
-    promise.then(futureCallback);
+    promise.then(compose(done, fail));
+    promise.then(futureConsumer);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -94,11 +95,11 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(promise.isCancelled(), is(false));
     assertThat(promise.claim(), is(instance));
 
-    verify(done).apply(instance);
+    verify(done).accept(instance);
     verifyZeroInteractions(fail);
 
-    verify(futureCallback).onSuccess(instance);
-    verifyNoMoreInteractions(futureCallback);
+    verify(futureConsumer).accept(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -107,8 +108,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     final Promise<Object> promise = Promises.forCompletionStage(completableFuture);
 
     // register call backs
-    promise.then(callback(done, fail));
-    promise.then(futureCallback);
+    promise.then(compose(done, fail));
+    promise.then(futureConsumer);
 
     assertThat(promise.isDone(), is(false));
     assertThat(promise.isCancelled(), is(false));
@@ -125,10 +126,10 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     }
 
     verifyZeroInteractions(done);
-    verify(fail).apply(instance);
+    verify(fail).accept(instance);
 
-    verify(futureCallback).onFailure(instance);
-    verifyNoMoreInteractions(futureCallback);
+    verify(futureConsumer).fail(instance);
+    verifyNoMoreInteractions(futureConsumer);
   }
 
   @Test
@@ -154,11 +155,11 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(transformedPromise.isCancelled(), is(false));
 
     @SuppressWarnings("unchecked")
-    final Effect<SomeObject> someObjectCallback = mock(Effect.class);
-    transformedPromise.then(callback(someObjectCallback, fail));
+    final Consumer<SomeObject> someObjectCallback = mock(Consumer.class);
+    transformedPromise.then(compose(someObjectCallback, fail));
 
     assertThat(transformedPromise.claim().object, is(instance));
-    verify(someObjectCallback).apply(argThat(new SomeObjectMatcher(instance)));
+    verify(someObjectCallback).accept(argThat(new SomeObjectMatcher(instance)));
     verifyZeroInteractions(fail);
   }
 
@@ -189,8 +190,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(transformedPromise.isCancelled(), is(false));
 
     @SuppressWarnings("unchecked")
-    final Effect<SomeObject> someObjectCallback = mock(Effect.class);
-    transformedPromise.then(callback(someObjectCallback, fail));
+    final Consumer<SomeObject> someObjectCallback = mock(Consumer.class);
+    transformedPromise.then(compose(someObjectCallback, fail));
 
     try {
       transformedPromise.claim();
@@ -198,7 +199,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
       assertSame(instance, e.getCause());
     }
     verifyZeroInteractions(someObjectCallback);
-    verify(fail).apply(instance);
+    verify(fail).accept(instance);
   }
 
   @Test(expected = IllegalStateException.class) public void flatMapFunctionThrowsException() {
@@ -222,8 +223,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     @SuppressWarnings("unchecked")
     final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
-    final Effect<List<Object>> doneCallback = mock(Effect.class);
-    seq.then(callback(doneCallback, fail));
+    final Consumer<List<Object>> doneCallback = mock(Consumer.class);
+    seq.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -262,7 +263,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(seq.isCancelled(), is(false));
 
     assertThat(seq.claim(), contains(instance1, instance2));
-    verify(doneCallback).apply(Arrays.asList(instance1, instance2));
+    verify(doneCallback).accept(Arrays.asList(instance1, instance2));
     verifyZeroInteractions(fail);
   }
 
@@ -278,8 +279,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     @SuppressWarnings("unchecked")
     final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
-    final Effect<List<Object>> doneCallback = mock(Effect.class);
-    sequenced.then(callback(doneCallback, fail));
+    final Consumer<List<Object>> doneCallback = mock(Consumer.class);
+    sequenced.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -303,7 +304,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(sequenced.isCancelled(), is(false));
 
     verifyZeroInteractions(doneCallback);
-    verify(fail).apply(throwable);
+    verify(fail).accept(throwable);
 
     final Throwable instance2 = new Throwable();
     f2.completeExceptionally(instance2);
@@ -339,8 +340,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     @SuppressWarnings("unchecked")
     final Promise<List<Object>> seq = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
-    final Effect<List<Object>> doneCallback = mock(Effect.class);
-    seq.then(callback(doneCallback, fail));
+    final Consumer<List<Object>> doneCallback = mock(Consumer.class);
+    seq.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -379,7 +380,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(seq.isCancelled(), is(false));
 
     assertThat(seq.claim(), contains(instance1, instance2));
-    verify(doneCallback).apply(Arrays.asList(instance1, instance2));
+    verify(doneCallback).accept(Arrays.asList(instance1, instance2));
     verifyZeroInteractions(fail);
   }
 
@@ -395,8 +396,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     @SuppressWarnings("unchecked")
     final Promise<List<Object>> sequenced = Promises.when(p1, p2);
     @SuppressWarnings("unchecked")
-    final Effect<List<Object>> doneCallback = mock(Effect.class);
-    sequenced.then(callback(doneCallback, fail));
+    final Consumer<List<Object>> doneCallback = mock(Consumer.class);
+    sequenced.then(compose(doneCallback, fail));
 
     assertThat(p1.isDone(), is(false));
     assertThat(p1.isCancelled(), is(false));
@@ -420,7 +421,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(sequenced.isCancelled(), is(false));
 
     verifyZeroInteractions(doneCallback);
-    verify(fail).apply(throwable);
+    verify(fail).accept(throwable);
 
     final Throwable instance2 = new Throwable();
     f2.completeExceptionally(instance2);
@@ -445,7 +446,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
   }
 
   @Test
-  public void doneAddsFutureCallback() {
+  public void doneAddsFuturecompose() {
     final AtomicReference<String> ref = new AtomicReference<>();
     final CompletableFuture<String> f = new CompletableFuture<>();
     Promise<String> p = Promises.forCompletionStage(f);
@@ -457,7 +458,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
   }
 
   @Test
-  public void failAddsFutureCallback() {
+  public void failAddsFuturecompose() {
     final AtomicReference<Throwable> ref = new AtomicReference<>();
     final CompletableFuture<String> f = new CompletableFuture<>();
     Promise<String> p = Promises.forCompletionStage(f);
