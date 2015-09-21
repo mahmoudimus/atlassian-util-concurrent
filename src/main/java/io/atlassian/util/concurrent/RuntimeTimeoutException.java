@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Convenience class for re-throwing {@link java.util.concurrent.TimeoutException} as an unchecked
- * exception.
+ * Convenience class for re-throwing
+ * {@link java.util.concurrent.TimeoutException} as an unchecked exception.
  */
 public class RuntimeTimeoutException extends RuntimeException {
 

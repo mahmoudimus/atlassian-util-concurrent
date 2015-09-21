@@ -107,7 +107,8 @@ public final class Memory {
   }
 
   /**
-   * The memory {@link io.atlassian.util.concurrent.Memory.Unit} this is represented in.
+   * The memory {@link io.atlassian.util.concurrent.Memory.Unit} this is
+   * represented in.
    *
    * @return a {@link io.atlassian.util.concurrent.Memory.Unit} object.
    */

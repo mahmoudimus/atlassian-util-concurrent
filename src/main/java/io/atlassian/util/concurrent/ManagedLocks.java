@@ -31,9 +31,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Static factory for producing {@link io.atlassian.util.concurrent.ManagedLock} and {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite}
- * instances. Also contains factory methods for getting striping functions for
- * these as well.
+ * Static factory for producing {@link io.atlassian.util.concurrent.ManagedLock}
+ * and {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} instances.
+ * Also contains factory methods for getting striping functions for these as
+ * well.
  * <p>
  * All Parameters and returns values do no allow nulls. All supplied
  * {@link Function functions} should not allow null values are permit null
@@ -51,7 +52,8 @@ import java.util.function.Supplier;
  */
 public class ManagedLocks {
   /**
-   * Get a {@link io.atlassian.util.concurrent.ManagedLock} that manages the supplied {@link java.util.concurrent.locks.Lock}.
+   * Get a {@link io.atlassian.util.concurrent.ManagedLock} that manages the
+   * supplied {@link java.util.concurrent.locks.Lock}.
    *
    * @param lock the lock to use.
    * @return a managed lock
@@ -61,7 +63,8 @@ public class ManagedLocks {
   }
 
   /**
-   * Get a {@link io.atlassian.util.concurrent.ManagedLock} that manages a {@link java.util.concurrent.locks.ReentrantLock}.
+   * Get a {@link io.atlassian.util.concurrent.ManagedLock} that manages a
+   * {@link java.util.concurrent.locks.ReentrantLock}.
    *
    * @return a managed lock
    */
@@ -70,8 +73,8 @@ public class ManagedLocks {
   }
 
   /**
-   * Get a {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} that manages the supplied
-   * {@link java.util.concurrent.locks.ReadWriteLock}.
+   * Get a {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} that
+   * manages the supplied {@link java.util.concurrent.locks.ReadWriteLock}.
    *
    * @param lock the lock to use.
    * @return a managed read write lock
@@ -81,25 +84,26 @@ public class ManagedLocks {
   }
 
   /**
-   * Create a {@link java.util.function.Function} for resolving {@link ManagedLock managed locks} .
-   * The particular lock is resolved using a striping {@link java.util.function.Function} that is
-   * used look up a lock instance. This allows for a finite set of locks to be
-   * used even if the set of T is essentially unbounded. The locks are stored
-   * using weak references so infrequently accessed locks should not use excess
-   * memory.
+   * Create a {@link java.util.function.Function} for resolving
+   * {@link ManagedLock managed locks} . The particular lock is resolved using a
+   * striping {@link java.util.function.Function} that is used look up a lock
+   * instance. This allows for a finite set of locks to be used even if the set
+   * of T is essentially unbounded. The locks are stored using weak references
+   * so infrequently accessed locks should not use excess memory.
    *
    * @param <T> the type of the thing used to look up locks
    * @param <D> the type used to map lock instances, should be a good map key
    * @param stripeFunction to convert the input to the thing used to look up the
    * individual locks
    * @param lockFactory the factory for creating the individual locks
-   * @return a new {@link java.util.function.Function} that provides {@link io.atlassian.util.concurrent.ManagedLock} instances
-   * that stores created instances with weak references.
+   * @return a new {@link java.util.function.Function} that provides
+   * {@link io.atlassian.util.concurrent.ManagedLock} instances that stores
+   * created instances with weak references.
    */
-  public static @NotNull <T, D> Function<T, ManagedLock> weakManagedLockFactory(
-    final @NotNull Function<T, D> stripeFunction, final @NotNull Supplier<Lock> lockFactory) {
+  public static @NotNull <T, D> Function<T, ManagedLock> weakManagedLockFactory(final @NotNull Function<T, D> stripeFunction,
+    final @NotNull Supplier<Lock> lockFactory) {
     final Function<D, ManagedLock> lockFunction = fromSupplier(managedLockFactory(lockFactory));
-    return ManagedFactory.<T, D>managedFactory(weakMemoizer(lockFunction), stripeFunction);
+    return ManagedFactory.<T, D> managedFactory(weakMemoizer(lockFunction), stripeFunction);
   }
 
   /**
@@ -113,16 +117,15 @@ public class ManagedLocks {
    * @see #weakManagedLockFactory(Function, Supplier)
    * @return a {@link java.util.function.Function}.
    */
-  public static @NotNull <T, D> Function<T, ManagedLock> weakManagedLockFactory(
-    final @NotNull Function<T, D> stripeFunction) {
+  public static @NotNull <T, D> Function<T, ManagedLock> weakManagedLockFactory(final @NotNull Function<T, D> stripeFunction) {
     return weakManagedLockFactory(stripeFunction, lockFactory);
   }
 
   /**
    * Convenience method that calls
-   * {@link io.atlassian.util.concurrent.ManagedLocks#weakManagedLockFactory(Function)} using the
-   * {@link java.util.function.Function#identity() identity function} for striping, essentially
-   * meaning that unique input will have its own lock.
+   * {@link io.atlassian.util.concurrent.ManagedLocks#weakManagedLockFactory(Function)}
+   * using the {@link java.util.function.Function#identity() identity function}
+   * for striping, essentially meaning that unique input will have its own lock.
    *
    * @param <T> the type of the thing used to look up locks
    * @see #weakManagedLockFactory(Function, Supplier)
@@ -133,23 +136,25 @@ public class ManagedLocks {
   }
 
   /**
-   * Create a {@link java.util.function.Function} for resolving {@link ManagedLock.ReadWrite
-   * managed read-write locks}. The particular lock is resolved using a striping
-   * {@link java.util.function.Function} that is used look up a lock instance. This allows for a
-   * finite set of locks to be used even if the set of T is essentially
-   * unbounded. The locks are stored using weak references so infrequently
-   * accessed locks should not use excess memory.
+   * Create a {@link java.util.function.Function} for resolving
+   * {@link ManagedLock.ReadWrite managed read-write locks}. The particular lock
+   * is resolved using a striping {@link java.util.function.Function} that is
+   * used look up a lock instance. This allows for a finite set of locks to be
+   * used even if the set of T is essentially unbounded. The locks are stored
+   * using weak references so infrequently accessed locks should not use excess
+   * memory.
    *
    * @param <T> the type of the thing used to look up locks
    * @param <D> the type used to map lock instances, should be a good map key
    * @param stripeFunction to convert the input to the thing used to look up the
    * individual locks
    * @param lockFactory the factory for creating the individual locks
-   * @return a new {@link java.util.function.Function} that provides {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite}
-   * instances that stores created instances with weak references.
+   * @return a new {@link java.util.function.Function} that provides
+   * {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} instances that
+   * stores created instances with weak references.
    */
-  public static @NotNull <T, D> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(
-    final @NotNull Function<T, D> stripeFunction, final @NotNull Supplier<ReadWriteLock> lockFactory) {
+  public static @NotNull <T, D> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(final @NotNull Function<T, D> stripeFunction,
+    final @NotNull Supplier<ReadWriteLock> lockFactory) {
     requireNonNull(stripeFunction, "stripeFunction");
     final Function<D, ReadWrite> readWriteManagedLockFactory = fromSupplier(managedReadWriteLockFactory(lockFactory));
     final WeakMemoizer<D, ManagedLock.ReadWrite> locks = weakMemoizer(readWriteManagedLockFactory);
@@ -164,24 +169,25 @@ public class ManagedLocks {
    * @param <T> the type of the thing used to look up locks
    * @param <D> the type used to map lock instances, should be a good map key
    * @param stripeFunction a {@link java.util.function.Function} object.
-   * @return a new {@link java.util.function.Function} that provides {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite}
-   * instances that stores created instances with weak references.
+   * @return a new {@link java.util.function.Function} that provides
+   * {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} instances that
+   * stores created instances with weak references.
    */
-  public static @NotNull <T, D> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(
-    final Function<T, D> stripeFunction) {
+  public static @NotNull <T, D> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory(final Function<T, D> stripeFunction) {
     return weakReadWriteManagedLockFactory(stripeFunction, readWriteLockFactory);
   }
 
   /**
    * A convenience method for calling
    * {@link #weakReadWriteManagedLockFactory(Function)} that uses the
-   * {@link java.util.function.Function#identity() identity function} for striping, essentially
-   * meaning that unique input will have its own lock.
+   * {@link java.util.function.Function#identity() identity function} for
+   * striping, essentially meaning that unique input will have its own lock.
    *
    * @param <T> the type of the thing used to look up locks
-   * @return a new {@link java.util.function.Function} that provides the appropriate
-   * {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} for the argument {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} instances
-   * that stores created instances with weak references.
+   * @return a new {@link java.util.function.Function} that provides the
+   * appropriate {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite} for
+   * the argument {@link io.atlassian.util.concurrent.ManagedLock.ReadWrite}
+   * instances that stores created instances with weak references.
    */
   public static @NotNull <T> Function<T, ManagedLock.ReadWrite> weakReadWriteManagedLockFactory() {
     return weakReadWriteManagedLockFactory(Function.<T> identity());
@@ -217,8 +223,7 @@ public class ManagedLocks {
    * 
    * @return lock factory
    */
-  static @NotNull Supplier<ManagedLock.ReadWrite> managedReadWriteLockFactory(
-    final @NotNull Supplier<ReadWriteLock> supplier) {
+  static @NotNull Supplier<ManagedLock.ReadWrite> managedReadWriteLockFactory(final @NotNull Supplier<ReadWriteLock> supplier) {
     requireNonNull(supplier, "supplier");
     return () -> new ReadWriteManagedLock(supplier.get());
   }

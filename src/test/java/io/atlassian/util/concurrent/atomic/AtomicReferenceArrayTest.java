@@ -36,7 +36,7 @@ public class AtomicReferenceArrayTest {
   @Test public void getAndSetArrayIfNull() {
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { null });
-    assertEquals(to, Atomics.getAndSetIfNull(ref, 0, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIfNull(ref, 0, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetArrayContended() {
@@ -75,6 +75,6 @@ public class AtomicReferenceArrayTest {
   }
 
   @Test(expected = IndexOutOfBoundsException.class) public void getAndSetArrayThrowsIndexOutOfBounds() {
-    Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test", (Supplier<String>)() -> "blah");
+    Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test", (Supplier<String>) () -> "blah");
   }
 }

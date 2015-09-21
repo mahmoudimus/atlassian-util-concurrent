@@ -29,11 +29,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * {@link io.atlassian.util.concurrent.SettableFuture} is a {@link java.util.concurrent.Future} implementation where the
- * responsibility for producing the result is external to the future instance,
- * unlike {@link java.util.concurrent.FutureTask} where the future holds the operation (a
- * {@link java.util.concurrent.Callable} or {@link java.lang.Runnable} instance) and the first thread that
- * calls {@link java.util.concurrent.FutureTask#run()} executes the operation.
+ * {@link io.atlassian.util.concurrent.SettableFuture} is a
+ * {@link java.util.concurrent.Future} implementation where the responsibility
+ * for producing the result is external to the future instance, unlike
+ * {@link java.util.concurrent.FutureTask} where the future holds the operation
+ * (a {@link java.util.concurrent.Callable} or {@link java.lang.Runnable}
+ * instance) and the first thread that calls
+ * {@link java.util.concurrent.FutureTask#run()} executes the operation.
  * <p>
  * This is useful in situations where all the inputs may not be available at
  * construction time.

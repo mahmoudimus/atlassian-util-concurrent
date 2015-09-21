@@ -52,8 +52,8 @@ import static java.util.Objects.requireNonNull;
   private final View<K, V> view;
 
   /**
-   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the supplied {@link java.util.Map} to
-   * initialize the values.
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the
+   * supplied {@link java.util.Map} to initialize the values.
    *
    * @param map the initial map to initialize with
    * @param viewType for writable or read-only key, value and entrySet views
@@ -195,12 +195,13 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * If the key is not currently contained in the map add it.
-   * Returns the current value associated with the key whether or not the put succeeds.
+   * If the key is not currently contained in the map add it. Returns the
+   * current value associated with the key whether or not the put succeeds.
    *
    * @param key a K key.
    * @param value a V value.
-   * @return a V associated with the key, may or may not be the input value to this method.
+   * @return a V associated with the key, may or may not be the input value to
+   * this method.
    */
   public final V putIfAbsent(final K key, final V value) {
     lock.lock();

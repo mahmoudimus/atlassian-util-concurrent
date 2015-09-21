@@ -89,7 +89,7 @@ public class PromiseTest {
   class Child extends Parent {};
 
   @Test public void covariantReturn() {
-    Promise<Parent> some =  Promises.promise(new Parent());
+    Promise<Parent> some = Promises.promise(new Parent());
     Function<Parent, Promise<Child>> f = p -> Promises.promise(new Child());
     Promise<Parent> mapped = some.<Parent> flatMap(f);
     assertThat(mapped.claim(), notNullValue());

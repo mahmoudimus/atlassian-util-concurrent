@@ -25,7 +25,7 @@ public class AtomicReferenceTest {
   @Test public void getAndSetIfNull() {
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>();
-    assertEquals(to, Atomics.getAndSetIfNull(ref, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIfNull(ref, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetContended() {
@@ -45,7 +45,7 @@ public class AtomicReferenceTest {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(old);
-    assertEquals(old, ref.getOrSetAndGetIf(from, () ->to));
+    assertEquals(old, ref.getOrSetAndGetIf(from, () -> to));
   }
 
   @Test public void getAndSetSameValue() {

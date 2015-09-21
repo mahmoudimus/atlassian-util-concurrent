@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
+
 public final class Functions {
   /**
    * Get a function that uses the Supplier as a factory for all inputs.
@@ -70,8 +71,7 @@ public final class Functions {
     return new ExceptionIgnorer<>();
   }
 
-  static class ExceptionIgnorer<T> implements
-    Function<Supplier<T>, Supplier<T>> {
+  static class ExceptionIgnorer<T> implements Function<Supplier<T>, Supplier<T>> {
     public Supplier<T> apply(final Supplier<T> from) {
       return new IgnoreAndReturnNull<>(from);
     }

@@ -14,19 +14,19 @@ import org.junit.Test;
 public class LazyTest {
   @Test public void strong() throws Exception {
     final Supplier<Integer> s = Lazy.supplier(new Counter());
-    //assertSame(Lazy.Strong.class, s.getClass());
+    // assertSame(Lazy.Strong.class, s.getClass());
     assertThat(valueOf(1), is(s.get()));
   }
 
   @Test public void ttl() throws Exception {
     final Supplier<Integer> s = Lazy.timeToLive(new Counter(), 1L, SECONDS);
-    //assertSame(Expiring.class, s.getClass());
+    // assertSame(Expiring.class, s.getClass());
     assertThat(valueOf(1), is(s.get()));
   }
 
   @Test public void tti() throws Exception {
     final Supplier<Integer> s = Lazy.timeToIdle(new Counter(), 1L, SECONDS);
-    //assertSame(Expiring.class, s.getClass());
+    // assertSame(Expiring.class, s.getClass());
     assertThat(valueOf(1), is(s.get()));
   }
 

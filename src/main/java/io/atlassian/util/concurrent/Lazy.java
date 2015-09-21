@@ -58,11 +58,16 @@ public final class Lazy {
   }
 
   /**
-   * Returns a {@link io.atlassian.util.concurrent.ResettableLazyReference} which creates the value by applying the provided {@link java.util.function.Supplier}.
+   * Returns a {@link io.atlassian.util.concurrent.ResettableLazyReference}
+   * which creates the value by applying the provided
+   * {@link java.util.function.Supplier}.
    *
-   * @param supplier that creates the value that will be held by the {@link io.atlassian.util.concurrent.ResettableLazyReference}.
+   * @param supplier that creates the value that will be held by the
+   * {@link io.atlassian.util.concurrent.ResettableLazyReference}.
    * @param <T> the type of the contained element.
-   * @return a {@link io.atlassian.util.concurrent.ResettableLazyReference} which creates the value by applying the provided {@link java.util.function.Supplier}.
+   * @return a {@link io.atlassian.util.concurrent.ResettableLazyReference}
+   * which creates the value by applying the provided
+   * {@link java.util.function.Supplier}.
    * @since 3.0
    */
   public static <T> ResettableLazyReference<T> resettable(final Supplier<T> supplier) {

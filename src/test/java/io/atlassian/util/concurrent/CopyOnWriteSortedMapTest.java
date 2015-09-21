@@ -62,8 +62,8 @@ public class CopyOnWriteSortedMapTest {
   @Test public void mapComparatorConstructor() {
     final MapBuilder<String, String> builder = MapBuilder.builder();
     builder.add("one", "value").add("two", "value").add("three", "value");
-    final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder()
-      .ordering(new ReverseComparator<>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
+    final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().ordering(new ReverseComparator<>(new StringComparator()))
+      .addAll(builder.toMap()).newTreeMap();
 
     assertEquals(3, map.size());
   }
@@ -110,8 +110,8 @@ public class CopyOnWriteSortedMapTest {
   @Test public void firstKeyWithReverse() {
     final MapBuilder<String, String> builder = MapBuilder.builder();
     builder.add("one", "value").add("two", "value").add("three", "value");
-    final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder()
-      .ordering(new ReverseComparator<>(new StringComparator())).addAll(builder.toMap()).newTreeMap();
+    final SortedMap<String, String> map = CopyOnWriteSortedMap.<String, String> builder().ordering(new ReverseComparator<>(new StringComparator()))
+      .addAll(builder.toMap()).newTreeMap();
     map.put("one", "value");
     map.put("two", "value");
     map.put("three", "value");

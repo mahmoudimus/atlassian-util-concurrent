@@ -31,9 +31,10 @@ import io.atlassian.util.concurrent.AbstractCopyOnWriteMap.View.Type;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A thread-safe variant of {@link java.util.SortedMap} in which all mutative operations
- * (the "destructive" operations described by {@link java.util.SortedMap} put, remove and
- * so on) are implemented by making a fresh copy of the underlying map.
+ * A thread-safe variant of {@link java.util.SortedMap} in which all mutative
+ * operations (the "destructive" operations described by
+ * {@link java.util.SortedMap} put, remove and so on) are implemented by making
+ * a fresh copy of the underlying map.
  * <p>
  * This is ordinarily too costly, but may be <em>more</em> efficient than
  * alternatives when traversal operations vastly out-number mutations, and is
@@ -47,15 +48,17 @@ import static java.util.Objects.requireNonNull;
  * iterators will not reflect additions, removals, or changes to the list since
  * the iterator was created. Removing elements via these iterators is not
  * supported. The mutable operations on these collections (remove, retain etc.)
- * may be supported if the views are live but as with the {@link java.util.Map} interface,
- * add and addAll are not and throw {@link java.lang.UnsupportedOperationException}.
+ * may be supported if the views are live but as with the {@link java.util.Map}
+ * interface, add and addAll are not and throw
+ * {@link java.lang.UnsupportedOperationException}.
  * <p>
  * The actual copy is performed by the abstract {@link #copy(Map)} method. This
  * implementation of this method is responsible for the underlying
- * {@link java.util.SortedMap} implementation (for instance a {@link java.util.TreeMap}) and
- * therefore the semantics of what this map will cope with as far as null keys
- * and values, iteration ordering etc. Standard j.u.c {@link java.util.Map} implementation
- * versions are available from the {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap.Builder}.
+ * {@link java.util.SortedMap} implementation (for instance a
+ * {@link java.util.TreeMap}) and therefore the semantics of what this map will
+ * cope with as far as null keys and values, iteration ordering etc. Standard
+ * j.u.c {@link java.util.Map} implementation versions are available from the
+ * {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap.Builder}.
  * <p>
  * Collection views of the keys, values and entries are optionally
  * {@link View.Type.LIVE live} or {@link View.Type.STABLE stable}. Live views
@@ -81,7 +84,8 @@ import static java.util.Objects.requireNonNull;
   private static final long serialVersionUID = 7375772978175545647L;
 
   /**
-   * Get a {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap.Builder} for a {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap} instance.
+   * Get a {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap.Builder} for
+   * a {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap} instance.
    *
    * @param <K> key type
    * @param <V> value type
@@ -152,8 +156,9 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap} where the underlying map
-   * instances are {@link java.util.TreeMap} and the sort uses the key's natural order.
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap}
+   * where the underlying map instances are {@link java.util.TreeMap} and the
+   * sort uses the key's natural order.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
    *
@@ -165,9 +170,9 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap} where the underlying map
-   * instances are {@link java.util.TreeMap}, the sort uses the key's natural order and
-   * the initial values are supplied.
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap}
+   * where the underlying map instances are {@link java.util.TreeMap}, the sort
+   * uses the key's natural order and the initial values are supplied.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
    *
@@ -183,8 +188,8 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap} where the underlying map
-   * instances are {@link java.util.TreeMap}.
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap}
+   * where the underlying map instances are {@link java.util.TreeMap}.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
    *
@@ -201,9 +206,9 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap} where the underlying map
-   * instances are {@link java.util.TreeMap}, the sort uses the key's natural order and
-   * the initial values are supplied.
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteSortedMap}
+   * where the underlying map instances are {@link java.util.TreeMap}, the sort
+   * uses the key's natural order and the initial values are supplied.
    * <p>
    * This map has {@link View.Type.STABLE stable} views.
    *
@@ -235,8 +240,8 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the supplied {@link java.util.Map} to
-   * initialize the values.
+   * Create a new {@link io.atlassian.util.concurrent.CopyOnWriteMap} with the
+   * supplied {@link java.util.Map} to initialize the values.
    *
    * @param map the initial map to initialize with
    * @param viewType a View.Type.

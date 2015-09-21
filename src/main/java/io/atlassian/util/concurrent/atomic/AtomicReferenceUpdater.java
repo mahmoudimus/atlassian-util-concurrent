@@ -27,9 +27,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * be removed in later versions unless you <i>really, really</i> like it. If you
  * do, mail me, jed@atlassian.com
  * <p>
- * Implements the logic for updating an {@link java.util.concurrent.atomic.AtomicReference} correctly, using
- * the current value, computing the update and then setting it if it hasn't
- * changed in the meantime.
+ * Implements the logic for updating an
+ * {@link java.util.concurrent.atomic.AtomicReference} correctly, using the
+ * current value, computing the update and then setting it if it hasn't changed
+ * in the meantime.
  * <p>
  * This is an abstract class that has a {@link #get(Object) factory template
  * method} to implement the new value creation.
@@ -42,9 +43,12 @@ public abstract class AtomicReferenceUpdater<T> implements Function<T, T> {
   private final AtomicReference<T> reference;
 
   /**
-   * <p>Constructor for AtomicReferenceUpdater.</p>
+   * <p>
+   * Constructor for AtomicReferenceUpdater.
+   * </p>
    *
-   * @param reference a {@link java.util.concurrent.atomic.AtomicReference} object.
+   * @param reference a {@link java.util.concurrent.atomic.AtomicReference}
+   * object.
    */
   public AtomicReferenceUpdater(final AtomicReference<T> reference) {
     this.reference = requireNonNull(reference, "reference");

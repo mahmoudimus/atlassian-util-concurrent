@@ -297,8 +297,8 @@ class LockingReference<V> {
 
   /**
    * Set the value of this reference. This method is lock-free. A thread waiting
-   * in {@link #take()} or {@link PhasedBlockingReference#take(long, TimeUnit)} will be released and
-   * given this value.
+   * in {@link #take()} or {@link PhasedBlockingReference#take(long, TimeUnit)}
+   * will be released and given this value.
    * 
    * @param value the new value.
    */

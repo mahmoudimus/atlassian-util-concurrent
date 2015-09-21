@@ -23,10 +23,10 @@ import net.jcip.annotations.ThreadSafe;
 
 /**
  * This will allow you to submit an operation, encapsulated by a
- * {@link java.util.concurrent.Callable}, and keyed by an Object <K>, such that the result of the
- * Callable will be available to any concurrent callers with the same Object
- * key. The result of the Callable is discarded after the operation has
- * succeeded.
+ * {@link java.util.concurrent.Callable}, and keyed by an Object <K>, such that
+ * the result of the Callable will be available to any concurrent callers with
+ * the same Object key. The result of the Callable is discarded after the
+ * operation has succeeded.
  * <p>
  * There is an assumption that the callers that are using this will submit the
  * same Operations associated with the same keyed Object AND that the operations
@@ -49,8 +49,8 @@ import net.jcip.annotations.ThreadSafe;
    * @param operation is the operation to execute whose result will be
    * accessible to any concurrent callers with the same key.
    * @return result of the operation
-   * @throws java.util.concurrent.ExecutionException if the callable generated a checked exception,
-   * otherwise a runtime exception or error will be thrown
+   * @throws java.util.concurrent.ExecutionException if the callable generated a
+   * checked exception, otherwise a runtime exception or error will be thrown
    */
   R runOperation(K key, Callable<R> operation) throws ExecutionException;
 }

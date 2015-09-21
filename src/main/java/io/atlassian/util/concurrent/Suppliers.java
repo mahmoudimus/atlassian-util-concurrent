@@ -25,7 +25,8 @@ import java.util.function.Supplier;
  */
 public final class Suppliers {
   /**
-   * A {@link java.util.function.Supplier} that always returns the supplied source.
+   * A {@link java.util.function.Supplier} that always returns the supplied
+   * source.
    *
    * @param <T> the type
    * @param source the object that is always returned.
@@ -36,8 +37,8 @@ public final class Suppliers {
   }
 
   /**
-   * A {@link java.util.function.Supplier} that asks the argument function for the result using the
-   * input argument.
+   * A {@link java.util.function.Supplier} that asks the argument function for
+   * the result using the input argument.
    *
    * @param <D> the input type
    * @param <T> the result type
@@ -50,7 +51,8 @@ public final class Suppliers {
   }
 
   /**
-   * Turn a {@link java.util.function.Supplier} into a {@link java.util.concurrent.Callable}
+   * Turn a {@link java.util.function.Supplier} into a
+   * {@link java.util.concurrent.Callable}
    *
    * @param supplier a {@link java.util.function.Supplier}.
    * @return a {@link java.util.concurrent.Callable}.

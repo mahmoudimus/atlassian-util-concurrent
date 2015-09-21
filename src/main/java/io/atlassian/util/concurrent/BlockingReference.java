@@ -40,9 +40,10 @@ import static java.util.Objects.requireNonNull;
  * MRSW} usage. Multiple writers will overwrite each other's elements and the
  * chosen value will be arbitrary in the absence of any external consensus. If
  * multiple readers are waiting to {@link #take()} a value, one reader will be
- * arbitrarily chosen (similar to {@link java.util.concurrent.locks.Condition#signal()}). Multiple readers
- * can however {@link #get()} the current value if it is not null, but they may
- * see the current value more than once. If multiple readers attempt to
+ * arbitrarily chosen (similar to
+ * {@link java.util.concurrent.locks.Condition#signal()}). Multiple readers can
+ * however {@link #get()} the current value if it is not null, but they may see
+ * the current value more than once. If multiple readers attempt to
  * {@link #get()} a value from the SRSW reference and it is not yet present then
  * only one waiting thread may be notified, please use the MRSW version for this
  * case.
@@ -177,12 +178,12 @@ import static java.util.Objects.requireNonNull;
    * <li>has its interrupted status set on entry to this method; or
    * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link java.lang.InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
    *
    * @return the current element
-   * @throws java.lang.InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    */
   @NotNull public final V take() throws InterruptedException {
     V result = null;
@@ -196,24 +197,24 @@ import static java.util.Objects.requireNonNull;
   /**
    * Takes the current element if it is not null and replaces it with null. If
    * the current element is null then wait until it becomes non-null. The method
-   * will throw a {@link java.util.concurrent.TimeoutException} if the timeout is reached before an
-   * element becomes available.
+   * will throw a {@link java.util.concurrent.TimeoutException} if the timeout
+   * is reached before an element becomes available.
    * <p>
    * If the current thread:
    * <ul>
    * <li>has its interrupted status set on entry to this method; or
    * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link java.lang.InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
    *
    * @param time the maximum time to wait
    * @param unit the time unit of the {@code timeout} argument
    * @return the current element
-   * @throws java.lang.InterruptedException if the current thread is interrupted while
-   * waiting
-   * @throws java.util.concurrent.TimeoutException if the timeout is reached without another thread
-   * having called {@link #set(Object)}.
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
+   * @throws java.util.concurrent.TimeoutException if the timeout is reached
+   * without another thread having called {@link #set(Object)}.
    */
   @NotNull public final V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
     final Timeout timeout = Timeout.getNanosTimeout(time, unit);
@@ -235,12 +236,12 @@ import static java.util.Objects.requireNonNull;
    * <li>has its interrupted status set on entry to this method; or
    * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link java.lang.InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
    *
    * @return the current element
-   * @throws java.lang.InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    */
   @NotNull public final V get() throws InterruptedException {
     V result = ref.get();
@@ -261,14 +262,14 @@ import static java.util.Objects.requireNonNull;
    * <li>has its interrupted status set on entry to this method; or
    * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link java.lang.InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
    *
    * @return the current element
-   * @throws java.util.concurrent.TimeoutException if the timeout is reached without another thread
-   * having called {@link #set(Object)}.
-   * @throws java.lang.InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.util.concurrent.TimeoutException if the timeout is reached
+   * without another thread having called {@link #set(Object)}.
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    * @param time a long.
    * @param unit a {@link java.util.concurrent.TimeUnit}.
    */

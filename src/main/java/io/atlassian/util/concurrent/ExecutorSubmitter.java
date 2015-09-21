@@ -7,9 +7,9 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Supplier;
 
 /**
- * Adds the {@link java.util.concurrent.ExecutorService} job submission methods without exposing the
- * life-cycle management API. Is tweaked to return {@link Promise promises}
- * rather than anemic {@link Future futures}.
+ * Adds the {@link java.util.concurrent.ExecutorService} job submission methods
+ * without exposing the life-cycle management API. Is tweaked to return
+ * {@link Promise promises} rather than anemic {@link Future futures}.
  *
  * @since 2.6.2
  */

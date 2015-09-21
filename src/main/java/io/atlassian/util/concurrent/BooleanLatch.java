@@ -22,17 +22,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
- * A {@link io.atlassian.util.concurrent.BooleanLatch} is a reusable latch that resets after it is released
- * and waited on. It depends on a boolean condition of being released or not and
- * becomes unreleased when one thread successfully awaits it. It is useful for
- * rally like release-wait-release coordination, and as a replacement to waiting
- * on a {@link java.util.concurrent.locks.Condition} (it should be faster as the write thread does not need
- * to acquire a lock in order to signal.
+ * A {@link io.atlassian.util.concurrent.BooleanLatch} is a reusable latch that
+ * resets after it is released and waited on. It depends on a boolean condition
+ * of being released or not and becomes unreleased when one thread successfully
+ * awaits it. It is useful for rally like release-wait-release coordination, and
+ * as a replacement to waiting on a {@link java.util.concurrent.locks.Condition}
+ * (it should be faster as the write thread does not need to acquire a lock in
+ * order to signal.
  * <p>
  * This latch is suitable for SRSW coordination. MRSW is supported but has the
- * same semantics as {@link java.util.concurrent.locks.Condition#signal()}, that is to say that
- * {@link java.util.concurrent.locks.Condition#signalAll()} is not supported and if there are multiple
- * waiters then the particular thread that is released is arbitrary.
+ * same semantics as {@link java.util.concurrent.locks.Condition#signal()}, that
+ * is to say that {@link java.util.concurrent.locks.Condition#signalAll()} is
+ * not supported and if there are multiple waiters then the particular thread
+ * that is released is arbitrary.
  */
 @ThreadSafe public class BooleanLatch implements ReusableLatch {
   /**
@@ -100,11 +102,11 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
    * <li>has its interrupted status set on entry to this method; or
    * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
    * </ul>
-   * then {@link java.lang.InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
    *
-   * @throws java.lang.InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    */
   public final void await() throws InterruptedException {
     sync.acquireInterruptibly(0);

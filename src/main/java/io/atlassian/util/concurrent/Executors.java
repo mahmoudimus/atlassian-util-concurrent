@@ -11,8 +11,8 @@ import javax.annotation.Nonnull;
  */
 public final class Executors {
   /**
-   * {@link java.util.concurrent.Executor} that limits the number submitted jobs to a fixed upper
-   * bound, by blocking the producer thread on submission.
+   * {@link java.util.concurrent.Executor} that limits the number submitted jobs
+   * to a fixed upper bound, by blocking the producer thread on submission.
    *
    * @since 2.6.1
    * @see LimitedExecutor for implementation details.
@@ -25,8 +25,8 @@ public final class Executors {
   }
 
   /**
-   * {@link java.util.concurrent.Executor} that limits the number submitted jobs to a fixed upper
-   * bound, by blocking the producer thread on submission.
+   * {@link java.util.concurrent.Executor} that limits the number submitted jobs
+   * to a fixed upper bound, by blocking the producer thread on submission.
    *
    * @since 2.6.2
    * @see LimitedExecutor for implementation details.

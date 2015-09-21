@@ -22,7 +22,8 @@ import java.util.function.Supplier;
 /**
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
- * {@link #getOrSetAndGetIf(int, Object, Object)} and {@link #update(int, Function)}.
+ * {@link #getOrSetAndGetIf(int, Object, Object)} and
+ * {@link #update(int, Function)}.
  *
  * @param <E> the element type of the array.
  * @since 0.0.12
@@ -67,8 +68,8 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    *
    * @param oldValue to check the current value against (reference equality
    * check only).
-   * @param newValue a {@link java.util.function.Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match old value or a
    * newly created value.
    * @param index a int.

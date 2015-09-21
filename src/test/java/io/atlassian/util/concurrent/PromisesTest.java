@@ -33,8 +33,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
   @Mock private Effect<Throwable> fail;
   @Mock private Promise.Callback<Object> futureCallback;
 
-  @Test
-  public void promiseValue() {
+  @Test public void promiseValue() {
     final Object instance = new Object();
     final Promise<Object> promise = Promises.forCompletionStage(CompletableFuture.completedFuture(instance));
 
@@ -51,8 +50,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyNoMoreInteractions(futureCallback);
   }
 
-  @Test
-  public void promiseRejected() {
+  @Test public void promiseRejected() {
     final Throwable instance = new Throwable();
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(instance);
@@ -75,8 +73,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyNoMoreInteractions(futureCallback);
   }
 
-  @Test
-  public void promiseOfCompletionStageSettingValue() {
+  @Test public void promiseOfCompletionStageSettingValue() {
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     final Promise<Object> promise = Promises.forCompletionStage(completableFuture);
 
@@ -101,8 +98,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyNoMoreInteractions(futureCallback);
   }
 
-  @Test
-  public void promiseOfCompletionStageSettingException() {
+  @Test public void promiseOfCompletionStageSettingException() {
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     final Promise<Object> promise = Promises.forCompletionStage(completableFuture);
 
@@ -131,8 +127,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyNoMoreInteractions(futureCallback);
   }
 
-  @Test
-  public void mapPromiseSettingValue() {
+  @Test public void mapPromiseSettingValue() {
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     final Promise<Object> originalPromise = Promises.forCompletionStage(completableFuture);
     final Promise<SomeObject> transformedPromise = originalPromise.map(SomeObject::new);
@@ -162,8 +157,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyZeroInteractions(fail);
   }
 
-  @Test
-  public void mapPromiseSettingException() {
+  @Test public void mapPromiseSettingException() {
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     final Promise<Object> originalPromise = Promises.forCompletionStage(completableFuture);
     final Promise<SomeObject> transformedPromise = originalPromise.map(SomeObject::new);
@@ -204,14 +198,15 @@ import static org.mockito.Mockito.verifyZeroInteractions;
   @Test(expected = IllegalStateException.class) public void flatMapFunctionThrowsException() {
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     final Promise<Object> originalPromise = Promises.forCompletionStage(completableFuture);
-    final Promise<SomeObject> transformedPromise = originalPromise.flatMap(ignored -> { throw new IllegalStateException(); });
+    final Promise<SomeObject> transformedPromise = originalPromise.flatMap(ignored -> {
+      throw new IllegalStateException();
+    });
 
     completableFuture.complete(new SomeObject("hi"));
     transformedPromise.claim();
   }
 
-  @Test
-  public void whenSequencePromiseSettingValue() {
+  @Test public void whenSequencePromiseSettingValue() {
 
     final CompletableFuture<Object> f1 = new CompletableFuture<>();
     final CompletableFuture<Object> f2 = new CompletableFuture<>();
@@ -266,8 +261,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyZeroInteractions(fail);
   }
 
-  @Test
-  public void whenSequencePromiseSettingException() {
+  @Test public void whenSequencePromiseSettingException() {
 
     final CompletableFuture<Object> f1 = new CompletableFuture<>();
     final CompletableFuture<Object> f2 = new CompletableFuture<>();
@@ -327,8 +321,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     }
   }
 
-  @Test
-  public void newWhenSequencePromiseSettingValue() {
+  @Test public void newWhenSequencePromiseSettingValue() {
 
     final CompletableFuture<Object> f1 = new CompletableFuture<>();
     final CompletableFuture<Object> f2 = new CompletableFuture<>();
@@ -383,8 +376,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     verifyZeroInteractions(fail);
   }
 
-  @Test
-  public void newWhenSequencePromiseSettingException() {
+  @Test public void newWhenSequencePromiseSettingException() {
 
     final CompletableFuture<Object> f1 = new CompletableFuture<>();
     final CompletableFuture<Object> f2 = new CompletableFuture<>();
@@ -444,8 +436,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     }
   }
 
-  @Test
-  public void doneAddsFutureCallback() {
+  @Test public void doneAddsFutureCallback() {
     final AtomicReference<String> ref = new AtomicReference<>();
     final CompletableFuture<String> f = new CompletableFuture<>();
     Promise<String> p = Promises.forCompletionStage(f);
@@ -456,8 +447,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(ref.get(), is("called: done!"));
   }
 
-  @Test
-  public void failAddsFutureCallback() {
+  @Test public void failAddsFutureCallback() {
     final AtomicReference<Throwable> ref = new AtomicReference<>();
     final CompletableFuture<String> f = new CompletableFuture<>();
     Promise<String> p = Promises.forCompletionStage(f);
@@ -469,21 +459,20 @@ import static org.mockito.Mockito.verifyZeroInteractions;
     assertThat(ref.get(), is(ex));
   }
 
-  @Test
-  public void cancellationFrom() {
+  @Test public void cancellationFrom() {
     final CompletableFuture<Object> completableFuture = new CompletableFuture<>();
     Promise<Object> promise = Promises.forCompletionStage(completableFuture);
     completableFuture.cancel(false);
     assertThat(promise.isCancelled(), is(true));
   }
 
-  @Test
-  public void cancellationTo() throws ExecutionException, InterruptedException {
+  @Test public void cancellationTo() throws ExecutionException, InterruptedException {
     Future<Object> future = new FutureTask<>(() -> null);
     Promise<Object> promise = Promises.forFuture(future, java.util.concurrent.Executors.newSingleThreadExecutor());
     final CompletableFuture<Object> completableFuture = Promises.toCompletableFuture(promise);
     future.cancel(false);
-    Thread.sleep(1000); // FutureTask works in a different thread so the propagation is not immediate.
+    Thread.sleep(1000); // FutureTask works in a different thread so the
+                        // propagation is not immediate.
     assertThat(promise.isCancelled(), is(true));
     assertThat(completableFuture.isCancelled(), is(true));
   }

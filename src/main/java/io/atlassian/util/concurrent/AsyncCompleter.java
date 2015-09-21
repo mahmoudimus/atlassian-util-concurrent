@@ -44,17 +44,22 @@ import static io.atlassian.util.concurrent.Timeout.getNanosTimeout;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Convenient encapsulation of {@link java.util.concurrent.CompletionService} usage that allows a
- * collection of jobs to be issued to an {@link java.util.concurrent.Executor} and return an
- * {@link java.lang.Iterable} of the results that is in the order that the results return.
+ * Convenient encapsulation of {@link java.util.concurrent.CompletionService}
+ * usage that allows a collection of jobs to be issued to an
+ * {@link java.util.concurrent.Executor} and return an
+ * {@link java.lang.Iterable} of the results that is in the order that the
+ * results return.
  * <p>
- * Unlike {@link java.util.concurrent.ExecutorService#invokeAll(java.util.Collection)}
+ * Unlike
+ * {@link java.util.concurrent.ExecutorService#invokeAll(java.util.Collection)}
  * {@link #invokeAll(Iterable)} here does not itself block, rather the
- * {@link java.util.Iterator#next()} calls to the returned {@link java.lang.Iterable} will block the
- * first time it is iterated. This allows the client to defer the reification of
- * the result until it is ready to use it.
+ * {@link java.util.Iterator#next()} calls to the returned
+ * {@link java.lang.Iterable} will block the first time it is iterated. This
+ * allows the client to defer the reification of the result until it is ready to
+ * use it.
  * <p>
- * To create an instance of this class, please use the supplied {@link io.atlassian.util.concurrent.AsyncCompleter.Builder}.
+ * To create an instance of this class, please use the supplied
+ * {@link io.atlassian.util.concurrent.AsyncCompleter.Builder}.
  *
  * @since 1.0
  */
@@ -73,9 +78,10 @@ import static java.util.Objects.requireNonNull;
   }
 
   /**
-   * Queue the {@link Callable jobs} on the contained {@link java.util.concurrent.Executor} and
-   * return a lazily evaluated {@link java.lang.Iterable} of the results in the order they
-   * return in (fastest first).
+   * Queue the {@link Callable jobs} on the contained
+   * {@link java.util.concurrent.Executor} and return a lazily evaluated
+   * {@link java.lang.Iterable} of the results in the order they return in
+   * (fastest first).
    * <p>
    * Note that if any of the jobs return null then nulls WILL BE included in the
    * results. Similarly if an exception is thrown and exceptions are being
@@ -118,19 +124,18 @@ import static java.util.Objects.requireNonNull;
     final CompletionService<T> apply = completionServiceDecorator.apply(completionServiceFactory.<T> create().apply(executor));
     // we must copy the resulting Iterable<Supplier> so
     // each iteration doesn't resubmit the jobs
-    final List<Supplier<T>> lazyAsyncSuppliers = StreamSupport.stream(callables.spliterator(), false).
-      map(new AsyncCompletionFunction<>(apply, accessor)).collect(Collectors.toList());
+    final List<Supplier<T>> lazyAsyncSuppliers = StreamSupport.stream(callables.spliterator(), false)
+      .map(new AsyncCompletionFunction<>(apply, accessor)).collect(Collectors.toList());
 
     return new Iterable<T>() {
       private Stream<T> newStream() {
-        return lazyAsyncSuppliers.stream()
-                .map(policy.<T> handler())
-                .map(Functions.<T> fromSupplier())
-                .filter(x -> x != null);
+        return lazyAsyncSuppliers.stream().map(policy.<T> handler()).map(Functions.<T> fromSupplier()).filter(x -> x != null);
       }
+
       @Override public Iterator<T> iterator() {
         return newStream().iterator();
       }
+
       @Override public Spliterator<T> spliterator() {
         return newStream().spliterator();
       }
@@ -156,7 +161,8 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Ignore exceptions thrown, note will cause nulls in the resulting iterable!
+     * Ignore exceptions thrown, note will cause nulls in the resulting
+     * iterable!
      */
     public Builder ignoreExceptions() {
       return handleExceptions(Policies.IGNORE_EXCEPTIONS);
@@ -350,7 +356,7 @@ import static java.util.Objects.requireNonNull;
     }
 
     Future<T> check(Future<T> f) {
-      if(!futures.remove(f)){
+      if (!futures.remove(f)) {
         throw new IllegalArgumentException("Expected the future to be in the list of registered futures");
       }
       return f;

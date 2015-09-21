@@ -27,6 +27,7 @@ import java.util.concurrent.FutureTask;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
+
 @ThreadSafe public class ConcurrentOperationMapImpl<K, R> implements ConcurrentOperationMap<K, R> {
 
   private final ConcurrentMap<K, CallerRunsFuture<R>> map = new ConcurrentHashMap<K, CallerRunsFuture<R>>();

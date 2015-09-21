@@ -21,7 +21,8 @@ import java.util.function.Function;
 /**
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
- * {@link #getOrSetAndGetIf(int, long, long)} and {@link #update(int, Function)}.
+ * {@link #getOrSetAndGetIf(int, long, long)} and {@link #update(int, Function)}
+ * .
  *
  * @since 0.0.12
  */

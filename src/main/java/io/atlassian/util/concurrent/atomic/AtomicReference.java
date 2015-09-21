@@ -60,8 +60,8 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
    *
    * @param oldValue to check the current value against (reference equality
    * check only).
-   * @param newValue a {@link java.util.function.Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match old value or a
    * newly created value.
    */

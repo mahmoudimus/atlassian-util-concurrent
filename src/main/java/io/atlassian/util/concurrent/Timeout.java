@@ -41,24 +41,28 @@ import java.util.function.Supplier;
 @Immutable public final class Timeout {
 
   /**
-   * Get a {@link io.atlassian.util.concurrent.Timeout} that uses nanosecond precision. The accuracy will
-   * depend on the accuracy of {@link java.lang.System#nanoTime()}.
+   * Get a {@link io.atlassian.util.concurrent.Timeout} that uses nanosecond
+   * precision. The accuracy will depend on the accuracy of
+   * {@link java.lang.System#nanoTime()}.
    *
    * @param time the maximum time to wait for the lock
    * @param unit the time unit of the <tt>time</tt> argument.
-   * @return timeout with {@link java.util.concurrent.TimeUnit#NANOSECONDS} precision.
+   * @return timeout with {@link java.util.concurrent.TimeUnit#NANOSECONDS}
+   * precision.
    */
   public static Timeout getNanosTimeout(final long time, final TimeUnit unit) {
     return new Timeout(time, unit, TimeSuppliers.NANOS);
   }
 
   /**
-   * Get a {@link io.atlassian.util.concurrent.Timeout} that uses millisecond precision. The accuracy will
-   * depend on the accuracy of {@link java.lang.System#currentTimeMillis()}.
+   * Get a {@link io.atlassian.util.concurrent.Timeout} that uses millisecond
+   * precision. The accuracy will depend on the accuracy of
+   * {@link java.lang.System#currentTimeMillis()}.
    *
    * @param time the maximum time to wait for the lock
    * @param unit the time unit of the <tt>time</tt> argument.
-   * @return timeout with {@link java.util.concurrent.TimeUnit#MILLISECONDS} precision.
+   * @return timeout with {@link java.util.concurrent.TimeUnit#MILLISECONDS}
+   * precision.
    */
   public static Timeout getMillisTimeout(final long time, final TimeUnit unit) {
     return new Timeout(time, unit, TimeSuppliers.MILLIS);
@@ -66,12 +70,14 @@ import java.util.function.Supplier;
 
   /**
    * Factory for creating timeouts of the specified duration. Each
-   * {@link io.atlassian.util.concurrent.Timeout} will start when the factory is called.
+   * {@link io.atlassian.util.concurrent.Timeout} will start when the factory is
+   * called.
    * <p>
    * Generally, use the {@link #getMillisTimeout(long, TimeUnit)} or
    * {@link #getNanosTimeout(long, TimeUnit)} factory methods directly. Only use
-   * this if a custom {@link io.atlassian.util.concurrent.Timeout.TimeSupplier} is required – for instance for
-   * testing, you can use this to mock out the actual passage of time.
+   * this if a custom {@link io.atlassian.util.concurrent.Timeout.TimeSupplier}
+   * is required – for instance for testing, you can use this to mock out the
+   * actual passage of time.
    *
    * @param time how long the timeouts should be for
    * @param unit in what units time is expressed in

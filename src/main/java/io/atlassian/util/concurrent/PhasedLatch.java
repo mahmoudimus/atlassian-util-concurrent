@@ -24,11 +24,11 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * A {@link io.atlassian.util.concurrent.PhasedLatch} is a shared latch that resets after it is released and
- * can be reused. Potentially waiting threads can test the current phase before
- * performing an action. The action is then guarded by that phase and can await
- * that phase to be advanced via a call to {@link #release() release} the
- * current phase.
+ * A {@link io.atlassian.util.concurrent.PhasedLatch} is a shared latch that
+ * resets after it is released and can be reused. Potentially waiting threads
+ * can test the current phase before performing an action. The action is then
+ * guarded by that phase and can await that phase to be advanced via a call to
+ * {@link #release() release} the current phase.
  * <p>
  * This class is not final but cannot be sub-classed due to the private ctor.
  */

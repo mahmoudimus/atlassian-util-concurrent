@@ -58,21 +58,23 @@ import java.util.function.Supplier;
  * NOTE: Interruption policy is that if you want to be cancellable while waiting
  * for another thread to create the value, instead of calling {@link #get()}
  * call {@link #getInterruptibly()}. However, If your {@link #create()} method
- * is interrupted and throws an {@link java.lang.InterruptedException}, it is treated as
- * an application exception and will be the causal exception inside the runtime
- * {@link io.atlassian.util.concurrent.LazyReference.InitializationException} that {@link #get()} or
- * {@link #getInterruptibly()} throws and your {@link #create()} will not be
- * called again.
+ * is interrupted and throws an {@link java.lang.InterruptedException}, it is
+ * treated as an application exception and will be the causal exception inside
+ * the runtime
+ * {@link io.atlassian.util.concurrent.LazyReference.InitializationException}
+ * that {@link #get()} or {@link #getInterruptibly()} throws and your
+ * {@link #create()} will not be called again.
  * <p>
  * This class is NOT {@link java.io.Serializable}.
  * <p>
- * Implementation note. This class extends {@link java.lang.ref.WeakReference} as
- * {@link java.lang.ref.Reference} does not have a public constructor. WeakReference is
- * preferable as it does not have any members and therefore doesn't increase the
- * memory footprint. As we never pass a referent through to the super-class and
- * override {@link #get()}, the garbage collection semantics of WeakReference
- * are irrelevant. The referenced object will not become eligible for GC unless
- * the object holding the reference to this object is collectible.
+ * Implementation note. This class extends {@link java.lang.ref.WeakReference}
+ * as {@link java.lang.ref.Reference} does not have a public constructor.
+ * WeakReference is preferable as it does not have any members and therefore
+ * doesn't increase the memory footprint. As we never pass a referent through to
+ * the super-class and override {@link #get()}, the garbage collection semantics
+ * of WeakReference are irrelevant. The referenced object will not become
+ * eligible for GC unless the object holding the reference to this object is
+ * collectible.
  *
  * @param <T> the type of the contained element.
  */
@@ -81,7 +83,9 @@ import java.util.function.Supplier;
   private final Sync sync = new Sync();
 
   /**
-   * <p>Constructor for LazyReference.</p>
+   * <p>
+   * Constructor for LazyReference.
+   * </p>
    */
   public LazyReference() {
     super(null);
@@ -130,14 +134,17 @@ import java.util.function.Supplier;
    * thrown exception.
    *
    * @return the object that {@link #create()} created.
-   * @throws io.atlassian.util.concurrent.LazyReference.InitializationException if the {@link #create()} method throws an
-   * exception. The {@link io.atlassian.util.concurrent.LazyReference.InitializationException#getCause()} will contain the
-   * exception thrown by the {@link #create()} method
-   * @throws java.lang.InterruptedException If the calling thread is Interrupted while
-   * waiting for another thread to create the value (if the creating thread is
-   * interrupted while blocking on something, the {@link java.lang.InterruptedException}
-   * will be thrown as the causal exception of the
-   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException} to everybody calling this method).
+   * @throws io.atlassian.util.concurrent.LazyReference.InitializationException
+   * if the {@link #create()} method throws an exception. The
+   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException#getCause()}
+   * will contain the exception thrown by the {@link #create()} method
+   * @throws java.lang.InterruptedException If the calling thread is Interrupted
+   * while waiting for another thread to create the value (if the creating
+   * thread is interrupted while blocking on something, the
+   * {@link java.lang.InterruptedException} will be thrown as the causal
+   * exception of the
+   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException}
+   * to everybody calling this method).
    */
   public final T getInterruptibly() throws InterruptedException {
     if (!sync.isDone()) {

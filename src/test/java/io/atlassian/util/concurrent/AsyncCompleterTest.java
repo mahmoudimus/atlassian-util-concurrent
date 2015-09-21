@@ -104,7 +104,8 @@ public class AsyncCompleterTest {
 
   @Test public void callableCompletedBeforeTimeout() {
     Callable<Integer> callable = () -> 1;
-    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(asList(callable), 1, TimeUnit.NANOSECONDS).iterator().next().intValue());
+    assertEquals(1, new AsyncCompleter.Builder(new CallerExecutor()).build().invokeAll(asList(callable), 1, TimeUnit.NANOSECONDS).iterator().next()
+      .intValue());
   }
 
   @Test(expected = LazyReference.InitializationException.class) public void callableTimedOutBeforeCompleting() {

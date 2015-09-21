@@ -21,10 +21,10 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 
 /**
- * A promise that presents a nicer interface to {@link java.util.concurrent.Future}. It can be
- * claimed without needing to catch checked exceptions, and it may be mapped to
- * new types of Promise via the {@link #map(Function)} and
- * {@link #flatMap(Function)} methods.
+ * A promise that presents a nicer interface to
+ * {@link java.util.concurrent.Future}. It can be claimed without needing to
+ * catch checked exceptions, and it may be mapped to new types of Promise via
+ * the {@link #map(Function)} and {@link #flatMap(Function)} methods.
  * <p>
  * For instance, if you have a <code>Promise&lt;A&gt;</code> and you want to do
  * some operation on the value (an A) you can use {@link #map(Function)} to turn
@@ -60,11 +60,13 @@ import java.util.function.Function;
  * </pre>
  * <p>
  * Note that there are a number of handy utility functions for creating
- * <code>Promise</code> objects on the {@link io.atlassian.util.concurrent.Promises} companion.
+ * <code>Promise</code> objects on the
+ * {@link io.atlassian.util.concurrent.Promises} companion.
  * <p>
  * Cancelling a Promise that hasn't yet been completed will do it with a
  * {@link java.util.concurrent.CancellationException} and that will propagate to
- * dependent Promises. But cancelling a dependent Promise will not cancel the original one.
+ * dependent Promises. But cancelling a dependent Promise will not cancel the
+ * original one.
  *
  * @since 2.4
  */
@@ -101,8 +103,9 @@ public interface Promise<A> extends Future<A> {
    * <p>
    * See {@link io.atlassian.util.concurrent.Promises#callback(Effect, Effect)}
    * {@link io.atlassian.util.concurrent.Promises#onSuccessDo(Effect)} and
-   * {@link io.atlassian.util.concurrent.Promises#onFailureDo(Effect)} for easy ways of turning an
-   * {@link io.atlassian.util.concurrent.Effect} into a {@link java.util.function.BiConsumer}
+   * {@link io.atlassian.util.concurrent.Promises#onFailureDo(Effect)} for easy
+   * ways of turning an {@link io.atlassian.util.concurrent.Effect} into a
+   * {@link java.util.function.BiConsumer}
    *
    * @param callback The future callback
    * @return This object for chaining
@@ -110,8 +113,8 @@ public interface Promise<A> extends Future<A> {
   Promise<A> then(Callback<? super A> callback);
 
   /**
-   * Transforms this {@link io.atlassian.util.concurrent.Promise} from one type to another by way of a
-   * transformation function.
+   * Transforms this {@link io.atlassian.util.concurrent.Promise} from one type
+   * to another by way of a transformation function.
    * <p>
    *
    * @param function The transformation function
@@ -158,10 +161,12 @@ public interface Promise<A> extends Future<A> {
 
   /**
    * Callback interface to be called after a promise is fulfilled.
+   * 
    * @param <A> type of the successful value.
    */
   interface Callback<A> {
     void onSuccess(A value);
+
     void onFailure(@Nonnull Throwable t);
   }
 }
