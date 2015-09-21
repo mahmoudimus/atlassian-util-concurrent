@@ -73,9 +73,9 @@ public class LazyReferenceTest {
       final int j = i;
       tasks.add(() -> {
         /*
-         * Put in a latch to synchronize all threads and try to get them to
-         * call ref.get() at the same time (to increase concurrency and make
-         * this test more useful)
+         * Put in a latch to synchronize all threads and try to get them to call
+         * ref.get() at the same time (to increase concurrency and make this
+         * test more useful)
          */
         latch.countDown();
         latch.await();

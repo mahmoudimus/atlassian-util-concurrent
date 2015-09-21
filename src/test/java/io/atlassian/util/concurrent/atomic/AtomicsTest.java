@@ -22,7 +22,7 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(to, Atomics.getAndSetIf(ref, from, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIf(ref, from, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetIfNormalValue() {
@@ -33,7 +33,7 @@ public class AtomicsTest {
   }
 
   @Test(expected = NullPointerException.class) public void getAndSetIfRefNPE() {
-    Atomics.getAndSetIf((AtomicReference<String>) null, "", (Supplier<String>)() -> "");
+    Atomics.getAndSetIf((AtomicReference<String>) null, "", (Supplier<String>) () -> "");
   }
 
   @Test(expected = NullPointerException.class) public void getAndSetIfRefValueNPE() {
@@ -43,7 +43,7 @@ public class AtomicsTest {
   @Test public void getAndSetIfNull() {
     final String to = "to";
     final AtomicReference<String> ref = new AtomicReference<String>(null);
-    assertEquals(to, Atomics.getAndSetIfNull(ref,  (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIfNull(ref, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetContended() {
@@ -70,7 +70,7 @@ public class AtomicsTest {
     final String from = "from";
     final String to = from;
     final AtomicReference<String> ref = new AtomicReference<String>(from);
-    assertEquals(to, Atomics.getAndSetIf(ref, from, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIf(ref, from, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetSameValueDifferent() {
@@ -78,7 +78,7 @@ public class AtomicsTest {
     final String to = from;
     final String different = "blah";
     final AtomicReference<String> ref = new AtomicReference<String>(different);
-    assertEquals(different, Atomics.getAndSetIf(ref, from, (Supplier<String>)() -> to));
+    assertEquals(different, Atomics.getAndSetIf(ref, from, (Supplier<String>) () -> to));
   }
 
   //
@@ -89,7 +89,7 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetArrayIfNormalValue() {
@@ -103,11 +103,11 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>) () -> to));
   }
 
   @Test(expected = NullPointerException.class) public void getAndSetIfArrayNPE() {
-    Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "",  (Supplier<String>) () -> "");
+    Atomics.getAndSetIf((AtomicReferenceArray<String>) null, 0, "", (Supplier<String>) () -> "");
   }
 
   @Test(expected = NullPointerException.class) public void getAndSetIfArrayValueNPE() {
@@ -117,7 +117,7 @@ public class AtomicsTest {
   @Test public void getAndSetArrayIfNull() {
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { null });
-    assertEquals(to, Atomics.getAndSetIfNull(ref, 0, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIfNull(ref, 0, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetArrayContended() {
@@ -137,14 +137,14 @@ public class AtomicsTest {
     final String from = "from";
     final String to = "to";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { old });
-    assertEquals(old, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to ));
+    assertEquals(old, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetArraySameValue() {
     final String from = "from";
     final String to = from;
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { from });
-    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
+    assertEquals(to, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>) () -> to));
   }
 
   @Test public void getAndSetArraySameValueDifferent() {
@@ -152,11 +152,11 @@ public class AtomicsTest {
     final String to = from;
     final String different = "blah";
     final AtomicReferenceArray<String> ref = new AtomicReferenceArray<String>(new String[] { different });
-    assertEquals(different, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>)() -> to));
+    assertEquals(different, Atomics.getAndSetIf(ref, 0, from, (Supplier<String>) () -> to));
   }
 
   @Test(expected = IndexOutOfBoundsException.class) public void getAndSetArrayThrowsIndexOutOfBounds() {
-    Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test",  (Supplier<String>)() -> "blah");
+    Atomics.getAndSetIf(new AtomicReferenceArray<String>(new String[0]), 0, "test", (Supplier<String>) () -> "blah");
   }
 
   //

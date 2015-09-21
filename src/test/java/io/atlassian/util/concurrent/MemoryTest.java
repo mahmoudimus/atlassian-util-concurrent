@@ -16,20 +16,23 @@ import static org.hamcrest.Matchers.is;
 
 import org.junit.Test;
 
-
 public class MemoryTest {
   @Test public void createBytes() {
     assertThat(bytes(1), is(new Memory(1, Bytes)));
   }
+
   @Test public void createKBs() {
     assertThat(kilobytes(2), is(new Memory(2, KB)));
   }
+
   @Test public void createMBs() {
     assertThat(megabytes(3), is(new Memory(3, MB)));
   }
+
   @Test public void createGBs() {
     assertThat(gigabytes(4), is(new Memory(4, GB)));
   }
+
   @Test public void createTBs() {
     assertThat(terabytes(5), is(new Memory(5, TB)));
   }
@@ -37,7 +40,7 @@ public class MemoryTest {
   //
   // bytes conversions
   //
-  
+
   @Test public void convertBytesToBytes() {
     assertThat(bytes(45636).to(Bytes), is(equalTo(new Memory(45636, Bytes))));
   }
@@ -61,7 +64,7 @@ public class MemoryTest {
   //
   // KB conversions
   //
-  
+
   @Test public void convertKBToBytes() {
     assertThat(kilobytes(12).to(Bytes), is(equalTo(new Memory(12288, Bytes))));
   }
@@ -85,7 +88,7 @@ public class MemoryTest {
   //
   // MB conversions
   //
-  
+
   @Test public void convertMBToBytes() {
     assertThat(megabytes(34).to(Bytes), is(equalTo(new Memory(35651584, Bytes))));
   }
@@ -109,7 +112,7 @@ public class MemoryTest {
   //
   // GB conversions
   //
-  
+
   @Test public void convertGBToBytes() {
     assertThat(gigabytes(31).to(Bytes), is(equalTo(new Memory(33285996544L, Bytes))));
   }
@@ -133,7 +136,7 @@ public class MemoryTest {
   //
   // TB conversions
   //
-  
+
   @Test public void convertTBToBytes() {
     assertThat(terabytes(13).to(Bytes), is(equalTo(new Memory(14293651161088L, Bytes))));
   }

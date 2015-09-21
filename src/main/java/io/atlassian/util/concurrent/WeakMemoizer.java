@@ -63,7 +63,7 @@ import static java.util.Objects.requireNonNull;
 
   /**
    * Get a result for the supplied Descriptor.
-   * 
+   *
    * @param descriptor must not be null
    * @return descriptor lock
    */

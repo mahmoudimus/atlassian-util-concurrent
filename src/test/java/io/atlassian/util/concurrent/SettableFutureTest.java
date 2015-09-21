@@ -120,13 +120,13 @@ public class SettableFutureTest {
         count.set(future.get());
         complete.countDown();
         // /CLOVER:OFF
-      } catch (final InterruptedException e) {
-        throw new RuntimeInterruptedException(e);
-      } catch (final ExecutionException e) {
-        throw new RuntimeException(e.getCause());
-      }
-      // /CLOVER:ON
-    }).start();
+    } catch (final InterruptedException e) {
+      throw new RuntimeInterruptedException(e);
+    } catch (final ExecutionException e) {
+      throw new RuntimeException(e.getCause());
+    }
+    // /CLOVER:ON
+  } ).start();
     running.await();
     pause();
     assertFalse(future.isDone());

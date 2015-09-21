@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
 
 import static java.util.Objects.requireNonNull;
 
@@ -31,7 +30,7 @@ import static java.util.Objects.requireNonNull;
  * A Reference with queue semantics where the current reference may be retrieved
  * or taken instead, and if there is no current element then it will be block
  * until the reference becomes available. This is somewhat analogous to a single
- * element {@link BlockingQueue}.
+ * element {@link java.util.concurrent.BlockingQueue}.
  * <p>
  * Note: this class does not support null elements being {@link #set(Object)}
  * and will throw an exception. If the internal reference is null, then calls to
@@ -41,9 +40,10 @@ import static java.util.Objects.requireNonNull;
  * MRSW} usage. Multiple writers will overwrite each other's elements and the
  * chosen value will be arbitrary in the absence of any external consensus. If
  * multiple readers are waiting to {@link #take()} a value, one reader will be
- * arbitrarily chosen (similar to {@link Condition#signal()}). Multiple readers
- * can however {@link #get()} the current value if it is not null, but they may
- * see the current value more than once. If multiple readers attempt to
+ * arbitrarily chosen (similar to
+ * {@link java.util.concurrent.locks.Condition#signal()}). Multiple readers can
+ * however {@link #get()} the current value if it is not null, but they may see
+ * the current value more than once. If multiple readers attempt to
  * {@link #get()} a value from the SRSW reference and it is not yet present then
  * only one waiting thread may be notified, please use the MRSW version for this
  * case.
@@ -55,7 +55,7 @@ import static java.util.Objects.requireNonNull;
  * "http://prometheus.codehaus.org/javadoc/main/org/codehaus/prometheus/references/AwaitableReference.html"
  * >AwaitableReference</a>. This class is more explicit in that it handles
  * take/get separately.
- * 
+ *
  * @param <V> the value type
  * @see BlockingQueue
  */
@@ -69,6 +69,8 @@ import static java.util.Objects.requireNonNull;
    * Create a BlockingReference best suited to single-reader/single-writer
    * situations. In a MRSW case this instance may get missed signals if multiple
    * reader threads are all waiting on the value.
+   *
+   * @return a {@link io.atlassian.util.concurrent.BlockingReference} object.
    */
   public static <V> BlockingReference<V> newSRSW() {
     return newSRSW(null);
@@ -78,8 +80,10 @@ import static java.util.Objects.requireNonNull;
    * Create a BlockingReference best suited to single-reader/single-writer
    * situations. In a MRSW case this instance may get missed signals if multiple
    * reader threads are all waiting on the value.
-   * 
+   *
    * @param initialValue the initial value
+   * @param <V> a V value to reference.
+   * @return a {@link io.atlassian.util.concurrent.BlockingReference}.
    */
   public static <V> BlockingReference<V> newSRSW(final V initialValue) {
     return new BlockingReference<V>(new BooleanLatch(), initialValue);
@@ -88,6 +92,8 @@ import static java.util.Objects.requireNonNull;
   /**
    * Create a BlockingReference best suited to multi-reader/single-writer
    * situations. In a SRSW case this instance may not perform quite as well.
+   *
+   * @return a {@link io.atlassian.util.concurrent.BlockingReference}.
    */
   public static <V> BlockingReference<V> newMRSW() {
     return newMRSW(null);
@@ -96,8 +102,10 @@ import static java.util.Objects.requireNonNull;
   /**
    * Create a BlockingReference best suited to multi-reader/single-writer
    * situations. In a SRSW case this instance may not perform quite as well.
-   * 
+   *
    * @param initialValue the initial value
+   * @param <V> a V value to reference.
+   * @return a {@link io.atlassian.util.concurrent.BlockingReference}.
    */
   public static <V> BlockingReference<V> newMRSW(final V initialValue) {
     return new BlockingReference<V>(new PhasedLatch() {
@@ -138,7 +146,7 @@ import static java.util.Objects.requireNonNull;
   // /CLOVER:OFF
   /**
    * Creates a new SRSW BlockingReference.
-   * 
+   *
    * @deprecated use {@link #newSRSW()} instead.
    */
   @Deprecated public BlockingReference() {
@@ -147,8 +155,9 @@ import static java.util.Objects.requireNonNull;
 
   /**
    * Creates a new SRSW BlockingReference.
-   * 
+   *
    * @deprecated use {@link #newSRSW()} instead.
+   * @param value a V object.
    */
   @Deprecated public BlockingReference(@NotNull final V value) {
     this(new BooleanLatch(), value);
@@ -167,14 +176,14 @@ import static java.util.Objects.requireNonNull;
    * If the current thread:
    * <ul>
    * <li>has its interrupted status set on entry to this method; or
-   * <li>is {@link Thread#interrupt() interrupted} while waiting,
+   * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
-   * 
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
+   *
    * @return the current element
-   * @throws InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    */
   @NotNull public final V take() throws InterruptedException {
     V result = null;
@@ -188,24 +197,24 @@ import static java.util.Objects.requireNonNull;
   /**
    * Takes the current element if it is not null and replaces it with null. If
    * the current element is null then wait until it becomes non-null. The method
-   * will throw a {@link TimeoutException} if the timeout is reached before an
-   * element becomes available.
+   * will throw a {@link java.util.concurrent.TimeoutException} if the timeout
+   * is reached before an element becomes available.
    * <p>
    * If the current thread:
    * <ul>
    * <li>has its interrupted status set on entry to this method; or
-   * <li>is {@link Thread#interrupt() interrupted} while waiting,
+   * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
-   * 
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
+   *
    * @param time the maximum time to wait
    * @param unit the time unit of the {@code timeout} argument
    * @return the current element
-   * @throws InterruptedException if the current thread is interrupted while
-   * waiting
-   * @throws TimeoutException if the timeout is reached without another thread
-   * having called {@link #set(Object)}.
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
+   * @throws java.util.concurrent.TimeoutException if the timeout is reached
+   * without another thread having called {@link #set(Object)}.
    */
   @NotNull public final V take(final long time, final TimeUnit unit) throws TimeoutException, InterruptedException {
     final Timeout timeout = Timeout.getNanosTimeout(time, unit);
@@ -225,14 +234,14 @@ import static java.util.Objects.requireNonNull;
    * If the current thread:
    * <ul>
    * <li>has its interrupted status set on entry to this method; or
-   * <li>is {@link Thread#interrupt() interrupted} while waiting,
+   * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
-   * 
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
+   *
    * @return the current element
-   * @throws InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    */
   @NotNull public final V get() throws InterruptedException {
     V result = ref.get();
@@ -251,16 +260,18 @@ import static java.util.Objects.requireNonNull;
    * If the current thread:
    * <ul>
    * <li>has its interrupted status set on entry to this method; or
-   * <li>is {@link Thread#interrupt() interrupted} while waiting,
+   * <li>is {@link java.lang.Thread#interrupt() interrupted} while waiting,
    * </ul>
-   * then {@link InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
-   * 
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
+   *
    * @return the current element
-   * @throws TimeoutException if the timeout is reached without another thread
-   * having called {@link #set(Object)}.
-   * @throws InterruptedException if the current thread is interrupted while
-   * waiting
+   * @throws java.util.concurrent.TimeoutException if the timeout is reached
+   * without another thread having called {@link #set(Object)}.
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
+   * @param time a long.
+   * @param unit a {@link java.util.concurrent.TimeUnit}.
    */
   @NotNull public final V get(final long time, @NotNull final TimeUnit unit) throws TimeoutException, InterruptedException {
     final Timeout timeout = Timeout.getNanosTimeout(time, unit);
@@ -276,7 +287,7 @@ import static java.util.Objects.requireNonNull;
    * Set the value of this reference. This method is lock-free. A thread waiting
    * in {@link #take()} or {@link #take(long, TimeUnit)} will be released and
    * given this value.
-   * 
+   *
    * @param value the new value.
    */
   public final void set(@NotNull final V value) {
@@ -288,7 +299,7 @@ import static java.util.Objects.requireNonNull;
    * Whether or not the current value is null or not. If this is true and the
    * next call to {@link #take()} or {@link #take(long, TimeUnit)} will not
    * block.
-   * 
+   *
    * @return true if the current reference is null.
    */
   public final boolean isEmpty() {
@@ -299,7 +310,7 @@ import static java.util.Objects.requireNonNull;
    * Return the current value whether is null or not. If this is true and the
    * next call to {@link #take()} or {@link #take(long, TimeUnit)} will not
    * block.
-   * 
+   *
    * @return the current reference or null if there is none.
    */
   @Nullable public final V peek() {

@@ -16,7 +16,6 @@
 
 package io.atlassian.util.concurrent;
 
-
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,8 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Factory for creating {@link ThreadFactory} instances. All factory
- * implementations produce named threads to give good stack-traces.
+ * Factory for creating {@link java.util.concurrent.ThreadFactory} instances.
+ * All factory implementations produce named threads to give good stack-traces.
  */
 public class ThreadFactories {
   /**
@@ -77,48 +76,51 @@ public class ThreadFactories {
   }
 
   /**
-   * Get a {@link Builder} with the required name prefix.
-   * 
+   * Get a {@link io.atlassian.util.concurrent.ThreadFactories.Builder} with the
+   * required name prefix.
+   *
    * @param name threads will be named with this prefix
-   * @return a {@link Builder} that can specify the parameters for type,
-   * priority etc.
+   * @return a {@link io.atlassian.util.concurrent.ThreadFactories.Builder} that
+   * can specify the parameters for type, priority etc.
    */
   public static Builder named(final String name) {
     return new Builder(name);
   }
 
   /**
-   * Get a {@link ThreadFactory} with the required name prefix. The produced
-   * threads are user threads and have normal priority.
-   * 
+   * Get a {@link java.util.concurrent.ThreadFactory} with the required name
+   * prefix. The produced threads are user threads and have normal priority.
+   *
    * @param name the prefix to use for naming the threads.
-   * @return a configured {@link ThreadFactory}
+   * @return a configured {@link java.util.concurrent.ThreadFactory}
    */
   public static ThreadFactory namedThreadFactory(@NotNull final String name) {
     return named(name).build();
   }
 
   /**
-   * Get a {@link ThreadFactory} with the required name prefix and type (user or
-   * daemon). The produced threads have normal priority.
-   * 
+   * Get a {@link java.util.concurrent.ThreadFactory} with the required name
+   * prefix and type (user or daemon). The produced threads have normal
+   * priority.
+   *
    * @param name the prefix to use for naming the threads.
    * @param type whether they are User or Daemon threads.
-   * @return a configured {@link ThreadFactory}
+   * @return a configured {@link java.util.concurrent.ThreadFactory}
    */
   public static ThreadFactory namedThreadFactory(@NotNull final String name, @NotNull final Type type) {
     return named(name).type(type).build();
   }
 
   /**
-   * Get a {@link ThreadFactory} with the required name prefix, type and
-   * priority.
-   * 
+   * Get a {@link java.util.concurrent.ThreadFactory} with the required name
+   * prefix, type and priority.
+   *
    * @param name the prefix to use for naming the threads.
    * @param type whether they are User or Daemon threads.
    * @param priority the thread priority, must not be lower than
-   * {@link Thread#MIN_PRIORITY} or greater than {@link Thread#MAX_PRIORITY}
-   * @return a configured {@link ThreadFactory}
+   * {@link java.lang.Thread#MIN_PRIORITY} or greater than
+   * {@link java.lang.Thread#MAX_PRIORITY}
+   * @return a configured {@link java.util.concurrent.ThreadFactory}
    */
   public static ThreadFactory namedThreadFactory(@NotNull final String name, @NotNull final Type type, final int priority) {
     return named(name).type(type).priority(priority).build();
@@ -142,10 +144,10 @@ public class ThreadFactories {
     Default(final String name, final Type type, final int priority, final UncaughtExceptionHandler exceptionHandler) {
       namePrefix = requireNonNull(name, "name") + ":thread-";
       this.type = requireNonNull(type, "type");
-      if(!(priority >= Thread.MIN_PRIORITY)){
+      if (!(priority >= Thread.MIN_PRIORITY)) {
         throw new IllegalArgumentException("priority too low");
       }
-      if(!(priority <= Thread.MAX_PRIORITY)){
+      if (!(priority <= Thread.MAX_PRIORITY)) {
         throw new IllegalArgumentException("priority too high");
       }
       this.priority = priority;

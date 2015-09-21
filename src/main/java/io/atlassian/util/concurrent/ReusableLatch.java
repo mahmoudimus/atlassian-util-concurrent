@@ -16,10 +16,9 @@
 
 package io.atlassian.util.concurrent;
 
-import java.util.concurrent.CountDownLatch;
-
 /**
- * A Latch that may be reused, unlike a {@link CountDownLatch}.
+ * A Latch that may be reused, unlike a
+ * {@link java.util.concurrent.CountDownLatch}.
  */
 public interface ReusableLatch extends Awaitable {
   /**

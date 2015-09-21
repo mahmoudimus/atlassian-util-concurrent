@@ -21,41 +21,42 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Supplier;
 
 /**
- * {@link ManagedLock} allows {@link Callable callables}, {@link Runnable
- * runnables} and {@link Supplier suppliers} to be run under a lock that is
- * resolved against an input object.
- * 
+ * {@link io.atlassian.util.concurrent.ManagedLock} allows {@link Callable
+ * callables}, {@link Runnable runnables} and {@link Supplier suppliers} to be
+ * run under a lock that is resolved against an input object.
+ *
  * @since 0.0.7
  */
 public interface ManagedLock {
   /**
-   * Execute the supplied {@link Callable} under a lock determined by the
-   * descriptor.
-   * 
+   * Execute the supplied {@link java.util.concurrent.Callable} under a lock
+   * determined by the descriptor.
+   *
    * @param <R> the result type
    * @param callable the operation to perform under lock
-   * @return whatever the supplied {@link Callable} returns
-   * @throws Exception if the supplied {@link Callable} throws an exception
+   * @return whatever the supplied {@link java.util.concurrent.Callable} returns
+   * @throws java.lang.Exception if the supplied
+   * {@link java.util.concurrent.Callable} throws an exception
    */
   <R> R withLock(final @NotNull Callable<R> callable) throws Exception;
 
   /**
-   * Execute the supplied {@link Supplier} under a lock determined by the
-   * descriptor.
+   * Execute the supplied {@link java.util.function.Supplier} under a lock
+   * determined by the descriptor.
    * <p>
    * Unlike {@link #withLock(Callable)} this version returns a result and does
    * not declare a checked exception.
-   * 
+   *
    * @param <R> the result type
    * @param supplier the operation to perform under lock
-   * @return whatever the supplied {@link Callable} returns
+   * @return whatever the supplied {@link java.util.concurrent.Callable} returns
    */
   <R> R withLock(final @NotNull Supplier<R> supplier);
 
   /**
-   * Execute the supplied {@link Runnable} under a lock determined by the
-   * descriptor.
-   * 
+   * Execute the supplied {@link java.lang.Runnable} under a lock determined by
+   * the descriptor.
+   *
    * @param runnable the operation to perform under lock
    */
   void withLock(final @NotNull Runnable runnable);

@@ -76,9 +76,9 @@ public class ResettableLazyReferenceTest {
       final int j = i;
       tasks.add(() -> {
         /*
-         * Put in a latch to synchronize all threads and try to get them to
-         * call ref.get() at the same time (to increase concurrency and make
-         * this test more useful)
+         * Put in a latch to synchronize all threads and try to get them to call
+         * ref.get() at the same time (to increase concurrency and make this
+         * test more useful)
          */
         latch.countDown();
         latch.await();
@@ -276,6 +276,7 @@ public class ResettableLazyReferenceTest {
   @Test public void resetReturnsPreviousValue() throws Exception {
     final ResettableLazyReference<Integer> ref = new ResettableLazyReference<Integer>() {
       int count = 0;
+
       @Override protected Integer create() throws Exception {
         return count++;// exchange.get();
       }

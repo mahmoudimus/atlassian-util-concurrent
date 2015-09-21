@@ -16,24 +16,25 @@
 
 package io.atlassian.util.concurrent;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
-import java.util.concurrent.locks.Condition;
-
 import net.jcip.annotations.ThreadSafe;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+
 /**
- * A {@link BooleanLatch} is a reusable latch that resets after it is released
- * and waited on. It depends on a boolean condition of being released or not and
- * becomes unreleased when one thread successfully awaits it. It is useful for
- * rally like release-wait-release coordination, and as a replacement to waiting
- * on a {@link Condition} (it should be faster as the write thread does not need
- * to acquire a lock in order to signal.
+ * A {@link io.atlassian.util.concurrent.BooleanLatch} is a reusable latch that
+ * resets after it is released and waited on. It depends on a boolean condition
+ * of being released or not and becomes unreleased when one thread successfully
+ * awaits it. It is useful for rally like release-wait-release coordination, and
+ * as a replacement to waiting on a {@link java.util.concurrent.locks.Condition}
+ * (it should be faster as the write thread does not need to acquire a lock in
+ * order to signal.
  * <p>
  * This latch is suitable for SRSW coordination. MRSW is supported but has the
- * same semantics as {@link Condition#signal()}, that is to say that
- * {@link Condition#signalAll()} is not supported and if there are multiple
- * waiters then the particular thread that is released is arbitrary.
+ * same semantics as {@link java.util.concurrent.locks.Condition#signal()}, that
+ * is to say that {@link java.util.concurrent.locks.Condition#signalAll()} is
+ * not supported and if there are multiple waiters then the particular thread
+ * that is released is arbitrary.
  */
 @ThreadSafe public class BooleanLatch implements ReusableLatch {
   /**
@@ -70,7 +71,7 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * Releases at most one waiting thread. If the current state is released then
    * nothing happens.
    */
@@ -80,7 +81,7 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * Causes the current thread to wait until the latch has been released, unless
    * the thread is {@linkplain Thread#interrupt() interrupted}.
    * <p>
@@ -101,11 +102,11 @@ import net.jcip.annotations.ThreadSafe;
    * <li>has its interrupted status set on entry to this method; or
    * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
    * </ul>
-   * then {@link InterruptedException} is thrown and the current thread's
-   * interrupted status is cleared.
-   * 
-   * @throws InterruptedException if the current thread is interrupted while
-   * waiting
+   * then {@link java.lang.InterruptedException} is thrown and the current
+   * thread's interrupted status is cleared.
+   *
+   * @throws java.lang.InterruptedException if the current thread is interrupted
+   * while waiting
    */
   public final void await() throws InterruptedException {
     sync.acquireInterruptibly(0);
@@ -113,7 +114,7 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * Causes the current thread to wait until the latch has been released, unless
    * the thread is {@linkplain Thread#interrupt() interrupted}, or the specified
    * waiting time elapses.
@@ -146,13 +147,6 @@ import net.jcip.annotations.ThreadSafe;
    * If the specified waiting time elapses then the value {@code false} is
    * returned. If the time is less than or equal to zero, the method will not
    * wait at all.
-   * 
-   * @param timeout the maximum time to wait
-   * @param unit the time unit of the {@code timeout} argument
-   * @return {@code true} if the count reached zero and {@code false} if the
-   * waiting time elapsed before the count reached zero
-   * @throws InterruptedException if the current thread is interrupted while
-   * waiting
    */
   public final boolean await(final long timeout, final TimeUnit unit) throws InterruptedException {
     return sync.tryAcquireNanos(0, unit.toNanos(timeout));

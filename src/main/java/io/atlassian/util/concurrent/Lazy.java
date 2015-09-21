@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 /**
  * Factory for creating lazily populated references.
- * 
+ *
  * @since 2.1
  */
 public final class Lazy {
@@ -20,7 +20,7 @@ public final class Lazy {
    * <p>
    * The {@link Supplier factory} is not held on to after it is used, enabling
    * it to be garbage collected.
-   * 
+   *
    * @param <T> the type.
    * @param factory for populating the initial value, called only once.
    * @return a supplier
@@ -32,7 +32,7 @@ public final class Lazy {
   /**
    * Memoizing reference that expires the specified amount of time after
    * creation.
-   * 
+   *
    * @param <T> the type.
    * @param factory for populating the initial value, called only once.
    * @param time the amount
@@ -46,7 +46,7 @@ public final class Lazy {
   /**
    * Memoizing reference that expires the specified amount of time after the
    * last time it was accessed.
-   * 
+   *
    * @param <T> the type.
    * @param factory for populating the initial value, called only once.
    * @param time the amount
@@ -58,12 +58,16 @@ public final class Lazy {
   }
 
   /**
-   * Returns a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
+   * Returns a {@link io.atlassian.util.concurrent.ResettableLazyReference}
+   * which creates the value by applying the provided
+   * {@link java.util.function.Supplier}.
    *
-   * @param supplier that creates the value that will be held by the {@link ResettableLazyReference}.
+   * @param supplier that creates the value that will be held by the
+   * {@link io.atlassian.util.concurrent.ResettableLazyReference}.
    * @param <T> the type of the contained element.
-   * @return a {@link ResettableLazyReference} which creates the value by applying the provided {@link Supplier}.
-   * 
+   * @return a {@link io.atlassian.util.concurrent.ResettableLazyReference}
+   * which creates the value by applying the provided
+   * {@link java.util.function.Supplier}.
    * @since 3.0
    */
   public static <T> ResettableLazyReference<T> resettable(final Supplier<T> supplier) {

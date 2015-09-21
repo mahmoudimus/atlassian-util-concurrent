@@ -5,7 +5,7 @@ import java.util.Comparator;
 /**
  * Value representing an amount of Memory, as measured in {@link Unit memory
  * units}.
- * 
+ *
  * @since 2.5
  */
 public final class Memory {
@@ -15,6 +15,10 @@ public final class Memory {
 
   /**
    * Construct a Memory represented in the supplied unit type.
+   *
+   * @param number a long.
+   * @param unit a {@link io.atlassian.util.concurrent.Memory.Unit}.
+   * @return a {@link io.atlassian.util.concurrent.Memory}.
    */
   public static Memory of(long number, Unit unit) {
     return new Memory(number, unit);
@@ -22,6 +26,9 @@ public final class Memory {
 
   /**
    * Construct a Memory represented in bytes.
+   *
+   * @param number a long.
+   * @return a {@link io.atlassian.util.concurrent.Memory}.
    */
   public static Memory bytes(long number) {
     return of(number, Unit.Bytes);
@@ -29,6 +36,9 @@ public final class Memory {
 
   /**
    * Construct a Memory represented in kilobytes.
+   *
+   * @param number a long.
+   * @return a {@link io.atlassian.util.concurrent.Memory}.
    */
   public static Memory kilobytes(long number) {
     return of(number, Unit.KB);
@@ -36,6 +46,9 @@ public final class Memory {
 
   /**
    * Construct a Memory represented in megabytes.
+   *
+   * @param number a long.
+   * @return a {@link io.atlassian.util.concurrent.Memory}.
    */
   public static Memory megabytes(long number) {
     return new Memory(number, Unit.MB);
@@ -43,6 +56,9 @@ public final class Memory {
 
   /**
    * Construct a Memory represented in gigabytes.
+   *
+   * @param number a long.
+   * @return a {@link io.atlassian.util.concurrent.Memory}.
    */
   public static Memory gigabytes(long number) {
     return new Memory(number, Unit.GB);
@@ -50,6 +66,9 @@ public final class Memory {
 
   /**
    * Construct a Memory represented in terabytes.
+   *
+   * @param number a long.
+   * @return a {@link io.atlassian.util.concurrent.Memory}.
    */
   public static Memory terabytes(long number) {
     return new Memory(number, Unit.TB);
@@ -80,13 +99,18 @@ public final class Memory {
 
   /**
    * The number of {@link Unit units} this represents.
+   *
+   * @return a long.
    */
   public long number() {
     return number;
   }
 
   /**
-   * The memory {@link Unit} this is represented in.
+   * The memory {@link io.atlassian.util.concurrent.Memory.Unit} this is
+   * represented in.
+   *
+   * @return a {@link io.atlassian.util.concurrent.Memory.Unit} object.
    */
   public Unit unit() {
     return unit;
@@ -94,6 +118,8 @@ public final class Memory {
 
   /**
    * The number of bytes represented by this instance.
+   *
+   * @return a long.
    */
   public long bytes() {
     return number * unit.bytes;
@@ -105,6 +131,9 @@ public final class Memory {
    * This may involve a loss of precision if the Unit is greater than the
    * current representation. This will always round down to the nearest complete
    * Unit. 2043B will be 1KB for instance.
+   *
+   * @param unit a {@link io.atlassian.util.concurrent.Memory.Unit} object.
+   * @return a {@link io.atlassian.util.concurrent.Memory} object.
    */
   public Memory to(Memory.Unit unit) {
     return of(bytes() / unit.bytes, unit);
@@ -114,10 +143,12 @@ public final class Memory {
   // value object overrides
   //
 
+  /** {@inheritDoc} */
   @Override public String toString() {
     return number + " " + unit;
   }
 
+  /** {@inheritDoc} */
   @Override public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -126,6 +157,7 @@ public final class Memory {
     return result;
   }
 
+  /** {@inheritDoc} */
   @Override public boolean equals(Object obj) {
     if (this == obj)
       return true;

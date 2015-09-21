@@ -16,15 +16,13 @@
 
 package io.atlassian.util.concurrent;
 
-import java.util.function.Supplier;
-
 /**
- * Consume the object a {@link Supplier} produces.
+ * Consume the object a {@link java.util.function.Supplier} produces.
  */
 public interface Sink<T> {
   /**
    * Consume the product.
-   * 
+   *
    * @param element must not be null
    */
   void consume(T element);

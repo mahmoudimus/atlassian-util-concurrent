@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.atlassian.pom</groupId>
         <artifactId>central-pom</artifactId>
-        <version>4.0.4</version>
+        <version>4.0.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.atlassian.util.concurrent</groupId>
@@ -68,6 +68,22 @@
                             *
                         </Import-Package>
                     </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>0.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <configFile>${project.basedir}/src/eclipse/code-format.xml</configFile>
                 </configuration>
             </plugin>
         </plugins>

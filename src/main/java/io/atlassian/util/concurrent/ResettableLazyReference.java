@@ -35,7 +35,7 @@ import net.jcip.annotations.ThreadSafe;
  * <p>
  * For instance:
  * <p>
- * 
+ *
  * <pre>
  * final ResettableLazyReference&lt;MyObject&gt; ref = new ResettableLazyReference() {
  *   protected MyObject create() throws Exception {
@@ -44,22 +44,23 @@ import net.jcip.annotations.ThreadSafe;
  *   }
  * };
  * </pre>
- * 
+ *
  * Then call {@link #get()} to get a reference to the referenced object:
- * 
+ *
  * <pre>
  * MyObject myLazyLoadedObject = ref.get()
  * </pre>
- * 
+ *
  * NOTE: Interruption policy is that if you want to be cancellable while waiting
  * for another thread to create the value, instead of calling {@link #get()}
  * call {@link #getInterruptibly()}. However, If your {@link #create()} method
- * is interrupted and throws an {@link InterruptedException}, it is treated as
- * an application exception and will be the causal exception inside the runtime
- * {@link InitializationException} that {@link #get()} or
- * {@link #getInterruptibly()} throws and your {@link #create()} will not be
- * called again.
- * 
+ * is interrupted and throws an {@link java.lang.InterruptedException}, it is
+ * treated as an application exception and will be the causal exception inside
+ * the runtime
+ * {@link io.atlassian.util.concurrent.LazyReference.InitializationException}
+ * that {@link #get()} or {@link #getInterruptibly()} throws and your
+ * {@link #create()} will not be called again.
+ *
  * @param <T> the type of the contained element.
  */
 @ThreadSafe public abstract class ResettableLazyReference<T> implements Supplier<T> {
@@ -70,11 +71,12 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * The object factory method, guaranteed to be called once and only once.
-   * 
+   *
    * @return the object that {@link #get()} and {@link #getInterruptibly()} will
    * return.
-   * @throws Exception if anything goes wrong, rethrown as an
-   * InitializationException from {@link #get()} and {@link #getInterruptibly()}
+   * @throws java.lang.Exception if anything goes wrong, rethrown as an
+   * Initializationjava.lang.Exception from {@link #get()} and
+   * {@link #getInterruptibly()}
    */
   protected abstract T create() throws Exception;
 
@@ -83,11 +85,12 @@ import net.jcip.annotations.ThreadSafe;
    * <code>create()</code> method throws an Exception calls to
    * <code>get()</code> will throw an InitializationException which wraps the
    * previously thrown exception.
-   * 
+   *
    * @return the object that {@link #create()} created.
    * @throws InitializationException if the {@link #create()} method throws an
-   * exception. The {@link InitializationException#getCause()} will contain the
-   * exception thrown by the {@link #create()} method
+   * exception. The
+   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException#getCause()}
+   * will contain the exception thrown by the {@link #create()} method
    */
   public final T get() {
     return referrent.get();
@@ -98,16 +101,19 @@ import net.jcip.annotations.ThreadSafe;
    * <code>create()</code> method throws an Exception, calls to
    * <code>get()</code> will throw a RuntimeException which wraps the previously
    * thrown exception.
-   * 
+   *
    * @return the object that {@link #create()} created.
    * @throws InitializationException if the {@link #create()} method throws an
-   * exception. The {@link InitializationException#getCause()} will contain the
-   * exception thrown by the {@link #create()} method
-   * @throws InterruptedException If the calling thread is Interrupted while
-   * waiting for another thread to create the value (if the creating thread is
-   * interrupted while blocking on something, the {@link InterruptedException}
-   * will be thrown as the causal exception of the
-   * {@link InitializationException} to everybody calling this method).
+   * exception. The
+   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException#getCause()}
+   * will contain the exception thrown by the {@link #create()} method
+   * @throws java.lang.InterruptedException If the calling thread is Interrupted
+   * while waiting for another thread to create the value (if the creating
+   * thread is interrupted while blocking on something, the
+   * {@link java.lang.InterruptedException} will be thrown as the causal
+   * exception of the
+   * {@link io.atlassian.util.concurrent.LazyReference.InitializationException}
+   * to everybody calling this method).
    */
   public final T getInterruptibly() throws InterruptedException {
     return referrent.getInterruptibly();
@@ -116,7 +122,7 @@ import net.jcip.annotations.ThreadSafe;
   /**
    * Reset the internal reference. Anyone currently in the process of calling
    * {@link #get()} will still force that and receive the old reference.
-   * 
+   *
    * Note: this method was made final in 3.0. Override
    * {@link #onReset(LazyReference)} to implement custom reset behavior.
    */
@@ -128,7 +134,7 @@ import net.jcip.annotations.ThreadSafe;
    * Reset the internal reference and returns a LazyReference of the old value.
    * Anyone currently in the process of calling {@link #get()} will still force
    * that and receive the old reference however.
-   * 
+   *
    * @return A lazy reference of the old value that may or may not already be
    * initialized. Calling the supplier may block and cause the initialization to
    * occur.
@@ -142,7 +148,7 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    * Template extension method for providing custom reset behavior.
-   * 
+   *
    * @param oldValue the old LazyReference, guaranteed that nobody else has
    * access to it anymore.
    * @since 2.6
@@ -151,7 +157,7 @@ import net.jcip.annotations.ThreadSafe;
 
   /**
    *   Has the {@link #create()} reference been initialized.
-   * 
+   *
    * @return true if the task is complete and has not been reset.
    */
   public final boolean isInitialized() {

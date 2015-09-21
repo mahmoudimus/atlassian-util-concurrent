@@ -22,25 +22,43 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Convenience class for re-throwing {@link TimeoutException} as an unchecked
- * exception.
+ * Convenience class for re-throwing
+ * {@link java.util.concurrent.TimeoutException} as an unchecked exception.
  */
 public class RuntimeTimeoutException extends RuntimeException {
 
   private static final long serialVersionUID = -5025209597479375477L;
 
+  /**
+   * Constructor for RuntimeTimeoutException.
+   *
+   * @param cause a {@link java.util.concurrent.TimeoutException}.
+   */
   public RuntimeTimeoutException(final TimeoutException cause) {
     super(requireNonNull(cause, "cause"));
   }
 
+  /**
+   * Constructor for RuntimeTimeoutException.
+   *
+   * @param message a {@link java.lang.String} object.
+   * @param cause a {@link java.util.concurrent.TimeoutException}.
+   */
   public RuntimeTimeoutException(final String message, final TimeoutException cause) {
     super(message, requireNonNull(cause, "cause"));
   }
 
+  /**
+   * Constructor for RuntimeTimeoutException.
+   *
+   * @param time a long.
+   * @param unit a {@link java.util.concurrent.TimeUnit}.
+   */
   public RuntimeTimeoutException(final long time, final TimeUnit unit) {
     super(new TimedOutException(time, unit));
   }
 
+  /** {@inheritDoc} */
   @Override public TimeoutException getCause() {
     return (TimeoutException) super.getCause();
   }

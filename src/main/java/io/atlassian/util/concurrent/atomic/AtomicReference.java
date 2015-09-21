@@ -23,8 +23,7 @@ import java.util.function.Supplier;
  * AtomicReference with richer functionality. This class implements commonly
  * implemented patterns of use of compareAndSet such as
  * {@link #getOrSetAndGetIf(Object, Object)} and {@link #update(Function)}.
- * 
- * @inheritDoc
+ *
  * @since 0.0.12
  */
 public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicReference<V> {
@@ -42,7 +41,7 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
 
   /**
    * Creates a new AtomicReference with the given initial value.
-   * 
+   *
    * @param initialValue the initial value
    */
   public AtomicReference(final V initialValue) {
@@ -58,11 +57,11 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
    * the one created by the {@link Supplier new value supplier} and return that
    * instead. If the old value argument does not match, ignore both and just
    * return the current value.
-   * 
+   *
    * @param oldValue to check the current value against (reference equality
    * check only).
-   * @param newValue a {@link Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match old value or a
    * newly created value.
    */
@@ -88,8 +87,7 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
    * Check the current value and if it matches the old value argument, set it to
    * the new value and return that instead. If the old value argument does not
    * match, ignore both and just return the current value.
-   * 
-   * @param <T> the object type.
+   *
    * @param oldValue to check the current value against (reference equality
    * check only)
    * @param newValue the new value to set it to
@@ -117,8 +115,9 @@ public class AtomicReference<V> extends java.util.concurrent.atomic.AtomicRefere
    * Do the actual update. Calls the factory method with the old value to do the
    * update logic, then sets the value to that if it hasn't changed in the
    * meantime.
-   * 
+   *
    * @return the new updated value.
+   * @param newValueFactory a {@link java.util.function.Function} object.
    */
   public final V update(final Function<V, V> newValueFactory) {
     V oldValue, newValue;

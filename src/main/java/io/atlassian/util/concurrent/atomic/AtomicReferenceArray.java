@@ -22,8 +22,9 @@ import java.util.function.Supplier;
 /**
  * AtomicReferenceArray with richer functionality. This class implements
  * commonly implemented patterns of use of compareAndSet such as
- * {@link #getOrSetAndGetIf(int, Object, Object)} and {@link #update(int, Function)}.
- * 
+ * {@link #getOrSetAndGetIf(int, Object, Object)} and
+ * {@link #update(int, Function)}.
+ *
  * @param <E> the element type of the array.
  * @since 0.0.12
  */
@@ -37,7 +38,7 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
 
   /**
    * Creates a new AtomicReferenceArray of given length.
-   * 
+   *
    * @param length the length of the array
    */
   public AtomicReferenceArray(final int length) {
@@ -47,9 +48,9 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
   /**
    * Creates a new AtomicReferenceArray with the same length as, and all
    * elements copied from, the given array.
-   * 
+   *
    * @param initialValue the array to copy elements from
-   * @throws NullPointerException if array is null
+   * @throws java.lang.NullPointerException if array is null
    */
   public AtomicReferenceArray(final E[] initialValue) {
     super(initialValue);
@@ -64,13 +65,14 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    * the one created by the {@link Supplier new value supplier} and return that
    * instead. If the old value argument does not match, ignore both and just
    * return the current value.
-   * 
+   *
    * @param oldValue to check the current value against (reference equality
    * check only).
-   * @param newValue a {@link Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match old value or a
    * newly created value.
+   * @param index a int.
    */
   public final E getOrSetAndGetIf(final int index, final E oldValue, final Supplier<E> newValue) {
     E result = get(index);
@@ -94,12 +96,13 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    * Check the current value and if it matches the old value argument, set it to
    * the new value and return that instead. If the old value argument does not
    * match, ignore both and just return the current value.
-   * 
+   *
    * @param oldValue to check the current value against (reference equality
    * check only)
    * @param newValue the new value to set it to
    * @return the current reference value if it doesn't match oldValue or a newly
    * created value.
+   * @param index a int.
    */
   public final E getOrSetAndGetIf(final int index, final E oldValue, final E newValue) {
     E result = get(index);
@@ -122,8 +125,10 @@ public class AtomicReferenceArray<E> extends java.util.concurrent.atomic.AtomicR
    * Do the actual update. Calls the factory method with the old value to do the
    * update logic, then sets the value to that if it hasn't changed in the
    * meantime.
-   * 
+   *
    * @return the new updated value.
+   * @param index a int.
+   * @param newValueFactory a {@link java.util.function.Function} object.
    */
   public final E update(final int index, final Function<E, E> newValueFactory) {
     E oldValue, newValue;

@@ -30,10 +30,11 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Utility methods for handling the specifics of correctly using the CAS
- * operations on {@link AtomicReference} classes and the like.
+ * operations on {@link java.util.concurrent.atomic.AtomicReference} classes and
+ * the like.
  * <p>
  * All methods are thread safe.
- * 
+ *
  * @since 0.0.12
  */
 @ThreadSafe public final class Atomics {
@@ -42,13 +43,13 @@ import static java.util.Objects.requireNonNull;
    * Get the current value of the {@link AtomicReference reference} but if it
    * matches the oldValue argument, compare-and-set it to one created by the
    * {@link Supplier new value supplier}.
-   * 
+   *
    * @param <T> the object type.
    * @param reference the reference to get the value from.
    * @param oldValue to check the current value against (reference equality
    * check only).
-   * @param newValue a {@link Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match oldValue or a newly
    * created value.
    */
@@ -75,7 +76,7 @@ import static java.util.Objects.requireNonNull;
    * matches the old value argument, compare-and-set it to the new value and
    * return that instead. If the old value argument does not match, ignore both
    * and return the current value.
-   * 
+   *
    * @param <T> the object type.
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against (reference equality
@@ -103,12 +104,13 @@ import static java.util.Objects.requireNonNull;
 
   /**
    * Get the current value of the {@link AtomicReference reference} but if it is
-   * null, compare-and-set it to one created by the new value {@link Supplier}.
-   * 
+   * null, compare-and-set it to one created by the new value
+   * {@link java.util.function.Supplier}.
+   *
    * @param <T> the object type.
    * @param reference the reference to get the value from
-   * @param newValue a {@link Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match oldValue or a newly
    * created value.
    */
@@ -119,7 +121,7 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicReference reference} but if it is
    * null, compare-and-set it the new value.
-   * 
+   *
    * @param <T> the object type.
    * @param reference the reference to get the value from
    * @param newValue the new value.
@@ -135,18 +137,18 @@ import static java.util.Objects.requireNonNull;
    * Get the current value of the {@link AtomicReferenceArray array reference}
    * but if it matches the oldValue argument, compare-and-set it to one created
    * by the {@link Supplier new value supplier}.
-   * 
+   *
    * @param <T> the object type.
    * @param index the index to the item
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against (reference equality
    * check only)
-   * @param newValue a {@link Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match oldValue or a newly
    * created value.
-   * @throws IndexOutOfBoundsException if the index is less than 0 or equal or
-   * greater than the array size
+   * @throws java.lang.IndexOutOfBoundsException if the index is less than 0 or
+   * equal or greater than the array size
    */
   public static <T> T getAndSetIf(final AtomicReferenceArray<T> reference, final int index, final T oldValue, final Supplier<T> newValue) {
     T result = requireNonNull(reference, "reference").get(index);
@@ -169,7 +171,7 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicReferenceArray array reference}
    * but if it matches the oldValue argument, compare-and-set it the new value.
-   * 
+   *
    * @param <T> the object type.
    * @param index the index to the item
    * @param reference the reference to get the value from
@@ -178,8 +180,8 @@ import static java.util.Objects.requireNonNull;
    * @param newValue the new value.
    * @return the current reference value if it doesn't match oldValue or a newly
    * created value.
-   * @throws IndexOutOfBoundsException if the index is less than 0 or equal or
-   * greater than the array size
+   * @throws java.lang.IndexOutOfBoundsException if the index is less than 0 or
+   * equal or greater than the array size
    */
   public static <T> T getAndSetIf(final AtomicReferenceArray<T> reference, final int index, final T oldValue, final T newValue) {
     T result = requireNonNull(reference, "reference").get(index);
@@ -201,17 +203,17 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicReferenceArray array reference}
    * but if it is null, compare-and-set it to one created by the new value
-   * {@link Supplier}.
-   * 
+   * {@link java.util.function.Supplier}.
+   *
    * @param <T> the object type.
    * @param index the index to the item.
    * @param reference the reference to get the value from.
-   * @param newValue a {@link Supplier} for a new value. May be called more than
-   * once.
+   * @param newValue a {@link java.util.function.Supplier} for a new value. May
+   * be called more than once.
    * @return the current reference value if it doesn't match oldValue or a newly
    * created value.
-   * @throws IndexOutOfBoundsException if the index is less than 0 or equal or
-   * greater than the array size.
+   * @throws java.lang.IndexOutOfBoundsException if the index is less than 0 or
+   * equal or greater than the array size.
    */
   public static <T> T getAndSetIfNull(final AtomicReferenceArray<T> reference, final int index, final Supplier<T> newValue) {
     return getAndSetIf(reference, index, null, newValue);
@@ -220,15 +222,15 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicReferenceArray array reference}
    * but if it is null, compare-and-set it the new value
-   * 
+   *
    * @param <T> the object type.
    * @param index the index to the item.
    * @param reference the reference to get the value from.
    * @param newValue the new value.
    * @return the current reference value if it doesn't match oldValue or the new
    * value.
-   * @throws IndexOutOfBoundsException if the index is less than 0 or equal or
-   * greater than the array size.
+   * @throws java.lang.IndexOutOfBoundsException if the index is less than 0 or
+   * equal or greater than the array size.
    */
   public static <T> T getAndSetIfNull(final AtomicReferenceArray<T> reference, final int index, final T newValue) {
     Supplier<T> supplier = () -> newValue;
@@ -238,7 +240,7 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicLong reference} but if it matches
    * the oldValue argument, compare-and-set it the new value.
-   * 
+   *
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against.
    * @param newValue the new value.
@@ -265,8 +267,8 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicInteger reference} but if it
    * matches the oldValue argument, compare-and-set it to one created by the
-   * newValue {@link Supplier}.
-   * 
+   * newValue {@link java.util.function.Supplier}.
+   *
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against.
    * @param newValue the new value.
@@ -293,8 +295,8 @@ import static java.util.Objects.requireNonNull;
   /**
    * Get the current value of the {@link AtomicBoolean reference} but if it
    * matches the oldValue argument, compare-and-set it to one created by the
-   * newValue {@link Supplier}.
-   * 
+   * newValue {@link java.util.function.Supplier}.
+   *
    * @param reference the reference to get the value from
    * @param oldValue to check the current value against.
    * @param newValue the new value.

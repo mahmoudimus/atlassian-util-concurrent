@@ -22,8 +22,7 @@ import java.util.function.Function;
  * {@link java.util.concurrent.atomic.AtomicInteger} with richer functionality.
  * This class implements commonly implemented patterns of use of compareAndSet
  * such as {@link #getOrSetAndGetIf(int, int)} and {@link #update(Function)}.
- * 
- * @inheritDoc
+ *
  * @since 0.0.12
  */
 public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
@@ -43,7 +42,7 @@ public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
 
   /**
    * Creates a new AtomicInteger with the given initial value.
-   * 
+   *
    * @param initialValue the initial value
    */
   public AtomicInteger(final int initialValue) {
@@ -58,7 +57,7 @@ public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
    * Check the current value and if it matches the old value argument, set it to
    * the new value and return that instead. If the old value argument does not
    * match, ignore both and just return the current value.
-   * 
+   *
    * @param oldValue to check the current value against.
    * @param newValue the new value to set it to.
    * @return the current reference value if it doesn't match oldValue or a newly
@@ -85,8 +84,9 @@ public class AtomicInteger extends java.util.concurrent.atomic.AtomicInteger {
    * Do the actual update. Calls the factory method with the old value to do the
    * update logic, then sets the value to that if it hasn't changed in the
    * meantime.
-   * 
+   *
    * @return the new updated value.
+   * @param newValueFactory a {@link java.util.function.Function} object.
    */
   public final int update(final Function<Integer, Integer> newValueFactory) {
     int oldValue, newValue;
