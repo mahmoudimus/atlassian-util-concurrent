@@ -15,7 +15,7 @@
  */
 package io.atlassian.util.concurrent;
 
-import javax.annotation.*;
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,18 +43,27 @@ public final class Promises {
   /**
    * Create a promise for the input effect.
    *
-   * @param effect an
-   * {@link io.atlassian.util.concurrent.Promises.AsynchronousEffect} used as
-   * the precedent of the returned Promise.
    * @param <A> type of the successful value.
-   * @return a new {@link io.atlassian.util.concurrent.Promise} that will be
-   * fulfilled with the same result that the AsynchronousEffect has. Cancelling
-   * this Promise will have no consequence on the code used to complete the
-   * effect.
+   * @return a new {@link SettablePromise} that can be fulfilled by calling the
+   * {@link Callback} methods it implements. Cancelling this Promise will have
+   * no consequence on the code that calls the callback.
    */
-  public static <A> Promise<A> forEffect(@Nonnull final AsynchronousEffect<A> effect) {
-    Objects.requireNonNull(effect, "AsynchronousEffect");
-    return new OfStage<>(effect.getCompletionStage(), Optional.empty());
+  public static <A> SettablePromise<A> settablePromise() {
+    return settablePromise(Optional.empty());
+  }
+
+  /**
+   * @param <A> type of the successful value.
+   * @param executor to be called to run callbacks and transformations attached
+   * to the returned Promise. If None, they will be executed on the caller
+   * thread.
+   * @return a new {@link SettablePromise} that can be fulfilled by calling the
+   * {@link Callback} methods it implements. Cancelling this Promise will have
+   * no consequence on the code that calls the callback.
+   */
+  public static <A> SettablePromise<A> settablePromise(@Nonnull final Optional<Executor> executor) {
+    Objects.requireNonNull(executor, "Executor");
+    return new Settable<>(executor);
   }
 
   /**
@@ -70,12 +79,11 @@ public final class Promises {
    * cancelling this Promise will cancel that CompletableFuture.
    */
   public static <A> Promise<A> forCompletionStage(@Nonnull final CompletionStage<A> stage) {
-    Objects.requireNonNull(stage, "CompletionStage");
-    return new OfStage<>(stage, Optional.empty());
+    return forCompletionStage(stage, Optional.empty());
   }
 
   /**
-   * Create a promise from the input completion stage.q
+   * Create a promise from the input completion stage.
    *
    * @param stage a {@link java.util.concurrent.CompletionStage} used as the
    * precedent of the returned Promise.
@@ -110,7 +118,7 @@ public final class Promises {
       return ((OfStage<B>) promise).future;
     } else {
       final CompletableFuture<B> aCompletableFuture = new CompletableFuture<>();
-      promise.then(callback(aCompletableFuture::complete, t -> {
+      promise.then(compose(aCompletableFuture::complete, t -> {
         if (promise.isCancelled() && (!(t instanceof CancellationException))) {
           aCompletableFuture.completeExceptionally(new CancellationException(t.getMessage()));
         } else {
@@ -173,29 +181,11 @@ public final class Promises {
    *
    * @return The new promise
    * @since 2.7
-   * @param <A> an A.
-   */
-  public static <A> Function<A, Promise<A>> toPromise() {
-    return new ToPromise<>();
-  }
-
-  static class ToPromise<A> implements Function<A, Promise<A>> {
-    @Override public Promise<A> apply(final A a) {
-      return promise(a);
-    }
-  }
-
-  /**
-   * Creates a new, resolved promise for the specified concrete value.
-   * <p>
-   * Synonym for {@link #promise(Object)}.
    *
-   * @param value The value for which a promise should be created
-   * @return The new promise
-   * @param <A> an A.
+   * @Deprecated use {@link Promises#promise(Object)} as a method reference.
    */
-  public static <A> Promise<A> toResolvedPromise(final A value) {
-    return promise(value);
+  public @Deprecated static <A> Function<A, Promise<A>> toPromise() {
+    return Promises::promise;
   }
 
   /**
@@ -223,19 +213,6 @@ public final class Promises {
     final CompletableFuture<A> future = new CompletableFuture<>();
     future.completeExceptionally(t);
     return Promises.forCompletionStage(future);
-  }
-
-  /**
-   * Creates a new, rejected promise from the given Throwable and result type.
-   * <p>
-   * Synonym for {@link #rejected(Throwable)}
-   *
-   * @param t The throwable
-   * @return The new promise
-   * @param <A> an A.
-   */
-  public static <A> Promise<A> toRejectedPromise(@Nonnull final Throwable t) {
-    return rejected(t);
   }
 
   /**
@@ -269,72 +246,26 @@ public final class Promises {
   }
 
   /**
-   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} by composing
-   * two {@link io.atlassian.util.concurrent.Effect}.
+   * Create a {@link Promise.TryConsumer} by composing two {@link Consumer}.
    *
    * @param success To run if the Future is successful
    * @param failure To run if the Future fails
    * @return The composed Callback
    * @param <A> an A.
    */
-  public static <A> Promise.Callback<A> callback(@Nonnull final Effect<? super A> success, @Nonnull final Effect<Throwable> failure) {
-    return new Promise.Callback<A>() {
-      public void onSuccess(final A result) {
-        success.apply(result);
+  public static <A> Promise.TryConsumer<A> compose(@Nonnull final Consumer<? super A> success, @Nonnull final Consumer<Throwable> failure) {
+    return new Promise.TryConsumer<A>() {
+      public void accept(final A result) {
+        success.accept(result);
       }
 
-      public void onFailure(@Nonnull final Throwable t) {
-        failure.apply(t);
-      }
-    };
-  }
-
-  /**
-   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} that will
-   * delegate to an
-   * {@link io.atlassian.util.concurrent.Promises.AsynchronousEffect}.
-   *
-   * @param effect To fulfill
-   * @return a Callback that transmits values.
-   * @param <A> an A.
-   */
-  public static <A> Promise.Callback<A> callback(@Nonnull final AsynchronousEffect<? super A> effect) {
-    return new Promise.Callback<A>() {
-      public void onSuccess(final A result) {
-        effect.set(result);
-      }
-
-      public void onFailure(@Nonnull final Throwable t) {
-        effect.exception(t);
+      public void fail(@Nonnull final Throwable t) {
+        failure.accept(t);
       }
     };
   }
 
-  /**
-   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} from an
-   * Effect to be run if there is a success.
-   *
-   * @param effect To be passed the produced value if it happens
-   * @return The FutureCallback with a no-op onFailure
-   * @param <A> a A object.
-   */
-  public static <A> Promise.Callback<A> onSuccessDo(@Nonnull final Effect<? super A> effect) {
-    return callback(effect, Effects.noop());
-  }
-
-  /**
-   * Create a {@link io.atlassian.util.concurrent.Promise.Callback} from an
-   * Effect to be run if there is a failure.
-   *
-   * @param effect To be passed an exception if it happens
-   * @return The FutureCallback with a no-op onSuccess
-   * @param <A> a A object.
-   */
-  public static <A> Promise.Callback<A> onFailureDo(@Nonnull final Effect<Throwable> effect) {
-    return callback(Effects.<A> noop(), effect);
-  }
-
-  static final class OfStage<A> implements Promise<A> {
+  static class OfStage<A> implements Promise<A> {
 
     private final CompletableFuture<A> future;
     private final Optional<Executor> executor;
@@ -370,16 +301,16 @@ public final class Promises {
       }
     }
 
-    @Override public Promise<A> done(final Effect<? super A> e) {
-      return then(onSuccessDo(e));
+    @Override public Promise<A> done(final Consumer<? super A> e) {
+      return then(e, t -> {});
     }
 
-    @Override public Promise<A> fail(final Effect<Throwable> e) {
-      return then(onFailureDo(e));
+    @Override public Promise<A> fail(final Consumer<Throwable> e) {
+      return then(a -> {}, e);
     }
 
-    @Override public Promise<A> then(final Callback<? super A> callback) {
-      return this.newPromise(future::whenComplete, future::whenCompleteAsync).apply(biConsumer(callback::onSuccess, callback::onFailure));
+    @Override public Promise<A> then(final TryConsumer<? super A> callback) {
+      return then(callback::accept, callback::fail);
     }
 
     @Override public <B> Promise<B> map(final Function<? super A, ? extends B> function) {
@@ -426,6 +357,10 @@ public final class Promises {
       return future.get(timeout, unit);
     }
 
+    private Promise<A> then(final Consumer<? super A> onSuccess, final Consumer<Throwable> onFailure) {
+      return this.newPromise(future::whenComplete, future::whenCompleteAsync).apply(biConsumer(onSuccess, onFailure));
+    }
+
     private <I, O> Function<I, Promise<O>> newPromise(final Function<I, CompletionStage<O>> f1, final BiFunction<I, Executor, CompletionStage<O>> f2) {
       return i -> {
         if (executor.isPresent()) {
@@ -453,29 +388,25 @@ public final class Promises {
     }
   }
 
-  /**
-   * Create a new Asynchronous Effect.
-   *
-   * @param <A> an A.
-   * @return a {@link io.atlassian.util.concurrent.Promises.AsynchronousEffect}
-   * object.
-   */
-  public static <A> AsynchronousEffect<A> newAsynchronousEffect() {
-    return new AsynchronousEffect<A>() {
-      private final CompletableFuture<A> completionStage = new CompletableFuture<>();
+  static class Settable<A> extends OfStage<A> implements SettablePromise<A> {
+    private final CompletableFuture<A> completableFuture;
 
-      public void set(final A result) {
-        completionStage.complete(result);
-      }
+    public Settable(@Nonnull final Optional<Executor> ex) {
+      this(new CompletableFuture<>(), ex);
+    }
 
-      public void exception(@Nonnull final Throwable t) {
-        completionStage.completeExceptionally(t);
-      }
+    private Settable(@Nonnull final CompletableFuture<A> cf, @Nonnull final Optional<Executor> ex) {
+      super(cf, ex);
+      completableFuture = cf;
+    }
 
-      public @Nonnull CompletionStage<A> getCompletionStage() {
-        return completionStage;
-      }
-    };
+    public void set(final A result) {
+      completableFuture.complete(result);
+    }
+
+    public void exception(@Nonnull final Throwable t) {
+      completableFuture.completeExceptionally(t);
+    }
   }
 
   private static Throwable getRealException(@Nonnull final Throwable t) {
@@ -506,16 +437,23 @@ public final class Promises {
   }
 
   /**
-   * A callback-styled effect that can be completed with a successful value or a
-   * failed exception.
+   * A callback that can be completed with a successful value or a failed
+   * exception.
    * 
    * @param <A> type of the successful value.
    */
-  public interface AsynchronousEffect<A> {
+  public interface Callback<A> {
     void set(A result);
 
     void exception(@Nonnull Throwable t);
-
-    @Nonnull CompletionStage<A> getCompletionStage();
   }
+
+  /**
+   * A promise that can be completed with a successful value or a failed
+   * exception.
+   * 
+   * @param <A> type of the successful value.
+   */
+  public interface SettablePromise<A> extends Promise<A>, Callback<A> {}
+
 }

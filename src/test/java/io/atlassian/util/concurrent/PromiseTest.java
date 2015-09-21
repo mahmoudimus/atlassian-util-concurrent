@@ -7,16 +7,17 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PromiseTest {
   Function<Throwable, String> getThrowableMessage = Throwable::getMessage;
 
   @Test public void flatMapPromise() {
-    final Promises.AsynchronousEffect<String> fOne = Promises.newAsynchronousEffect();
-    final Promises.AsynchronousEffect<Integer> fTwo = Promises.newAsynchronousEffect();
-    final Promise<String> pOne = Promises.forEffect(fOne);
-    final Promise<Integer> pTwo = pOne.flatMap(input -> Promises.forEffect(fTwo));
+    final Promises.SettablePromise<String> pOne = Promises.settablePromise();
+    final Promises.SettablePromise<Integer> pTwo = Promises.settablePromise();
+    final Promises.Callback<String> fOne = pOne;
+    final Promises.Callback<Integer> fTwo = pTwo;
 
     assertThat(pOne.isDone(), is(false));
     assertThat(pTwo.isDone(), is(false));
@@ -60,8 +61,8 @@ public class PromiseTest {
   }
 
   @Test public void failCanTransformException() {
-    final Promises.AsynchronousEffect<String> future = Promises.newAsynchronousEffect();
-    final Promise<String> promise = Promises.forEffect(future).map(input -> "Ok").recover(Throwable::getMessage);
+    final Promises.SettablePromise<String> future = Promises.settablePromise();
+    final Promise<String> promise = future.map(input -> "Ok").recover(Throwable::getMessage);
     future.exception(new RuntimeException("Some message"));
     assertThat(promise.claim(), is("Some message"));
   }
@@ -76,10 +77,10 @@ public class PromiseTest {
     assertThat(promise.recover(getThrowableMessage).claim(), is("Oh Noes!!!"));
   }
 
-  private static class FailEffect implements Effect<Throwable> {
+  private static class FailEffect implements Consumer<Throwable> {
     Throwable throwable;
 
-    public void apply(Throwable throwable) {
+    public void accept(Throwable throwable) {
       this.throwable = throwable;
     }
   }
