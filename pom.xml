@@ -160,4 +160,11 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+
+    <distributionManagement>
+        <site>
+            <id>atlassian-documentation</id>
+            <url>scpexe://docs-app.internal.atlassian.com/var/www/domains/docs.atlassian.com/${project.artifactId}/${project.version}</url>
+        </site>
+    </distributionManagement>
 </project>
