@@ -9,7 +9,7 @@
     <groupId>io.atlassian.util.concurrent</groupId>
     <artifactId>atlassian-util-concurrent</artifactId>
     <name>Atlassian Concurrency Utilities</name>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.1-SNAPSHOT</version>
     <description>This project contains utility classes that are used by
 		various products and projects inside Atlassian and may have some
 		utility to the world at large.</description>
@@ -28,7 +28,8 @@
         <connection>scm:git:git@bitbucket.org:atlassian/atlassian-util-concurrent.git</connection>
         <developerConnection>scm:git:git@bitbucket.org:atlassian/atlassian-util-concurrent.git</developerConnection>
         <url>https://bitbucket.org/atlassian/atlassian-util-concurrent</url>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
     <licenses>
         <license>
             <name>Apache 2</name>
