@@ -1,5 +1,6 @@
 package io.atlassian.util.concurrent;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +9,7 @@ import java.util.function.Function;
 /**
  * Helper methods for working with completion stages
  */
+@ParametersAreNonnullByDefault
 public final class CompletionStages {
 
   private CompletionStages() {}
@@ -29,7 +31,9 @@ public final class CompletionStages {
 
   /**
    * Block and retrieve the value from a {@link CompletionStage} or handle the
-   * associated error
+   * associated error. In general you should avoid calling this method unless
+   * you absolutely have to force a value from the CompletionStage as it will
+   * block.
    *
    * @param completionStage The completionStage that holds the value
    * @param onError Function to be invoked if the forcing of the CompletionStage
@@ -38,7 +42,7 @@ public final class CompletionStages {
    * @return The value in the completion stage if the CompletionStage succeeds
    * or the result of passing the error to onError
    */
-  public static <T> T getCompletionStageValue(final CompletionStage<T> completionStage, final Function<Throwable, ? extends T> onError) {
+  public static <T> T blockAndGet(final CompletionStage<T> completionStage, final Function<Throwable, ? extends T> onError) {
     try {
       return completionStage.toCompletableFuture().get();
     } catch (Throwable throwable) {
@@ -48,21 +52,22 @@ public final class CompletionStages {
 
   /**
    * Block and retrieve the value from a {@link CompletionStage} or handle the
-   * associated error
+   * associated error. In general you should avoid calling this method unless
+   * you absolutely have to force a value from the CompletionStage as it will
+   * block.
    *
    * @param <T> The type held inside the CompletionState
    * @param completionStage The completionStage that holds the value
    * @param timeout How long to wait when retrieving the future value
-   * @param timeUnit The timeunit for timeout
    * @param onError Function to be invoked if the forcing of the CompletionStage
    * fails
    * @return The value in the completion stage if the CompletionStage succeeds
    * or the result of passing the error to onError
    */
-  public static <T> T getCompletionStageValue(final CompletionStage<T> completionStage, final long timeout, final TimeUnit timeUnit,
-    final Function<Throwable, ? extends T> onError) {
+  public static <T> T blockAndGet(final CompletionStage<T> completionStage, final Timeout timeout,
+                                  final Function<Throwable, ? extends T> onError) {
     try {
-      return completionStage.toCompletableFuture().get(timeout, timeUnit);
+      return completionStage.toCompletableFuture().get(timeout.getTimeoutPeriod(), timeout.getUnit());
     } catch (Throwable throwable) {
       return onError.apply(throwable);
     }
