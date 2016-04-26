@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static io.atlassian.util.concurrent.CompletionStages.blockAndGet;
+import static io.atlassian.util.concurrent.CompletionStages.unsafeBlockAndGet;
 import static io.atlassian.util.concurrent.Timeout.getMillisTimeout;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -39,7 +39,7 @@ public class CompletionStagesTest {
     final String value = "value";
     CompletionStage<String> completionStage = CompletableFuture.completedFuture(value);
 
-    assertThat(CompletionStages.blockAndGet(completionStage, throwable -> "no"), equalTo(value));
+    assertThat(unsafeBlockAndGet(completionStage, throwable -> "no"), equalTo(value));
   }
 
   @Test public void getCompletionStageValueInvokesErrorFunction() {
@@ -47,14 +47,14 @@ public class CompletionStagesTest {
     CompletionStage<String> completionStage = CompletionStages.fail(exception);
     String value = "value";
 
-    assertThat(CompletionStages.blockAndGet(completionStage, throwable -> value), equalTo(value));
+    assertThat(unsafeBlockAndGet(completionStage, throwable -> value), equalTo(value));
   }
 
   @Test public void getCompletionStageValueWithTimeoutReturnsValue() {
     final String value = "value";
     CompletionStage<String> completionStage = CompletableFuture.completedFuture(value);
 
-    assertThat(blockAndGet(completionStage, getMillisTimeout(10, TimeUnit.MILLISECONDS), throwable -> "no"), equalTo(value));
+    assertThat(unsafeBlockAndGet(completionStage, getMillisTimeout(10, TimeUnit.MILLISECONDS), throwable -> "no"), equalTo(value));
   }
 
   @Test public void getCompletionStageValueWithTimeoutInvokesErrorFunction() {
@@ -62,7 +62,7 @@ public class CompletionStagesTest {
     CompletionStage<String> completionStage = CompletionStages.fail(exception);
     String value = "value";
 
-    assertThat(blockAndGet(completionStage, getMillisTimeout(10, TimeUnit.MILLISECONDS), throwable -> value), equalTo(value));
+    assertThat(unsafeBlockAndGet(completionStage, getMillisTimeout(10, TimeUnit.MILLISECONDS), throwable -> value), equalTo(value));
   }
 
   @Test public void rethrowThrowsException() {
