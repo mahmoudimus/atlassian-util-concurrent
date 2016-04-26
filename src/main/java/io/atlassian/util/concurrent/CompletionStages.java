@@ -72,13 +72,12 @@ import java.util.function.Function;
   }
 
   /**
-   * An error handling function that will just rethrow the exception maintaining
-   * the interrupted state if the Exception was a {@link InterruptedException}
+   * An error handling function that will just rethrow the exception
    *
-   * @param onError Function that will produce a RuntimeException from a
-   * throwable
-   * @param <T> The return type to pretend we are returning
-   * @return Nothing see throws
+   * @param onError Function that will map a Throwable to a RuntimeException
+   * @param <T> The return type for the error handling function
+   * @return A Function that consumes a Throwable and throws it rather than
+   * returning a T
    * @throws RuntimeException created from the onError function
    */
   public static <T> Function<Throwable, T> rethrow(Function<Throwable, ? extends RuntimeException> onError) {
