@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import static io.atlassian.util.concurrent.CompletionStages.unsafeBlockAndGet;
 import static io.atlassian.util.concurrent.Timeout.getMillisTimeout;
@@ -63,14 +62,5 @@ public class CompletionStagesTest {
     String value = "value";
 
     assertThat(unsafeBlockAndGet(completionStage, getMillisTimeout(10, TimeUnit.MILLISECONDS), throwable -> value), equalTo(value));
-  }
-
-  @Test public void rethrowThrowsException() {
-    final IllegalArgumentException exception = new IllegalArgumentException();
-    final NullPointerException exceptionToBeRethrown = new NullPointerException();
-    expectedException.expect(equalTo(exceptionToBeRethrown));
-
-    Function<Throwable, String> errorFunction = CompletionStages.rethrow((throwable) -> exceptionToBeRethrown);
-    errorFunction.apply(exception);
   }
 }
