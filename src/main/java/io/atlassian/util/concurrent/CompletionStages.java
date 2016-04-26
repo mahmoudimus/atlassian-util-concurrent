@@ -9,7 +9,7 @@ import java.util.function.Function;
 /**
  * Helper methods for working with completion stages
  */
-@ParametersAreNonnullByDefault
+@ParametersAreNonnullByDefault 
 public final class CompletionStages {
 
   private CompletionStages() {}
@@ -64,8 +64,7 @@ public final class CompletionStages {
    * @return The value in the completion stage if the CompletionStage succeeds
    * or the result of passing the error to onError
    */
-  public static <T> T blockAndGet(final CompletionStage<T> completionStage, final Timeout timeout,
-                                  final Function<Throwable, ? extends T> onError) {
+  public static <T> T blockAndGet(final CompletionStage<T> completionStage, final Timeout timeout, final Function<Throwable, ? extends T> onError) {
     try {
       return completionStage.toCompletableFuture().get(timeout.getTimeoutPeriod(), timeout.getUnit());
     } catch (Throwable throwable) {
