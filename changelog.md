@@ -1,7 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+This file is formatted according to [change log](http://keepachangelog.com/) i.e. most recent first.
+
 This project attempts to adhere to [Semantic Versioning](http://semver.org/).
+
+## [4.0.1]
+### Added
+- io.atlassian.util.concurrent.CompletionStages which contains some utility functions for working with java.util.concurrent.CompletionStage
 
 ## [4.0.0]
 ### Added
@@ -40,7 +46,3 @@ be wrapped by LazyReference.InitializationException instead of directly thrown
 - Suppliers#toGoogleSupplier removed as part of removing Guava dependency.
 - Suppliers#fromGoogleSupplier removed as part of removing Guava dependency.
 - Effect and Effects removed to be replaced by java.util.function.Consumer.
-
-## [4.0.1]
-### Added
-- io.atlassian.util.concurrent.CompletionStages which contains some utility functions for working with java.util.concurrent.CompletionStage
