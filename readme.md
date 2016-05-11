@@ -26,14 +26,14 @@ Add atlassian-util-concurrent as a dependency to your pom.xml:
         <dependency>
             <groupId>io.atlassian.util.concurrent</groupId>
             <artifactId>atlassian-util-concurrent</artifactId>
-            <version>4.0.0</version>
+            <version>4.0.1</version>
         </dependency>
         ...
     </dependencies>
 
 For Gradle add atlassian-util-concurrent as a dependency to your `dependencies` section:
 
-    compile 'io.atlassian.util.concurrent:atlassian-util-concurrent:4.0.0'
+    compile 'io.atlassian.util.concurrent:atlassian-util-concurrent:4.0.1'
 
 ## Contributors
 
