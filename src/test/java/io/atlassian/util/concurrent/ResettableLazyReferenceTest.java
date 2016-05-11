@@ -29,9 +29,8 @@ public class ResettableLazyReferenceTest {
 
   /**
    * Used to pound the tests
-   * 
-   * @param args ignored
-   * @throws Exception
+   *
+   * @throws Exception If anything goes wrong
    */
   // public static void main(final String[] args) throws Exception {
   // final LazyReferenceTest test = new LazyReferenceTest();
