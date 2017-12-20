@@ -45,3 +45,5 @@ rules in:
 Source code should must be accompanied by a tests covering new functionality. Run tests with:
 
     mvn verify
+
+Publishing to maven central now requires some manual intervention through go/buildeng
