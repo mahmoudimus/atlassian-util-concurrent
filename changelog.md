@@ -10,6 +10,10 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org/).
 - io.atlassian.util.concurrent.CompletionStages which contains some utility functions for working with java.util.concurrent.CompletionStage
 
 ## [4.0.0]
+### Warning
+- The contract change for AsyncCompleter [here](https://bitbucket.org/atlassian/atlassian-util-concurrent/commits/43c89994b7b4b3d4dabe5caa84c3b7e574a6de85), requires additional
+care during upgrade. The compiler will not warn if exception handling for thrown exceptions from AsyncCompleter will no longer function.
+
 ### Added
 - Functional interface annotation to Effect interface
 - javax.annotation.Nonnull annotation in method arguments that aren't expected to be null.
